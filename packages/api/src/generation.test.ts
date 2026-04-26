@@ -53,7 +53,7 @@ vi.mock("@studio/storage", () => ({
   },
 }));
 
-type TestAdapters = Pick<Adapters, "storage" | "queue">;
+type TestAdapters = Pick<Adapters, "storage" | "queue" | "telemetry">;
 
 function makeAdapters(
   overrides: Partial<TestAdapters> = {},
@@ -83,6 +83,12 @@ function makeAdapters(
         receive: vi.fn(async () => []),
         delete: vi.fn(async () => undefined),
         ...overrides.queue,
+      },
+      telemetry: {
+        captureException: vi.fn(),
+        metric: vi.fn(),
+        startSpan: vi.fn(async <T,>(_n: string, fn: () => Promise<T> | T) => fn()),
+        ...overrides.telemetry,
       },
     },
     sendSpy,

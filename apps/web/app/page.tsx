@@ -1,4 +1,7 @@
 import { redirect } from "next/navigation";
+import React from "react";
+
+import styles from "./page.module.css";
 
 import { CtaStrip } from "@/components/marketing/cta-strip";
 import { Differentiator } from "@/components/marketing/differentiator";
@@ -10,8 +13,6 @@ import { MoodsSection } from "@/components/marketing/moods-section";
 import { Pricing } from "@/components/marketing/pricing";
 import { Showcase } from "@/components/marketing/showcase";
 import { getServerSession } from "@/lib/auth/server";
-
-import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 

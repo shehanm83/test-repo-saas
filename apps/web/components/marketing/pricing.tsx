@@ -1,4 +1,5 @@
 import { PLANS, type PlanCode } from "@studio/billing";
+import React from "react";
 
 import styles from "../../app/page.module.css";
 

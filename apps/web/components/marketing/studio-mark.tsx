@@ -1,3 +1,5 @@
+import React from "react";
+
 import styles from "../../app/page.module.css";
 
 export function StudioMark({ size = 24 }: { size?: number }) {
