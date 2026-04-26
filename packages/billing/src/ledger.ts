@@ -16,13 +16,20 @@ export interface LedgerEntry {
   metadata?: Record<string, unknown>;
 }
 
+export interface LedgerTelemetry {
+  metric(name: string, value: number, tags?: Record<string, string>): void;
+}
+
 export class Ledger {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly telemetry?: LedgerTelemetry,
+  ) {}
 
   async post(
     entry: LedgerEntry,
   ): Promise<{ id: string; balanceAfter: number; idempotent: boolean }> {
-    return withWorkspace(this.db, entry.workspaceId, async (tx) => {
+    const result = await withWorkspace(this.db, entry.workspaceId, async (tx) => {
       const [existing] = await tx
         .select()
         .from(creditLedgerEntries)
@@ -72,6 +79,14 @@ export class Ledger {
 
       return { id: inserted!.id, balanceAfter: next, idempotent: false };
     });
+
+    if (!result.idempotent) {
+      this.telemetry?.metric(`ledger.${entry.kind}`, Math.abs(entry.amount), {
+        kind: entry.kind,
+      });
+    }
+
+    return result;
   }
 
   async getBalance(workspaceId: string): Promise<number> {

@@ -38,7 +38,7 @@ export class CaptionWorker {
         outputText: r.text,
       });
 
-      const ledger = new Ledger(dbAdmin);
+      const ledger = new Ledger(dbAdmin, this.adapters.telemetry);
       await ledger.commit({
         workspaceId: j.workspaceId,
         amount: j.creditCost,
@@ -51,7 +51,7 @@ export class CaptionWorker {
         errorPayload: { message: String(e) },
       });
 
-      const ledger = new Ledger(dbAdmin);
+      const ledger = new Ledger(dbAdmin, this.adapters.telemetry);
       await ledger.release({
         workspaceId: j.workspaceId,
         amount: j.creditCost,

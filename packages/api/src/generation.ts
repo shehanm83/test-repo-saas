@@ -11,6 +11,7 @@ import {
   updateGenerationInspirationKey,
   priceBookLookup,
 } from "@studio/db";
+import { tagSpan } from "@studio/observability";
 import { resolveOutputTarget, assertMoodSupportsOutputAspectRatio } from "@studio/shared";
 import type { Adapters, Config } from "@studio/shared";
 import { keys } from "@studio/storage";
@@ -101,7 +102,7 @@ export class GenerationApi {
     }
 
     // Reserve credits
-    const ledger = new Ledger(this.db("app_admin"));
+    const ledger = new Ledger(this.db("app_admin"), this.adapters.telemetry);
     const reservationKey = `gen-reserve-${args.workspaceId}-${Date.now()}-${randomUUID().slice(0, 8)}`;
     try {
       await ledger.reserve({
@@ -166,6 +167,17 @@ export class GenerationApi {
         { idempotencyKey: row.id },
       );
     }
+
+    tagSpan("generation.create", {
+      workspaceId: args.workspaceId,
+      generationId: genId,
+      variants: variantRows.length,
+    });
+    this.adapters.telemetry.metric("generation.created", 1, {
+      hasInspiration: hasInspiration ? "true" : "false",
+    });
+    this.adapters.telemetry.metric("generation.variants", variantRows.length);
+    this.adapters.telemetry.metric("generation.credits_reserved", totalCredits);
 
     return {
       generationId: genId,

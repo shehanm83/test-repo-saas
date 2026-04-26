@@ -29,6 +29,7 @@
     "@studio/auth": "workspace:*",
     "@studio/billing": "workspace:*",
     "@studio/db": "workspace:*",
+    "@studio/observability": "workspace:*",
     "@studio/shared": "workspace:*",
     "@studio/storage": "workspace:*",
     "cheerio": "^1.1.2",

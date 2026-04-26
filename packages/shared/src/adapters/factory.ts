@@ -1,5 +1,6 @@
 import { ClerkAuthProvider, DevAuthProvider } from "@studio/auth";
 import { StripeBillingProvider } from "@studio/billing";
+import { NoopTelemetry, SentryTelemetry } from "@studio/observability";
 import { S3StorageAdapter } from "@studio/storage";
 
 import type { Config } from "../config";
@@ -84,6 +85,15 @@ export function createAdapters(config: Config): Adapters {
           topupPrices: config.billing.topupPrices,
         });
 
+  const telemetry: Telemetry =
+    config.observability.mode === "sentry" && config.observability.sentryDsn
+      ? new SentryTelemetry({
+          dsn: config.observability.sentryDsn,
+          environment: config.observability.environment,
+          cloudwatchRegion: config.storage.region,
+        })
+      : new NoopTelemetry();
+
   return {
     auth,
     storage: new S3StorageAdapter({
@@ -100,6 +110,6 @@ export function createAdapters(config: Config): Adapters {
     billing,
     ai: createUnwiredAdapter<AIProvider>("ai"),
     email: createUnwiredAdapter<EmailProvider>("email"),
-    telemetry: createUnwiredAdapter<Telemetry>("telemetry"),
+    telemetry,
   };
 }

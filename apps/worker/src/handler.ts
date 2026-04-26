@@ -7,6 +7,7 @@ import {
   moods,
   templates as templatesTable,
 } from "@studio/db";
+import { tagSpan } from "@studio/observability";
 import { render } from "@studio/renderer";
 import type { Adapters, Config, AIImageRequest } from "@studio/shared";
 import { keys } from "@studio/storage";
@@ -27,6 +28,12 @@ export class GenerationWorker {
   ) {}
 
   async handle(job: VariantJob): Promise<void> {
+    const start = Date.now();
+    tagSpan("worker.variant", {
+      generationId: job.generationId,
+      variantId: job.variantId,
+      workspaceId: job.workspaceId,
+    });
     const dbAdmin = createDb(this.config.db.url, "app_admin");
 
     // Idempotency: skip if variant already terminal
@@ -143,6 +150,7 @@ export class GenerationWorker {
 
     // Generate with retry then bedrock fallback
     let imageRes;
+    const providerStart = Date.now();
     try {
       imageRes = await this.adapters.ai.generateImage(baseReq);
     } catch {
@@ -156,12 +164,19 @@ export class GenerationWorker {
             modelCode: "bedrock-sd35",
           });
         } catch (e2) {
+          this.adapters.telemetry.captureException(e2, {
+            variantId: job.variantId,
+            stage: "image_generation",
+          });
           await this.markFailed(dbAdmin, job, "model_failure", String(e2), "failed");
           await this.releaseCredits(job, v0.creditCost);
           return;
         }
       }
     }
+    this.adapters.telemetry.metric("provider.latency_ms", Date.now() - providerStart, {
+      model: imageRes.modelUsedCode,
+    });
 
     // Post-flight image moderation
     const imgMod = await this.adapters.ai.moderateImage(Buffer.from(imageRes.imageBytes));
@@ -221,7 +236,7 @@ export class GenerationWorker {
     await this.adapters.storage.putBytes(outKey, rendered.pngBytes, "image/png");
 
     // Commit credits
-    const ledger = new Ledger(dbAdmin);
+    const ledger = new Ledger(dbAdmin, this.adapters.telemetry);
     await ledger.commit({
       workspaceId: job.workspaceId,
       amount: v0.creditCost,
@@ -252,6 +267,11 @@ export class GenerationWorker {
             AND status NOT IN ('completed', 'failed', 'failed_safety')
         )
     `);
+
+    this.adapters.telemetry.metric("variant.duration_ms", Date.now() - start, {
+      model: imageRes.modelUsedCode,
+    });
+    this.adapters.telemetry.metric("variant.completed", 1, { model: imageRes.modelUsedCode });
   }
 
   private async markFailed(
@@ -269,7 +289,7 @@ export class GenerationWorker {
 
   private async releaseCredits(job: VariantJob, amount: number) {
     const dbAdmin = createDb(this.config.db.url, "app_admin");
-    const ledger = new Ledger(dbAdmin);
+    const ledger = new Ledger(dbAdmin, this.adapters.telemetry);
     await ledger.release({
       workspaceId: job.workspaceId,
       amount,

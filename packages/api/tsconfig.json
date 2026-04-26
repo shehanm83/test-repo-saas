@@ -11,6 +11,7 @@
     { "path": "../db" },
     { "path": "../auth" },
     { "path": "../billing" },
+    { "path": "../observability" },
     { "path": "../storage" }
   ]
 }

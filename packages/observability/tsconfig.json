@@ -5,11 +5,5 @@
     "rootDir": "src",
     "composite": true
   },
-  "references": [
-    { "path": "../auth" },
-    { "path": "../billing" },
-    { "path": "../observability" },
-    { "path": "../storage" }
-  ],
   "include": ["src/**/*"]
 }

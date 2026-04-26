@@ -23,6 +23,7 @@
   "dependencies": {
     "@studio/auth": "workspace:*",
     "@studio/billing": "workspace:*",
+    "@studio/observability": "workspace:*",
     "@studio/storage": "workspace:*",
     "zod": "^3.25.76"
   }

@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     "@studio/billing",
     "@studio/db",
     "@studio/gateway",
+    "@studio/observability",
     "@studio/queue",
     "@studio/renderer",
     "@studio/shared",

@@ -9,6 +9,7 @@
     { "path": "packages/billing" },
     { "path": "packages/db" },
     { "path": "packages/gateway" },
+    { "path": "packages/observability" },
     { "path": "packages/queue" },
     { "path": "packages/renderer" },
     { "path": "packages/shared" },

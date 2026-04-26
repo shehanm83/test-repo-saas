@@ -2,6 +2,9 @@ import { createQueueAdapter } from "@studio/queue";
 import { loadConfig, createAdapters } from "@studio/shared";
 
 import { GenerationWorker } from "../src/handler.js";
+import { initWorkerSentry } from "../src/instrumentation.js";
+
+initWorkerSentry();
 
 const config = loadConfig();
 const queueConfig = {
@@ -24,11 +27,14 @@ while (true) {
     workspaceId: string;
   }>(config.queue.generationsQueue, 5);
 
+  adapters.telemetry.metric("queue.depth", messages.length, { queue: "generations" });
+
   for (const m of messages) {
     try {
       await worker.handle(m.body);
       await adapters.queue.delete(config.queue.generationsQueue, m.receiptHandle);
     } catch (e) {
+      adapters.telemetry.captureException(e, { variantId: m.body.variantId });
       console.error("worker error", e);
     }
   }
