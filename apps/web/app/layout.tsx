@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import React from "react";
+import React, { Suspense } from "react";
 
 import { loadConfig } from "@studio/shared";
+
+import { NavProgress } from "@/components/nav-progress";
 
 import "./globals.css";
 
@@ -28,7 +30,12 @@ export default async function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <Suspense fallback={null}>
+          <NavProgress />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 
