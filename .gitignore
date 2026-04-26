@@ -1,8 +1,11 @@
 node_modules/
 dist/
+dist-types/
 .next/
 .open-next/
+.swc/
 .turbo/
+.eslintcache
 coverage/
 cdk.out/
 playwright-report/
