@@ -2,38 +2,80 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import React from "react";
+
+import { I } from "@/components/icons";
 
 const items = [
-  { href: "/admin/moods", label: "Moods" },
-  { href: "/admin/templates", label: "Templates" },
-  { href: "/admin/stock", label: "Stock" },
-  { href: "/admin/pricebook", label: "Pricebook" },
-  { href: "/admin/generations", label: "Generations" },
-  { href: "/admin/users", label: "Users" },
-  { href: "/admin/aup", label: "AUP" },
+  { href: "/admin/moods", label: "Moods", icon: <I.Library size={16} /> },
+  { href: "/admin/templates", label: "Templates", icon: <I.Layout size={16} /> },
+  { href: "/admin/stock", label: "Stock", icon: <I.Image size={16} /> },
+  { href: "/admin/pricebook", label: "Pricebook", icon: <I.Coin size={16} /> },
+  { href: "/admin/generations", label: "Inspector", icon: <I.Search size={16} /> },
+  { href: "/admin/users", label: "Users", icon: <I.User size={16} /> },
+  { href: "/admin/aup", label: "AUP", icon: <I.Shield size={16} /> },
 ];
 
 export function AdminShell(props: { children: React.ReactNode }) {
-  const pathname = usePathname();
-
+  const pathname = usePathname() ?? "";
   return (
-    <div className="studio-admin-shell">
-      <aside className="studio-admin-rail">
-        <div className="studio-admin-badge">ADMIN</div>
-        <nav className="studio-admin-nav">
-          {items.map((item) => (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "220px 1fr",
+        height: "calc(100vh - var(--header-h))",
+      }}
+    >
+      <aside
+        style={{
+          background: "var(--cal-charcoal)",
+          color: "white",
+          padding: 16,
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+        }}
+      >
+        <div
+          className="t-eyebrow"
+          style={{
+            color: "rgba(255,255,255,0.6)",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            marginBottom: 12,
+          }}
+        >
+          <I.Shield size={11} />
+          ADMIN
+        </div>
+        {items.map((item) => {
+          const active =
+            pathname === item.href || pathname.startsWith(item.href + "/");
+          return (
             <Link
               key={item.href}
-              className={`studio-admin-link${pathname === item.href ? " is-active" : ""}`}
               href={item.href}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "8px 10px",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                color: active ? "white" : "rgba(255,255,255,0.7)",
+                background: active ? "rgba(255,255,255,0.08)" : "transparent",
+                textDecoration: "none",
+              }}
             >
-              {item.label}
+              {item.icon}
+              <span>{item.label}</span>
             </Link>
-          ))}
-        </nav>
+          );
+        })}
       </aside>
-      <main className="studio-admin-main">{props.children}</main>
+      <section style={{ overflowY: "auto" }}>{props.children}</section>
     </div>
   );
 }
-

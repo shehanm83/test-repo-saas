@@ -4,6 +4,8 @@ import { createDb, users, workspaces, workspaceMembers } from "@studio/db";
 import { eq, ilike, or } from "drizzle-orm";
 import { loadConfig } from "@studio/shared";
 
+import { I } from "@/components/icons";
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsersPage({
@@ -42,110 +44,115 @@ export default async function AdminUsersPage({
         .limit(50)
     : await baseQuery.limit(50);
 
-  const statusColors: Record<string, string> = {
-    active: "#d1fae5",
-    suspended: "#fee2e2",
-    read_only: "#fef3c7",
-    deleted: "#f3f4f6",
-  };
-
   return (
-    <div className="studio-page">
-      <div className="studio-page-head">
+    <div className="page">
+      <div className="page__head">
         <div>
-          <h1>Users &amp; Workspaces</h1>
-          <p>Search users by email, workspace name, or Stripe customer ID.</p>
+          <h1 className="page__title">Users &amp; Workspaces</h1>
+          <p className="page__sub">
+            Search users by email, workspace name, or Stripe customer ID.
+          </p>
         </div>
       </div>
 
-      <form method="GET" style={{ marginBottom: "1.5rem", display: "flex", gap: "0.5rem" }}>
-        <input
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder="email, workspace name, or Stripe customer ID…"
-          style={{
-            flex: 1,
-            padding: "0.5rem 0.75rem",
-            border: "1px solid #d1d5db",
-            borderRadius: "0.375rem",
-            fontSize: "0.875rem",
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            padding: "0.5rem 1rem",
-            borderRadius: "0.375rem",
-            border: "none",
-            background: "#1d4ed8",
-            color: "#fff",
-            fontSize: "0.875rem",
-            fontWeight: 500,
-            cursor: "pointer",
-          }}
-        >
+      <form
+        method="GET"
+        style={{ marginBottom: 16, display: "flex", gap: 8, maxWidth: 540 }}
+      >
+        <div style={{ position: "relative", flex: 1 }}>
+          <I.Search
+            size={14}
+            style={{
+              position: "absolute",
+              left: 12,
+              top: 11,
+              color: "var(--fg-3)",
+            }}
+          />
+          <input
+            className="input"
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="email, workspace name, or Stripe customer ID…"
+            style={{ paddingLeft: 36 }}
+          />
+        </div>
+        <button type="submit" className="btn btn--primary">
           Search
         </button>
       </form>
 
       {rows.length === 0 ? (
-        <p style={{ color: "#6b7280" }}>No results found.</p>
+        <div className="empty card">
+          <div className="empty__art">
+            <I.Search size={28} />
+          </div>
+          <div className="empty__title">No results found</div>
+          <div className="empty__sub">Try a different search term.</div>
+        </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          {rows.map((row) => (
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+          {rows.map((row, i) => (
             <div
               key={`${row.userId}-${row.workspaceId ?? "none"}`}
               style={{
-                padding: "0.75rem 1rem",
-                border: "1px solid #e5e7eb",
-                borderRadius: "0.5rem",
-                background: "#fff",
+                padding: "12px 24px",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                borderBottom: i < rows.length - 1 ? "1px solid var(--cal-gray-200)" : "0",
               }}
             >
               <div>
-                <p style={{ fontWeight: 500, fontSize: "0.875rem" }}>{row.email}</p>
-                <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                  Role: {row.role} &middot; Joined {new Date(row.createdAt).toLocaleDateString()}
-                </p>
-                {row.workspaceName && (
-                  <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                <div style={{ fontWeight: 500, fontSize: 14 }}>{row.email}</div>
+                <div className="t-small" style={{ marginTop: 2, fontSize: 12 }}>
+                  Role: {row.role} · Joined{" "}
+                  {new Date(row.createdAt).toLocaleDateString()}
+                </div>
+                {row.workspaceName ? (
+                  <div className="t-small" style={{ marginTop: 2, fontSize: 12 }}>
                     Workspace: {row.workspaceName} ({row.workspacePlan})
-                    {row.stripeCustomerId && (
-                      <span style={{ fontFamily: "monospace" }}> · {row.stripeCustomerId}</span>
-                    )}
-                  </p>
-                )}
+                    {row.stripeCustomerId ? (
+                      <span className="mono"> · {row.stripeCustomerId}</span>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.25rem" }}>
-                {row.workspaceId && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  gap: 6,
+                }}
+              >
+                {row.workspaceId ? (
                   <>
                     <span
-                      style={{
-                        padding: "0.125rem 0.5rem",
-                        borderRadius: "9999px",
-                        fontSize: "0.75rem",
-                        fontWeight: 600,
-                        background: statusColors[row.workspaceStatus ?? ""] ?? "#f3f4f6",
-                        color: "#374151",
-                      }}
+                      className={`pill ${
+                        row.workspaceStatus === "active"
+                          ? "pill--green"
+                          : row.workspaceStatus === "suspended"
+                            ? "pill--red"
+                            : row.workspaceStatus === "read_only"
+                              ? "pill--amber"
+                              : ""
+                      }`}
                     >
                       {row.workspaceStatus}
                     </span>
                     <Link
                       href={`/admin/users/${row.workspaceId}`}
                       style={{
-                        fontSize: "0.75rem",
-                        color: "#1d4ed8",
+                        fontSize: 12,
+                        color: "var(--cal-link)",
                         textDecoration: "underline",
                       }}
                     >
                       View workspace
                     </Link>
                   </>
-                )}
+                ) : null}
               </div>
             </div>
           ))}

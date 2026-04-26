@@ -4,7 +4,32 @@ import { createDb, generations, workspaces } from "@studio/db";
 import { eq, desc } from "drizzle-orm";
 import { loadConfig } from "@studio/shared";
 
+import { I } from "@/components/icons";
+
 export const dynamic = "force-dynamic";
+
+function StatusPill({ status }: { status: string }) {
+  if (status === "completed")
+    return (
+      <span className="pill pill--green">
+        <I.Check size={11} /> Complete
+      </span>
+    );
+  if (status === "failed" || status === "failed_safety")
+    return (
+      <span className="pill pill--red">
+        <I.AlertCircle size={11} /> {status}
+      </span>
+    );
+  if (status === "running")
+    return (
+      <span className="pill pill--accent">
+        <I.Loader size={11} className="spin" />
+        Running
+      </span>
+    );
+  return <span className="pill">{status}</span>;
+}
 
 export default async function AdminGenerationsPage({
   searchParams,
@@ -14,6 +39,10 @@ export default async function AdminGenerationsPage({
   const { q } = await searchParams;
   const db = createDb(loadConfig().db.url, "app_admin");
 
+  const trimmedQ = q?.trim() ?? "";
+  const isUuid = /^[0-9a-f-]{36}$/i.test(trimmedQ);
+  const invalidSearch = trimmedQ.length > 0 && !isUuid;
+
   let rows: Array<{
     id: string;
     brief: string;
@@ -22,13 +51,8 @@ export default async function AdminGenerationsPage({
     workspaceId: string;
     workspaceName: string | null;
   }>;
-
-  const trimmedQ = q?.trim() ?? "";
-  const isUuid = /^[0-9a-f-]{36}$/i.test(trimmedQ);
-  const invalidSearch = trimmedQ.length > 0 && !isUuid;
-
   if (isUuid) {
-    const results = await db
+    rows = await db
       .select({
         id: generations.id,
         brief: generations.brief,
@@ -41,9 +65,8 @@ export default async function AdminGenerationsPage({
       .leftJoin(workspaces, eq(workspaces.id, generations.workspaceId))
       .where(eq(generations.id, trimmedQ))
       .limit(1);
-    rows = results;
   } else {
-    const results = await db
+    rows = await db
       .select({
         id: generations.id,
         brief: generations.brief,
@@ -56,104 +79,124 @@ export default async function AdminGenerationsPage({
       .leftJoin(workspaces, eq(workspaces.id, generations.workspaceId))
       .orderBy(desc(generations.createdAt))
       .limit(50);
-    rows = results;
   }
 
-  const statusColors: Record<string, string> = {
-    pending: "#fef3c7",
-    running: "#dbeafe",
-    completed: "#d1fae5",
-    failed: "#fee2e2",
-  };
-
   return (
-    <div className="studio-page">
-      <div className="studio-page-head">
+    <div className="page page--wide">
+      <div className="page__head">
         <div>
-          <h1>Generation inspector</h1>
-          <p>Search and inspect image generation jobs.</p>
+          <h1 className="page__title">Generation inspector</h1>
+          <p className="page__sub">
+            Search and inspect image generation jobs.
+          </p>
         </div>
       </div>
 
-      <form method="GET" style={{ marginBottom: "1.5rem", display: "flex", gap: "0.5rem" }}>
-        <input
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder="Search by generation ID…"
-          style={{
-            flex: 1,
-            padding: "0.5rem 0.75rem",
-            border: "1px solid #d1d5db",
-            borderRadius: "0.375rem",
-            fontSize: "0.875rem",
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            padding: "0.5rem 1rem",
-            borderRadius: "0.375rem",
-            border: "none",
-            background: "#1d4ed8",
-            color: "#fff",
-            fontSize: "0.875rem",
-            fontWeight: 500,
-            cursor: "pointer",
-          }}
-        >
+      <form
+        method="GET"
+        style={{ marginBottom: 16, display: "flex", gap: 8, maxWidth: 540 }}
+      >
+        <div style={{ position: "relative", flex: 1 }}>
+          <I.Search
+            size={14}
+            style={{
+              position: "absolute",
+              left: 12,
+              top: 11,
+              color: "var(--fg-3)",
+            }}
+          />
+          <input
+            className="input mono"
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="generation_id (36-char UUID)"
+            style={{ paddingLeft: 36, fontSize: 13 }}
+          />
+        </div>
+        <button type="submit" className="btn btn--primary">
           Search
         </button>
       </form>
 
       {invalidSearch ? (
-        <p style={{ color: "#991b1b" }}>Enter a valid generation ID (36-character UUID).</p>
-      ) : rows.length === 0 ? (
-        <p style={{ color: "#6b7280" }}>No generations found.</p>
+        <div
+          className="card"
+          style={{
+            padding: 16,
+            background: "var(--studio-violet-50)",
+            color: "var(--studio-violet-700)",
+            boxShadow: "none",
+            border: "1px solid var(--studio-violet-100)",
+            marginBottom: 16,
+          }}
+        >
+          Enter a valid generation ID (36-character UUID).
+        </div>
+      ) : null}
+
+      {rows.length === 0 ? (
+        <div className="empty card">
+          <div className="empty__art">
+            <I.Search size={28} />
+          </div>
+          <div className="empty__title">No generations found</div>
+          <div className="empty__sub">Try a different ID or clear the filter.</div>
+        </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          {rows.map((row) => (
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+          {rows.map((row, i) => (
             <Link
               key={row.id}
               href={`/admin/generations/${row.id}`}
               style={{
-                display: "block",
-                padding: "0.75rem 1rem",
-                border: "1px solid #e5e7eb",
-                borderRadius: "0.5rem",
-                background: "#fff",
+                display: "grid",
+                gridTemplateColumns: "1fr auto",
+                gap: 16,
+                padding: 16,
+                borderBottom:
+                  i < rows.length - 1 ? "1px solid var(--cal-gray-200)" : "0",
                 textDecoration: "none",
                 color: "inherit",
+                cursor: "pointer",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: "monospace", fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-                    {row.id}
-                  </p>
-                  <p style={{ fontSize: "0.875rem", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {row.brief}
-                  </p>
-                  {row.workspaceName && (
-                    <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>{row.workspaceName}</p>
-                  )}
+              <div style={{ minWidth: 0 }}>
+                <div
+                  className="mono t-small"
+                  style={{ fontSize: 11, marginBottom: 4 }}
+                >
+                  {row.id}
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.25rem", marginLeft: "1rem", flexShrink: 0 }}>
-                  <span
-                    style={{
-                      padding: "0.125rem 0.5rem",
-                      borderRadius: "9999px",
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      background: statusColors[row.status] ?? "#f3f4f6",
-                      color: "#374151",
-                    }}
-                  >
-                    {row.status}
-                  </span>
-                  <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
-                    {new Date(row.createdAt).toLocaleString()}
-                  </span>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {row.brief}
                 </div>
+                {row.workspaceName ? (
+                  <div className="t-small" style={{ marginTop: 4 }}>
+                    {row.workspaceName}
+                  </div>
+                ) : null}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  gap: 6,
+                }}
+              >
+                <StatusPill status={row.status} />
+                <span className="t-small" style={{ fontSize: 11 }}>
+                  {new Date(row.createdAt).toLocaleString()}
+                </span>
               </div>
             </Link>
           ))}
