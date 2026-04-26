@@ -1,6 +1,6 @@
 import { ClerkAuthProvider, DevAuthProvider } from "@studio/auth";
 import { StripeBillingProvider } from "@studio/billing";
-import { NoopTelemetry, SentryTelemetry } from "@studio/observability";
+import { NoopTelemetry } from "@studio/observability/noop";
 import { S3StorageAdapter } from "@studio/storage";
 
 import type { Config } from "../config";
@@ -67,6 +67,24 @@ class StubBillingProvider implements BillingProvider {
   }
 }
 
+let cachedTelemetry: Telemetry | null = null;
+function buildTelemetry(config: Config): Telemetry {
+  if (cachedTelemetry) return cachedTelemetry;
+  if (config.observability.mode === "sentry" && config.observability.sentryDsn) {
+    // Lazy require so @sentry/node + OpenTelemetry only load when actually configured.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { SentryTelemetry } = require("@studio/observability/sentry") as typeof import("@studio/observability/sentry");
+    cachedTelemetry = new SentryTelemetry({
+      dsn: config.observability.sentryDsn,
+      environment: config.observability.environment,
+      cloudwatchRegion: config.storage.region,
+    });
+  } else {
+    cachedTelemetry = new NoopTelemetry();
+  }
+  return cachedTelemetry;
+}
+
 export function createAdapters(config: Config): Adapters {
   const auth: AuthProvider =
     config.auth.mode === "clerk"
@@ -85,15 +103,6 @@ export function createAdapters(config: Config): Adapters {
           topupPrices: config.billing.topupPrices,
         });
 
-  const telemetry: Telemetry =
-    config.observability.mode === "sentry" && config.observability.sentryDsn
-      ? new SentryTelemetry({
-          dsn: config.observability.sentryDsn,
-          environment: config.observability.environment,
-          cloudwatchRegion: config.storage.region,
-        })
-      : new NoopTelemetry();
-
   return {
     auth,
     storage: new S3StorageAdapter({
@@ -110,6 +119,6 @@ export function createAdapters(config: Config): Adapters {
     billing,
     ai: createUnwiredAdapter<AIProvider>("ai"),
     email: createUnwiredAdapter<EmailProvider>("email"),
-    telemetry,
+    telemetry: buildTelemetry(config),
   };
 }

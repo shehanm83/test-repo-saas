@@ -5,7 +5,11 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./noop": "./src/noop.ts",
+    "./sentry": "./src/sentry.ts",
+    "./otel-stub": "./src/otel-stub.ts",
+    "./types": "./src/types.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
