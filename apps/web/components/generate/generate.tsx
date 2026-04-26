@@ -491,13 +491,56 @@ export function Generate(props: {
 
   return (
     <div className="gen-grid" style={{ height: "100%", minHeight: "calc(100vh - 56px)" }}>
-      <div style={{ overflowY: "auto", padding: "32px 32px 80px" }}>
+      <div
+        style={{
+          overflowY: "auto",
+          padding: "0 32px 80px",
+          background:
+            "radial-gradient(ellipse 80% 40% at 50% 0%, #FBE5C2 0%, transparent 55%), radial-gradient(ellipse 50% 30% at 100% 0%, #E8E7FA 0%, transparent 60%), radial-gradient(ellipse 50% 30% at 0% 0%, #D7E5C7 0%, transparent 60%), var(--cal-white)",
+        }}
+      >
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          <div className="page__head" style={{ marginBottom: 24 }}>
-            <div>
-              <h1 className="page__title">New generation</h1>
-              <p className="page__sub">Describe what you want. Studio handles the rest.</p>
+          <div
+            style={{
+              padding: "40px 0 28px",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: 32,
+                right: 0,
+                display: "flex",
+                gap: 4,
+                opacity: 0.85,
+                transform: "rotate(-4deg)",
+              }}
+            >
+              {["#7A0E0E", "#0E5C2F", "#E8C66B", "#5E5CE6"].map((c) => (
+                <span
+                  key={c}
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 4,
+                    background: c,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  }}
+                />
+              ))}
             </div>
+            <div
+              className="t-eyebrow"
+              style={{ color: "var(--studio-violet)", marginBottom: 6 }}
+            >
+              <I.Sparkle size={11} style={{ verticalAlign: "-1px" }} /> New generation
+            </div>
+            <h1 className="page__title">What are we making today?</h1>
+            <p className="page__sub" style={{ marginTop: 6 }}>
+              Describe what you want. Studio handles the rest — 4 finished variants in
+              about 30 seconds.
+            </p>
           </div>
 
           {/* 1. OUTPUT TARGET */}
@@ -1092,24 +1135,67 @@ export function Generate(props: {
           </div>
 
           {/* CTA */}
-          <div style={{ marginTop: 36, display: "flex", gap: 12, alignItems: "center" }}>
+          <div
+            style={{
+              marginTop: 36,
+              padding: 20,
+              borderRadius: 14,
+              background:
+                "linear-gradient(135deg, rgba(94,92,230,0.06) 0%, rgba(31,122,90,0.06) 100%)",
+              boxShadow: "var(--shadow-ring)",
+              display: "flex",
+              gap: 16,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
             <button
               type="button"
               className="btn btn--accent btn--lg"
               onClick={() => void submit()}
               disabled={!canSubmit}
-              style={{ height: 52, padding: "0 24px", fontSize: 15 }}
+              style={{
+                height: 52,
+                padding: "0 28px",
+                fontSize: 15,
+                boxShadow: canSubmit
+                  ? "0 8px 24px rgba(94,92,230,0.32), var(--shadow-button-highlight)"
+                  : "var(--shadow-button-highlight)",
+              }}
             >
-              <I.Sparkle size={16} />
+              {pending ? (
+                <I.Loader size={16} className="spin" />
+              ) : (
+                <I.Sparkle size={16} />
+              )}
               {pending ? "Generating…" : `Generate · ${cost} credits`}
             </button>
-            <span className="t-small">
-              {cost} credits for {variants} variants
-            </span>
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div style={{ fontSize: 13, fontWeight: 500 }}>
+                {cost} credits for {variants} variants
+              </div>
+              <div className="t-small" style={{ marginTop: 2, fontSize: 12 }}>
+                {premium ? "Premium model" : "Standard model"}
+                {inspiration ? " · with inspiration" : ""}
+              </div>
+            </div>
             {error ? (
-              <span className="t-small" style={{ color: "var(--studio-red)" }}>
+              <div
+                style={{
+                  flexBasis: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  background: "#FCEEEE",
+                  color: "var(--studio-red)",
+                  fontSize: 13,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <I.AlertCircle size={14} />
                 {error}
-              </span>
+              </div>
             ) : null}
           </div>
         </div>
@@ -1119,12 +1205,23 @@ export function Generate(props: {
       <div
         style={{
           borderLeft: "1px solid var(--cal-gray-200)",
-          background: "var(--cal-gray-50)",
+          background:
+            "linear-gradient(180deg, var(--cal-gray-50) 0%, #F8F4FB 100%)",
           overflowY: "auto",
           padding: "32px 24px 64px",
         }}
       >
-        <div className="t-eyebrow" style={{ marginBottom: 16 }}>
+        <div
+          className="t-eyebrow"
+          style={{
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            color: "var(--studio-violet)",
+          }}
+        >
+          <I.Sliders size={11} />
           Brand grounding
         </div>
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
@@ -1142,7 +1239,18 @@ export function Generate(props: {
 
         {moodId !== "none" ? (
           <>
-            <div className="t-eyebrow" style={{ marginTop: 24, marginBottom: 16 }}>
+            <div
+              className="t-eyebrow"
+              style={{
+                marginTop: 24,
+                marginBottom: 16,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                color: "#C97A3F",
+              }}
+            >
+              <I.Library size={11} />
               Mood layer
             </div>
             <div className="card" style={{ padding: 0, overflow: "hidden" }}>
@@ -1166,11 +1274,22 @@ export function Generate(props: {
           </>
         ) : null}
 
-        <div className="t-eyebrow" style={{ marginTop: 24, marginBottom: 16 }}>
+        <div
+          className="t-eyebrow"
+          style={{
+            marginTop: 24,
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            color: "var(--studio-green)",
+          }}
+        >
+          <I.Crown size={11} />
           Quality
           <span
             className="pill pill--accent"
-            style={{ marginLeft: 8, height: 18, fontSize: 10 }}
+            style={{ marginLeft: 4, height: 18, fontSize: 10 }}
           >
             Pro
           </span>
@@ -1188,35 +1307,64 @@ export function Generate(props: {
         <div
           style={{
             marginTop: 24,
-            padding: "14px 16px",
-            background: "white",
-            borderRadius: 12,
-            boxShadow: "var(--shadow-ring)",
+            padding: 18,
+            background:
+              "linear-gradient(135deg, var(--cal-charcoal) 0%, #1a1a1a 100%)",
+            color: "white",
+            borderRadius: 14,
+            boxShadow:
+              "0 8px 24px rgba(0,0,0,0.16), var(--shadow-button-highlight)",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
           <div
             style={{
+              position: "absolute",
+              top: -20,
+              right: -20,
+              width: 80,
+              height: 80,
+              borderRadius: 100,
+              background:
+                "radial-gradient(circle, rgba(94,92,230,0.4) 0%, transparent 70%)",
+            }}
+          />
+          <div
+            className="t-eyebrow"
+            style={{ color: "rgba(255,255,255,0.6)", marginBottom: 8 }}
+          >
+            <I.Zap size={11} style={{ verticalAlign: "-1px" }} /> Estimated cost
+          </div>
+          <div
+            style={{
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: "baseline",
+              gap: 4,
+              fontFamily: "var(--font-display)",
             }}
           >
-            <span className="t-small">Estimated cost</span>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 20 }}>
-              {cost}
-              <span style={{ fontSize: 12, color: "var(--fg-3)", marginLeft: 4 }}>credits</span>
+            <span style={{ fontSize: 36, fontWeight: 600 }}>{cost}</span>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
+              credits
             </span>
           </div>
-          <div className="t-small" style={{ marginTop: 4, fontSize: 11 }}>
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: 11,
+              color: "rgba(255,255,255,0.7)",
+            }}
+          >
             {premium ? "15 × 4 variants" : "5 × 4 variants"}
             {inspiration ? " · +4 inspiration" : ""}
           </div>
           <div
             style={{
-              marginTop: 10,
-              height: 4,
+              marginTop: 14,
+              height: 6,
               borderRadius: 100,
-              background: "var(--cal-gray-100)",
+              background: "rgba(255,255,255,0.1)",
               overflow: "hidden",
             }}
           >
@@ -1224,21 +1372,24 @@ export function Generate(props: {
               style={{
                 width: `${Math.min(100, (cost / Math.max(props.credits, 1)) * 100)}%`,
                 height: "100%",
-                background: "var(--studio-violet)",
+                background:
+                  "linear-gradient(90deg, var(--studio-violet) 0%, #B5B4F2 100%)",
               }}
             />
           </div>
           <div
-            className="t-small"
             style={{
-              marginTop: 6,
+              marginTop: 8,
               fontSize: 11,
               display: "flex",
               justifyContent: "space-between",
+              color: "rgba(255,255,255,0.7)",
             }}
           >
             <span>After this run</span>
-            <span className="mono">{Math.max(0, props.credits - cost)} left</span>
+            <span className="mono" style={{ color: "white", fontWeight: 600 }}>
+              {Math.max(0, props.credits - cost).toLocaleString()} left
+            </span>
           </div>
         </div>
       </div>
