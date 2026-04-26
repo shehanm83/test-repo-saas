@@ -36,6 +36,13 @@
       "when": 1777193004000,
       "tag": "0005_ledger_check",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777193005000,
+      "tag": "0006_rate_limit_counters",
+      "breakpoints": true
     }
   ]
 }

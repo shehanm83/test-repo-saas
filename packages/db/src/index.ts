@@ -10,4 +10,4 @@ export * from "./queries/stock";
 export * from "./queries/template";
 export * from "./queries/workspace";
 export * from "./with-workspace";
-export { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
+export { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";

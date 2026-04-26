@@ -1,0 +1,16 @@
+export const CODES = {
+  AUTH_INVALID_SESSION: "auth.invalid_session",
+  AUTH_INSUFFICIENT_ROLE: "auth.insufficient_role",
+  BILLING_INSUFFICIENT_CREDITS: "billing.insufficient_credits",
+  BILLING_WORKSPACE_READ_ONLY: "billing.workspace_read_only",
+  GENERATION_MODEL_UNAVAILABLE: "generation.model_unavailable",
+  GENERATION_TEMPLATE_NOT_FOUND: "generation.template_not_found",
+  GENERATION_CONCURRENT_CAP: "generation.concurrent_cap",
+  RATE_LIMIT_EXCEEDED: "rate_limit.exceeded",
+  SAFETY_TEXT_BLOCKED: "safety.text_blocked",
+  SAFETY_IMAGE_BLOCKED: "safety.image_blocked",
+  VALIDATION_FAILED: "validation.failed",
+  VALIDATION_FILE_TOO_LARGE: "validation.file_too_large",
+  VALIDATION_INVALID_IMAGE: "validation.invalid_image",
+  VALIDATION_MOOD_ASPECT_MISMATCH: "validation.mood_aspect_mismatch",
+} as const;

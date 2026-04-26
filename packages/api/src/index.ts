@@ -8,3 +8,5 @@ export { PricebookApi } from "./pricebook";
 export { StockApi } from "./stock";
 export { TemplateApi } from "./template";
 export { WorkspaceApi } from "./workspace";
+export { rateLimit } from "./rate-limit";
+export { assertGenerationCapacity } from "./concurrency";
