@@ -4,6 +4,9 @@ dist/
 .open-next/
 .turbo/
 coverage/
+cdk.out/
+playwright-report/
+test-results/
 .env
 .env.local
 .env.*.local

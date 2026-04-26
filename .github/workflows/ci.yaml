@@ -105,7 +105,79 @@ jobs:
   e2e:
     needs: install
     runs-on: ubuntu-latest
-    if: false
+    if: true
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: studio
+          POSTGRES_PASSWORD: dev
+          POSTGRES_DB: studio
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U studio"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      minio:
+        image: minio/minio
+        ports: ["9000:9000", "9001:9001"]
+        env:
+          MINIO_ROOT_USER: minio
+          MINIO_ROOT_PASSWORD: minio12345
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
+          --health-interval 5s
+          --health-retries 10
+      elasticmq:
+        image: softwaremill/elasticmq-native
+        ports: ["9324:9324"]
+    env:
+      DATABASE_URL: postgres://studio:dev@localhost:5432/studio
+      AUTH_MODE: dev
+      QUEUE_MODE: elasticmq
+      SQS_ENDPOINT: http://localhost:9324
+      SQS_REGION: us-east-1
+      SQS_QUEUE_GENERATIONS: http://localhost:9324/queue/generations
+      SQS_QUEUE_CAPTIONS: http://localhost:9324/queue/captions
+      SQS_DLQ_GENERATIONS: http://localhost:9324/queue/generations-dlq
+      AI_MODE: mock
+      BILLING_MODE: stub
+      STORAGE_MODE: minio
+      S3_ENDPOINT: http://localhost:9000
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY_ID: minio
+      S3_SECRET_ACCESS_KEY: minio12345
+      S3_BUCKET_APP: studio-app
+      S3_BUCKET_GLOBAL: studio-global
+      DEV_USER_ID: 00000000-0000-0000-0000-000000000001
+      APP_URL: http://localhost:3000
+      OBSERVABILITY: none
     steps:
       - uses: actions/checkout@v4
-      - run: echo "E2E runs after slice 50"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @studio/db db:migrate
+      - run: pnpm --filter @studio/db exec tsx scripts/seed-pricebook.ts
+      - run: pnpm --filter @studio/web build
+      - run: pnpm --filter @studio/e2e exec playwright install --with-deps chromium
+      - run: pnpm --filter @studio/web exec next start &
+      - run: pnpm --filter @studio/worker exec tsx scripts/dev.ts &
+      - run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000 >/dev/null 2>&1; then
+              echo "web up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "web did not start"; exit 1
+      - run: pnpm --filter @studio/e2e test
+        env:
+          E2E_BASE_URL: http://localhost:3000
+          CI: "true"

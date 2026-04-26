@@ -1,0 +1,12 @@
+{
+  "app": "tsx bin/studio.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": ["node_modules/**", "cdk.out/**", "dist/**"]
+  },
+  "context": {
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"]
+  }
+}
