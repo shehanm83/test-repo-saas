@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import React, { useState } from "react";
+
+import { I } from "@/components/icons";
 
 interface Workspace {
   id: string;
@@ -30,6 +33,28 @@ interface LedgerEntry {
   generationId: string | null;
 }
 
+function StatusPill({ status }: { status: string }) {
+  if (status === "active")
+    return (
+      <span className="pill pill--green">
+        <I.Check size={11} /> Active
+      </span>
+    );
+  if (status === "suspended")
+    return (
+      <span className="pill pill--red">
+        <I.Lock size={11} /> Suspended
+      </span>
+    );
+  if (status === "read_only")
+    return (
+      <span className="pill pill--amber">
+        <I.AlertCircle size={11} /> Read-only
+      </span>
+    );
+  return <span className="pill">{status}</span>;
+}
+
 export function WorkspaceDetail(props: {
   workspace: Workspace;
   members: Member[];
@@ -39,18 +64,18 @@ export function WorkspaceDetail(props: {
 }) {
   const { workspace, members, ledgerEntries, page, pageSize } = props;
   const [loading, setLoading] = useState<string | null>(null);
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<{ ok: boolean; text: string }[]>([]);
   const [grantAmount, setGrantAmount] = useState("");
   const [grantReason, setGrantReason] = useState("");
 
-  function addMessage(msg: string) {
-    setMessages((prev) => [msg, ...prev]);
+  function pushMsg(ok: boolean, text: string) {
+    setMessages((p) => [{ ok, text }, ...p]);
   }
 
   async function handleGrant() {
     const amount = parseInt(grantAmount, 10);
     if (!amount || amount <= 0) {
-      addMessage("Grant amount must be a positive integer");
+      pushMsg(false, "Grant amount must be a positive integer");
       return;
     }
     setLoading("grant");
@@ -60,17 +85,20 @@ export function WorkspaceDetail(props: {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ amount, reason: grantReason || undefined }),
       });
-      const data = await res.json() as Record<string, unknown>;
+      const data = (await res.json()) as Record<string, unknown>;
       if (!res.ok) {
-        addMessage(`Grant failed: ${String(data.error ?? "unknown")}`);
+        pushMsg(false, `Grant failed: ${String(data.error ?? "unknown")}`);
       } else {
-        addMessage(`Granted ${amount} credits. New balance: ${String(data.balanceAfter)}`);
+        pushMsg(
+          true,
+          `Granted ${amount} credits. New balance: ${String(data.balanceAfter)}`,
+        );
         setGrantAmount("");
         setGrantReason("");
         setTimeout(() => location.reload(), 800);
       }
     } catch (err) {
-      addMessage(`Grant error: ${String(err)}`);
+      pushMsg(false, `Grant error: ${String(err)}`);
     } finally {
       setLoading(null);
     }
@@ -84,311 +112,399 @@ export function WorkspaceDetail(props: {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      const data = await res.json() as Record<string, unknown>;
+      const data = (await res.json()) as Record<string, unknown>;
       if (!res.ok) {
-        addMessage(`${action} failed: ${String(data.error ?? "unknown")}`);
+        pushMsg(false, `${action} failed: ${String(data.error ?? "unknown")}`);
       } else {
-        addMessage(`Workspace ${action === "ban" ? "banned" : action + "ed"}. Status: ${String(data.status)}`);
+        pushMsg(
+          true,
+          `Workspace ${
+            action === "ban" ? "banned" : action + "ed"
+          }. Status: ${String(data.status)}`,
+        );
         setTimeout(() => location.reload(), 800);
       }
     } catch (err) {
-      addMessage(`${action} error: ${String(err)}`);
+      pushMsg(false, `${action} error: ${String(err)}`);
     } finally {
       setLoading(null);
     }
   }
 
   return (
-    <div className="studio-page">
-      {/* Workspace info */}
-      <div className="studio-card" style={{ marginBottom: "1.5rem" }}>
-        <div className="studio-page-head">
-          <div>
-            <h1 style={{ fontSize: "1.125rem", fontWeight: 600 }}>{workspace.name}</h1>
-            <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>{workspace.id}</p>
-          </div>
-          <span
-            style={{
-              padding: "0.25rem 0.75rem",
-              borderRadius: "9999px",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              background:
-                workspace.status === "active"
-                  ? "#d1fae5"
-                  : "#fee2e2",
-              color:
-                workspace.status === "active"
-                  ? "#065f46"
-                  : "#991b1b",
-            }}
-          >
-            {workspace.status}
-          </span>
-        </div>
-        <dl
-          style={{
-            display: "grid",
-            gridTemplateColumns: "auto 1fr",
-            gap: "0.25rem 1rem",
-            marginTop: "1rem",
-            fontSize: "0.875rem",
-          }}
-        >
-          <dt style={{ color: "#6b7280" }}>Plan</dt>
-          <dd>{workspace.planCode}</dd>
-          <dt style={{ color: "#6b7280" }}>Brand quota</dt>
-          <dd>{workspace.brandQuota}</dd>
-          <dt style={{ color: "#6b7280" }}>Seat quota</dt>
-          <dd>{workspace.seatQuota}</dd>
-          <dt style={{ color: "#6b7280" }}>Monthly credit grant</dt>
-          <dd>{workspace.monthlyCreditGrant}</dd>
-          {workspace.stripeCustomerId && (
-            <>
-              <dt style={{ color: "#6b7280" }}>Stripe customer</dt>
-              <dd style={{ fontFamily: "monospace" }}>{workspace.stripeCustomerId}</dd>
-            </>
-          )}
-          <dt style={{ color: "#6b7280" }}>Created</dt>
-          <dd>{new Date(workspace.createdAt).toLocaleString()}</dd>
-        </dl>
+    <div className="page page--wide">
+      <div className="breadcrumb">
+        <Link href="/admin/users" style={{ textDecoration: "none" }}>
+          Users &amp; Workspaces
+        </Link>
+        <I.ChevronRight size={12} />
+        <span className="mono">{workspace.id.slice(0, 8)}…</span>
       </div>
 
-      {/* Members */}
-      {members.length > 0 && (
-        <div className="studio-card" style={{ marginBottom: "1.5rem" }}>
-          <h2 style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Members</h2>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+      <div className="page__head">
+        <div>
+          <h1 className="page__title">{workspace.name}</h1>
+          <p className="page__sub mono" style={{ fontSize: 12 }}>
+            {workspace.id}
+          </p>
+        </div>
+        <StatusPill status={workspace.status} />
+      </div>
+
+      {messages.length > 0 ? (
+        <div
+          style={{
+            marginBottom: 16,
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            alignItems: "flex-start",
+          }}
+        >
+          {messages.map((m, i) => (
+            <span
+              key={i}
+              className={`pill ${m.ok ? "pill--green" : "pill--red"}`}
+            >
+              {m.ok ? <I.Check size={11} /> : <I.AlertCircle size={11} />}
+              {m.text}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
+        <div className="t-eyebrow" style={{ marginBottom: 16 }}>
+          Workspace details
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 24,
+          }}
+        >
+          <KV label="Plan">
+            <span className="pill pill--accent">
+              <I.Crown size={11} /> {workspace.planCode.toUpperCase()}
+            </span>
+          </KV>
+          <KV label="Brand quota" value={workspace.brandQuota} />
+          <KV label="Seat quota" value={workspace.seatQuota} />
+          <KV label="Monthly credits" value={workspace.monthlyCreditGrant.toLocaleString()} />
+          {workspace.stripeCustomerId ? (
+            <KV label="Stripe customer">
+              <span className="mono" style={{ fontSize: 12 }}>
+                {workspace.stripeCustomerId}
+              </span>
+            </KV>
+          ) : null}
+          <KV label="Created" value={new Date(workspace.createdAt).toLocaleString()} />
+        </div>
+      </div>
+
+      {members.length > 0 ? (
+        <div
+          className="card"
+          style={{ padding: 0, overflow: "hidden", marginBottom: 16 }}
+        >
+          <div
+            style={{
+              padding: "16px 24px",
+              borderBottom: "1px solid var(--cal-gray-200)",
+            }}
+            className="t-eyebrow"
+          >
+            Members
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                <th style={{ textAlign: "left", padding: "0.5rem", color: "#6b7280", fontWeight: 500 }}>Email</th>
-                <th style={{ textAlign: "left", padding: "0.5rem", color: "#6b7280", fontWeight: 500 }}>Role</th>
-                <th style={{ textAlign: "left", padding: "0.5rem", color: "#6b7280", fontWeight: 500 }}>Accepted</th>
+              <tr style={{ background: "var(--cal-gray-50)" }}>
+                {["Email", "Role", "Accepted"].map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      textAlign: "left",
+                      padding: "10px 24px",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: "var(--fg-3)",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.4,
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {members.map((m) => (
-                <tr key={m.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
-                  <td style={{ padding: "0.5rem" }}>{m.email}</td>
-                  <td style={{ padding: "0.5rem" }}>{m.role}</td>
-                  <td style={{ padding: "0.5rem", color: "#6b7280" }}>
-                    {m.acceptedAt ? new Date(m.acceptedAt).toLocaleDateString() : "pending"}
+                <tr
+                  key={m.id}
+                  style={{ borderTop: "1px solid var(--cal-gray-200)" }}
+                >
+                  <td style={{ padding: "10px 24px" }}>{m.email}</td>
+                  <td style={{ padding: "10px 24px" }}>
+                    <span className="pill">{m.role}</span>
+                  </td>
+                  <td style={{ padding: "10px 24px" }}>
+                    {m.acceptedAt ? (
+                      <span className="pill pill--green">
+                        <I.Check size={11} />{" "}
+                        {new Date(m.acceptedAt).toLocaleDateString()}
+                      </span>
+                    ) : (
+                      <span className="pill pill--amber">Pending</span>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      )}
+      ) : null}
 
-      {/* Manual grant */}
-      <div className="studio-card" style={{ marginBottom: "1.5rem" }}>
-        <h2 style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Manual credit grant</h2>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", flexWrap: "wrap" }}>
+      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
+        <div className="t-eyebrow" style={{ marginBottom: 16 }}>
+          Manual credit grant
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "160px 1fr auto",
+            gap: 12,
+            alignItems: "end",
+          }}
+        >
           <div>
-            <label style={{ display: "block", fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-              Amount (credits)
-            </label>
+            <label className="label">Amount (credits)</label>
             <input
+              className="input"
               type="number"
               min="1"
               value={grantAmount}
               onChange={(e) => setGrantAmount(e.target.value)}
-              style={{
-                padding: "0.375rem 0.625rem",
-                border: "1px solid #d1d5db",
-                borderRadius: "0.375rem",
-                fontSize: "0.875rem",
-                width: "8rem",
-              }}
+              placeholder="100"
             />
           </div>
-          <div style={{ flex: 1, minWidth: "12rem" }}>
-            <label style={{ display: "block", fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.25rem" }}>
-              Reason (optional)
-            </label>
+          <div>
+            <label className="label">Reason (optional)</label>
             <input
+              className="input"
               type="text"
               value={grantReason}
               onChange={(e) => setGrantReason(e.target.value)}
               placeholder="admin override reason"
-              style={{
-                padding: "0.375rem 0.625rem",
-                border: "1px solid #d1d5db",
-                borderRadius: "0.375rem",
-                fontSize: "0.875rem",
-                width: "100%",
-              }}
             />
           </div>
           <button
             type="button"
+            className="btn btn--primary"
             disabled={loading !== null || !grantAmount}
             onClick={() => void handleGrant()}
-            style={{
-              padding: "0.375rem 1rem",
-              borderRadius: "0.375rem",
-              border: "none",
-              background: loading === null && grantAmount ? "#1d4ed8" : "#e5e7eb",
-              color: loading === null && grantAmount ? "#fff" : "#9ca3af",
-              cursor: loading === null && grantAmount ? "pointer" : "not-allowed",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-              whiteSpace: "nowrap",
-            }}
           >
+            <I.Plus size={14} />
             {loading === "grant" ? "Granting…" : "Grant credits"}
           </button>
         </div>
       </div>
 
-      {/* Suspend/Reactivate */}
-      <div className="studio-card" style={{ marginBottom: "1.5rem" }}>
-        <h2 style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Workspace status</h2>
-        <div style={{ display: "flex", gap: "0.75rem" }}>
+      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
+        <div className="t-eyebrow" style={{ marginBottom: 16 }}>
+          Workspace status
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button
             type="button"
+            className="btn btn--secondary btn--danger"
             disabled={workspace.status === "suspended" || loading !== null}
             onClick={() => void handleSuspend("suspend")}
-            style={{
-              padding: "0.5rem 1rem",
-              borderRadius: "0.375rem",
-              border: "1px solid #fca5a5",
-              background: workspace.status !== "suspended" && loading === null ? "#fee2e2" : "#f3f4f6",
-              color: workspace.status !== "suspended" ? "#991b1b" : "#9ca3af",
-              cursor:
-                workspace.status !== "suspended" && loading === null ? "pointer" : "not-allowed",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-            }}
           >
-            {loading === "suspend" ? "Suspending…" : "Suspend workspace"}
+            <I.Lock size={14} />
+            {loading === "suspend" ? "Suspending…" : "Suspend"}
           </button>
           <button
             type="button"
+            className="btn btn--secondary btn--danger"
             disabled={workspace.status === "suspended" || loading !== null}
             onClick={() => void handleSuspend("ban")}
-            style={{
-              padding: "0.5rem 1rem",
-              borderRadius: "0.375rem",
-              border: "1px solid #7f1d1d",
-              background: workspace.status !== "suspended" && loading === null ? "#450a0a" : "#f3f4f6",
-              color: workspace.status !== "suspended" && loading === null ? "#fca5a5" : "#9ca3af",
-              cursor: workspace.status !== "suspended" && loading === null ? "pointer" : "not-allowed",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-            }}
           >
-            {loading === "ban" ? "Banning…" : "Ban workspace"}
+            <I.AlertTriangle size={14} />
+            {loading === "ban" ? "Banning…" : "Ban"}
           </button>
           <button
             type="button"
+            className="btn btn--secondary"
             disabled={workspace.status === "active" || loading !== null}
             onClick={() => void handleSuspend("reactivate")}
-            style={{
-              padding: "0.5rem 1rem",
-              borderRadius: "0.375rem",
-              border: "1px solid #6ee7b7",
-              background: workspace.status !== "active" && loading === null ? "#d1fae5" : "#f3f4f6",
-              color: workspace.status !== "active" ? "#065f46" : "#9ca3af",
-              cursor: workspace.status !== "active" && loading === null ? "pointer" : "not-allowed",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-            }}
           >
-            {loading === "reactivate" ? "Reactivating…" : "Reactivate workspace"}
+            <I.Refresh size={14} />
+            {loading === "reactivate" ? "Reactivating…" : "Reactivate"}
           </button>
         </div>
       </div>
 
-      {/* Messages */}
-      {messages.length > 0 && (
-        <div style={{ marginBottom: "1.5rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-          {messages.map((msg, i) => (
-            <p
-              key={i}
-              style={{
-                fontSize: "0.75rem",
-                padding: "0.375rem 0.625rem",
-                background: msg.includes("failed") || msg.includes("error") ? "#fee2e2" : "#d1fae5",
-                borderRadius: "0.25rem",
-                color: msg.includes("failed") || msg.includes("error") ? "#991b1b" : "#065f46",
-              }}
-            >
-              {msg}
-            </p>
-          ))}
+      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+        <div
+          style={{
+            padding: "16px 24px",
+            borderBottom: "1px solid var(--cal-gray-200)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div className="t-eyebrow">Ledger history</div>
+          {page > 0 ? (
+            <span className="t-small">page {page + 1}</span>
+          ) : null}
         </div>
-      )}
-
-      {/* Ledger history */}
-      <div className="studio-card">
-        <h2 style={{ fontWeight: 600, marginBottom: "0.75rem" }}>
-          Ledger history
-          {page > 0 && <span style={{ fontWeight: 400, color: "#6b7280" }}> — page {page + 1}</span>}
-        </h2>
         {ledgerEntries.length === 0 ? (
-          <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>No ledger entries.</p>
+          <div style={{ padding: 32, textAlign: "center", color: "var(--fg-3)" }}>
+            No ledger entries.
+          </div>
         ) : (
           <>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+            <table
+              style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
+            >
               <thead>
-                <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                  <th style={{ textAlign: "left", padding: "0.5rem", color: "#6b7280", fontWeight: 500 }}>Kind</th>
-                  <th style={{ textAlign: "right", padding: "0.5rem", color: "#6b7280", fontWeight: 500 }}>Amount</th>
-                  <th style={{ textAlign: "right", padding: "0.5rem", color: "#6b7280", fontWeight: 500 }}>Balance after</th>
-                  <th style={{ textAlign: "left", padding: "0.5rem", color: "#6b7280", fontWeight: 500 }}>Generation</th>
-                  <th style={{ textAlign: "left", padding: "0.5rem", color: "#6b7280", fontWeight: 500 }}>Date</th>
+                <tr style={{ background: "var(--cal-gray-50)" }}>
+                  {["Kind", "Amount", "Balance after", "Generation", "Date"].map(
+                    (h, i) => (
+                      <th
+                        key={h}
+                        style={{
+                          textAlign: i === 1 || i === 2 ? "right" : "left",
+                          padding: "10px 24px",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "var(--fg-3)",
+                          textTransform: "uppercase",
+                          letterSpacing: 0.4,
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {ledgerEntries.map((entry) => (
-                  <tr key={entry.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
-                    <td style={{ padding: "0.5rem" }}>{entry.kind}</td>
+                  <tr
+                    key={entry.id}
+                    style={{ borderTop: "1px solid var(--cal-gray-200)" }}
+                  >
+                    <td style={{ padding: "10px 24px" }}>
+                      <span className="pill">{entry.kind}</span>
+                    </td>
                     <td
                       style={{
-                        padding: "0.5rem",
+                        padding: "10px 24px",
                         textAlign: "right",
-                        color: entry.amount >= 0 ? "#065f46" : "#991b1b",
+                        fontFamily: "var(--font-mono)",
+                        color:
+                          entry.amount >= 0
+                            ? "var(--studio-green)"
+                            : "var(--studio-red)",
                       }}
                     >
                       {entry.amount >= 0 ? "+" : ""}
                       {entry.amount}
                     </td>
-                    <td style={{ padding: "0.5rem", textAlign: "right" }}>{entry.balanceAfter}</td>
-                    <td style={{ padding: "0.5rem" }}>
+                    <td
+                      style={{
+                        padding: "10px 24px",
+                        textAlign: "right",
+                        fontFamily: "var(--font-mono)",
+                      }}
+                    >
+                      {entry.balanceAfter}
+                    </td>
+                    <td style={{ padding: "10px 24px" }}>
                       {entry.generationId ? (
-                        <a
+                        <Link
                           href={`/admin/generations/${entry.generationId}`}
-                          style={{ color: "#1d4ed8", textDecoration: "underline", fontFamily: "monospace", fontSize: "0.75rem" }}
+                          className="mono"
+                          style={{
+                            color: "var(--cal-link)",
+                            textDecoration: "underline",
+                            fontSize: 12,
+                          }}
                         >
                           {entry.generationId.slice(0, 8)}…
-                        </a>
+                        </Link>
                       ) : (
-                        <span style={{ color: "#9ca3af" }}>—</span>
+                        <span style={{ color: "var(--fg-4)" }}>—</span>
                       )}
                     </td>
-                    <td style={{ padding: "0.5rem", color: "#6b7280" }}>
+                    <td style={{ padding: "10px 24px", color: "var(--fg-3)" }}>
                       {new Date(entry.createdAt).toLocaleString()}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", fontSize: "0.875rem" }}>
-              {page > 0 && (
-                <a href={`?page=${page - 1}`} style={{ color: "#1d4ed8", textDecoration: "underline" }}>
-                  &larr; Previous
-                </a>
-              )}
-              {ledgerEntries.length === pageSize && (
-                <a href={`?page=${page + 1}`} style={{ color: "#1d4ed8", textDecoration: "underline" }}>
-                  Next &rarr;
-                </a>
-              )}
+            <div
+              style={{
+                padding: "12px 24px",
+                display: "flex",
+                gap: 8,
+                borderTop: "1px solid var(--cal-gray-200)",
+              }}
+            >
+              {page > 0 ? (
+                <Link
+                  href={`?page=${page - 1}`}
+                  className="btn btn--secondary btn--sm"
+                  style={{ textDecoration: "none" }}
+                >
+                  <I.ChevronLeft size={12} /> Previous
+                </Link>
+              ) : null}
+              {ledgerEntries.length === pageSize ? (
+                <Link
+                  href={`?page=${page + 1}`}
+                  className="btn btn--secondary btn--sm"
+                  style={{ textDecoration: "none", marginLeft: "auto" }}
+                >
+                  Next <I.ChevronRight size={12} />
+                </Link>
+              ) : null}
             </div>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function KV({
+  label,
+  value,
+  children,
+}: {
+  label: string;
+  value?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 11,
+          color: "var(--fg-3)",
+          textTransform: "uppercase",
+          letterSpacing: 0.4,
+          fontWeight: 600,
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ marginTop: 4, fontSize: 14 }}>
+        {children ?? value ?? "—"}
       </div>
     </div>
   );
