@@ -76,7 +76,7 @@ export function WorkspaceDetail(props: {
     }
   }
 
-  async function handleSuspend(action: "suspend" | "reactivate") {
+  async function handleSuspend(action: "suspend" | "ban" | "reactivate") {
     setLoading(action);
     try {
       const res = await fetch(`/api/admin/users/${workspace.id}/suspend`, {
@@ -88,7 +88,7 @@ export function WorkspaceDetail(props: {
       if (!res.ok) {
         addMessage(`${action} failed: ${String(data.error ?? "unknown")}`);
       } else {
-        addMessage(`Workspace ${action}ed. Status: ${String(data.status)}`);
+        addMessage(`Workspace ${action === "ban" ? "banned" : action + "ed"}. Status: ${String(data.status)}`);
         setTimeout(() => location.reload(), 800);
       }
     } catch (err) {
@@ -113,8 +113,18 @@ export function WorkspaceDetail(props: {
               borderRadius: "9999px",
               fontSize: "0.75rem",
               fontWeight: 600,
-              background: workspace.status === "active" ? "#d1fae5" : "#fee2e2",
-              color: workspace.status === "active" ? "#065f46" : "#991b1b",
+              background:
+                workspace.status === "active"
+                  ? "#d1fae5"
+                  : workspace.status === "banned"
+                  ? "#1c0a00"
+                  : "#fee2e2",
+              color:
+                workspace.status === "active"
+                  ? "#065f46"
+                  : workspace.status === "banned"
+                  ? "#fca5a5"
+                  : "#991b1b",
             }}
           >
             {workspace.status}
@@ -257,6 +267,23 @@ export function WorkspaceDetail(props: {
             }}
           >
             {loading === "suspend" ? "Suspending…" : "Suspend workspace"}
+          </button>
+          <button
+            type="button"
+            disabled={workspace.status === "banned" || loading !== null}
+            onClick={() => void handleSuspend("ban")}
+            style={{
+              padding: "0.5rem 1rem",
+              borderRadius: "0.375rem",
+              border: "1px solid #7f1d1d",
+              background: workspace.status !== "banned" && loading === null ? "#450a0a" : "#f3f4f6",
+              color: workspace.status !== "banned" && loading === null ? "#fca5a5" : "#9ca3af",
+              cursor: workspace.status !== "banned" && loading === null ? "pointer" : "not-allowed",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+            }}
+          >
+            {loading === "ban" ? "Banning…" : "Ban workspace"}
           </button>
           <button
             type="button"

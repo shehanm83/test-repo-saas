@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createDb, workspaces, auditLog } from "@studio/db";
+import { createDb, workspaces } from "@studio/db";
 import { eq } from "drizzle-orm";
 import { loadConfig } from "@studio/shared";
 
