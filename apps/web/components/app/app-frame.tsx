@@ -1,3 +1,5 @@
+import React from "react";
+
 import { Ledger } from "@studio/billing";
 import { createDb, listBrands } from "@studio/db";
 import { loadConfig } from "@studio/shared";
@@ -27,27 +29,24 @@ export async function AppFrame(props: {
     null;
 
   return (
-    <main className="studio-app-shell">
-      <TopBar
-        balance={balance}
-        email={props.session.email}
-        isAdmin={props.session.role === "admin"}
-        workspaceId={props.session.workspaceId}
-        workspaces={props.session.workspaces.map((workspace) => ({
-          id: workspace.id,
-          name: workspace.name,
-        }))}
-      />
-
-      <div className="studio-frame">
+    <div className="app">
+      <div className="app__topbar">
+        <TopBar
+          balance={balance}
+          email={props.session.email}
+          isAdmin={props.session.role === "admin"}
+          workspaceId={props.session.workspaceId}
+          workspaces={props.session.workspaces.map((w) => ({ id: w.id, name: w.name }))}
+          activeWorkspaceName={activeWorkspace?.name ?? "Workspace"}
+        />
+      </div>
+      <div className="app__sidebar">
         <Sidebar
-          brands={brands.map((brand) => ({ id: brand.id, name: brand.name }))}
-          workspaceName={activeWorkspace?.name ?? "Workspace"}
+          brands={brands.map((b) => ({ id: b.id, name: b.name }))}
           planCode={activeWorkspace?.planCode ?? "free"}
         />
-        <section className="studio-main">{props.children}</section>
       </div>
-    </main>
+      <div className="app__main">{props.children}</div>
+    </div>
   );
 }
-

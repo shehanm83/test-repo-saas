@@ -6,6 +6,7 @@ import {
   priceBookEntries,
   templates,
   users,
+  workspaceMembers,
   workspaces,
 } from "@studio/db/schema";
 import { loadConfig } from "@studio/shared/config";
@@ -44,6 +45,16 @@ async function main() {
       set: { name: "Northwind Creative", planCode: "pro" },
     })
     .returning();
+
+  await adminDb
+    .insert(workspaceMembers)
+    .values({
+      workspaceId: workspace.id,
+      userId: user.id,
+      role: "owner",
+      acceptedAt: new Date(),
+    })
+    .onConflictDoNothing();
 
   await adminDb.insert(brands).values({
     workspaceId: workspace.id,
