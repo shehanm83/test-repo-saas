@@ -19,7 +19,7 @@ const STOCK = [
 
 const TRUST_LOGOS = ["NORTHWIND", "LUMEN", "ATLAS", "KESTREL", "PALOMA", "HEMLOCK"];
 
-export function Hero() {
+export function Hero({ isAuthed = false }: { isAuthed?: boolean }) {
   return (
     <section className={styles.hero}>
       <div className={styles.heroChipSwatches}>
@@ -50,9 +50,9 @@ export function Hero() {
           <div className={styles.heroActions}>
             <Link
               className={`${styles.btn} ${styles.btnAccent} ${styles.btnLg}`}
-              href="/sign-up"
+              href={isAuthed ? "/generate" : "/sign-up"}
             >
-              Start free
+              {isAuthed ? "Open Studio" : "Start free"}
               {Icons.arrowRight(16)}
             </Link>
             <VideoModalTrigger />

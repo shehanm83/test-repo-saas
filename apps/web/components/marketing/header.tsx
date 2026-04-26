@@ -5,7 +5,7 @@ import styles from "../../app/page.module.css";
 
 import { StudioMark } from "./studio-mark";
 
-export function Header() {
+export function Header({ isAuthed = false }: { isAuthed?: boolean }) {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
@@ -20,12 +20,20 @@ export function Header() {
           <a href="#footer">Docs</a>
         </nav>
         <div className={styles.headerActions}>
-          <Link className={`${styles.btn} ${styles.btnGhost}`} href="/sign-in">
-            Sign in
-          </Link>
-          <Link className={`${styles.btn} ${styles.btnPrimary}`} href="/sign-up">
-            Start free
-          </Link>
+          {isAuthed ? (
+            <Link className={`${styles.btn} ${styles.btnPrimary}`} href="/generate">
+              Open Studio
+            </Link>
+          ) : (
+            <>
+              <Link className={`${styles.btn} ${styles.btnGhost}`} href="/sign-in">
+                Sign in
+              </Link>
+              <Link className={`${styles.btn} ${styles.btnPrimary}`} href="/sign-up">
+                Start free
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

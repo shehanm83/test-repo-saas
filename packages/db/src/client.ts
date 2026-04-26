@@ -16,14 +16,25 @@ function withRoleUrl(databaseUrl: string, role: DatabaseRole): string {
   return url.toString();
 }
 
+const dbCache = new Map<string, Db>();
+
 export function createDb(databaseUrl: string, role: DatabaseRole = "app_user"): Db {
+  const cacheKey = `${role}@${databaseUrl}`;
+  const cached = dbCache.get(cacheKey);
+  if (cached) return cached;
+
   const sql = postgres(withRoleUrl(databaseUrl, role), {
+    max: 5,
+    idle_timeout: 20,
+    max_lifetime: 60 * 30,
     onnotice: () => undefined,
     transform: { undefined: null },
     connection: { application_name: `studio-${role}` },
   });
 
-  return drizzle(sql, { schema });
+  const db = drizzle(sql, { schema });
+  dbCache.set(cacheKey, db);
+  return db;
 }
 
 export { schema };

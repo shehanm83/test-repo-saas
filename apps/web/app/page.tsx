@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import React from "react";
 
 import styles from "./page.module.css";
@@ -18,14 +17,11 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const session = await getServerSession();
-  if (session) {
-    redirect("/generate");
-  }
 
   return (
     <main className={styles.page}>
-      <Header />
-      <Hero />
+      <Header isAuthed={!!session} />
+      <Hero isAuthed={!!session} />
       <MoodsSection />
       <HowItWorks />
       <Showcase />
