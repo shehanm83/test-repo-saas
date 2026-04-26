@@ -1,4 +1,4 @@
-import { Ledger } from "@studio/billing";
+import { Ledger, PLANS, TOPUP_PACKS } from "@studio/billing";
 import { createDb, creditLedgerEntries } from "@studio/db";
 import { desc, eq } from "@studio/db/operators";
 import { loadConfig } from "@studio/shared";
@@ -6,6 +6,20 @@ import { loadConfig } from "@studio/shared";
 import { BillingPage } from "@/components/billing/billing-page";
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
+
+const PLAN_DISPLAY: Array<{
+  code: keyof typeof PLANS;
+  name: string;
+  popular?: boolean;
+}> = [
+  { code: "free", name: "Free" },
+  { code: "starter", name: "Starter" },
+  { code: "pro", name: "Pro", popular: true },
+  { code: "business", name: "Business" },
+  { code: "agency", name: "Agency" },
+];
+
+const BEST_PACK = "p750";
 
 export default async function BillingRoutePage() {
   const { session, workspace } = await getSessionWorkspace();
@@ -26,12 +40,36 @@ export default async function BillingRoutePage() {
       })
     : [];
 
+  const planCode = workspace?.planCode ?? "free";
+  const monthlyCreditGrant =
+    PLANS[planCode as keyof typeof PLANS]?.monthlyCreditGrant ?? 30;
+
+  const plans = PLAN_DISPLAY.map((p) => ({
+    code: p.code,
+    name: p.name,
+    price: PLANS[p.code].price,
+    brands: PLANS[p.code].brandQuota,
+    seats: PLANS[p.code].seatQuota,
+    credits: PLANS[p.code].monthlyCreditGrant,
+    ...(p.popular ? { popular: true } : {}),
+  }));
+
+  const topupPacks = Object.values(TOPUP_PACKS).map((t) => ({
+    code: t.code,
+    credits: t.credits,
+    priceUsd: t.priceUsd,
+    ...(t.code === BEST_PACK ? { best: true } : {}),
+  }));
+
   return (
     <BillingPage
       balance={balance}
       invoices={invoices}
-      planCode={workspace?.planCode ?? "free"}
+      planCode={planCode}
       sparkline={sparklineRows.map((row) => Math.abs(row.amount)).reverse()}
+      topupPacks={topupPacks}
+      plans={plans}
+      monthlyCreditGrant={monthlyCreditGrant}
     />
   );
 }

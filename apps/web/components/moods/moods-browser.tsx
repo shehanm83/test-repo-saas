@@ -1,114 +1,184 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
-export function MoodsBrowser(props: {
-  moods: Array<{
-    id: string;
-    name: string;
-    kind: string;
-    validFrom: string | null;
-    validTo: string | null;
-    accentPalette: string[];
-  }>;
-}) {
-  type MoodGroup = [label: string, items: typeof props.moods];
-  const [tab, setTab] = useState<"all" | "rightNow" | "always" | "comingSoon">("all");
-  const [query, setQuery] = useState("");
-  const now = Date.now();
+import { I } from "@/components/icons";
 
-  const groups = useMemo(() => {
-    const filtered = props.moods.filter((mood) =>
-      mood.name.toLowerCase().includes(query.toLowerCase()),
-    );
+interface Mood {
+  id: string;
+  slug: string;
+  name: string;
+  kind: string;
+  status: string;
+  group: "now" | "always" | "soon";
+  img: string | null;
+  colors: string[];
+  motifs: string[];
+  validFrom: string | null;
+  validTo: string | null;
+}
 
-    const rightNow = filtered.filter((mood) => {
-      if (mood.kind !== "seasonal") {
-        return false;
-      }
-      const from = mood.validFrom ? new Date(mood.validFrom).getTime() : -Infinity;
-      const to = mood.validTo ? new Date(mood.validTo).getTime() : Infinity;
-      return from <= now && to >= now;
-    });
-    const always = filtered.filter((mood) => mood.kind === "evergreen");
-    const comingSoon = filtered.filter((mood) => {
-      if (mood.kind !== "seasonal" || !mood.validFrom) {
-        return false;
-      }
-      return new Date(mood.validFrom).getTime() > now;
-    });
+export function MoodsBrowser({ moods }: { moods: Mood[] }) {
+  const [tab, setTab] = useState<"all" | "now" | "always" | "soon">("all");
+  const [search, setSearch] = useState("");
 
-    return { rightNow, always, comingSoon };
-  }, [now, props.moods, query]);
-
-  const visibleGroups: MoodGroup[] =
-    tab === "all"
-      ? [
-          ["Right now", groups.rightNow],
-          ["Always", groups.always],
-          ["Coming soon", groups.comingSoon],
-        ]
-      : tab === "rightNow"
-        ? [["Right now", groups.rightNow]]
-        : tab === "always"
-          ? [["Always", groups.always]]
-          : [["Coming soon", groups.comingSoon]];
+  const filtered = useMemo(
+    () =>
+      moods.filter((m) => {
+        if (tab !== "all" && m.group !== tab) return false;
+        if (search && !m.name.toLowerCase().includes(search.toLowerCase())) return false;
+        return true;
+      }),
+    [moods, tab, search],
+  );
 
   return (
-    <div className="studio-page">
-      <div className="studio-page-head">
+    <div className="page page--wide">
+      <div className="page__head">
         <div>
-          <h1>Moods</h1>
-          <p>Curated style packs that stay aligned with your brand kit.</p>
+          <h1 className="page__title">Moods</h1>
+          <p className="page__sub">
+            Curated style packs — seasonal flavor without abandoning your brand.
+          </p>
         </div>
-        <input
-          className="studio-input"
-          placeholder="Search moods…"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
+        <div style={{ position: "relative" }}>
+          <I.Search
+            size={14}
+            style={{ position: "absolute", left: 12, top: 11, color: "var(--fg-3)" }}
+          />
+          <input
+            className="input"
+            placeholder="Search moods…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ paddingLeft: 36, width: 280 }}
+          />
+        </div>
       </div>
 
-      <div className="studio-tab-row">
-        {[
-          ["all", "All"],
-          ["rightNow", "Right now"],
-          ["always", "Always"],
-          ["comingSoon", "Coming soon"],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            className={`studio-tab${tab === id ? " is-active" : ""}`}
-            type="button"
-            onClick={() => setTab(id as typeof tab)}
+      <div className="tabs" style={{ marginBottom: 24 }}>
+        {(
+          [
+            ["all", "All"],
+            ["now", "Right now"],
+            ["always", "Always"],
+            ["soon", "Coming soon"],
+          ] as const
+        ).map(([k, l]) => (
+          <div
+            key={k}
+            className={`tab ${tab === k ? "is-active" : ""}`}
+            onClick={() => setTab(k)}
           >
-            {label}
-          </button>
+            {l}
+          </div>
         ))}
       </div>
 
-      {visibleGroups.map(([label, items]) => (
-        <section key={label} className="studio-page">
-          {items.length > 0 ? <h2 className="studio-section-title">{label}</h2> : null}
-          <div className="studio-mood-browser-grid">
-            {items.map((mood) => (
-              <Link key={mood.id} className="studio-mood-browser-card" href={`/generate?moodId=${mood.id}`}>
-                <div className="studio-mood-browser-card__art" />
-                <div className="studio-mood-browser-card__body">
-                  <strong>{mood.name}</strong>
-                  <span>{mood.kind}</span>
-                  <div className="studio-swatch-row">
-                    {mood.accentPalette.slice(0, 4).map((color) => (
-                      <i key={color} style={{ background: color }} />
+      {filtered.length === 0 ? (
+        <div className="empty card">
+          <div className="empty__art">
+            <I.Library size={28} />
+          </div>
+          <div className="empty__title">No moods match</div>
+          <div className="empty__sub">Try a different search or tab.</div>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 16,
+          }}
+        >
+          {filtered.map((m) => (
+            <Link
+              key={m.id}
+              href={`/generate?mood=${m.id}`}
+              className="card"
+              style={{ padding: 0, overflow: "hidden", cursor: "pointer", textDecoration: "none" }}
+            >
+              <div
+                style={{
+                  aspectRatio: "1/1",
+                  position: "relative",
+                  background: "var(--cal-gray-100)",
+                }}
+              >
+                {m.img ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={m.img}
+                    alt={m.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : null}
+                {m.group === "soon" ? (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: "rgba(0,0,0,0.45)",
+                    }}
+                  />
+                ) : null}
+                <div
+                  style={{ position: "absolute", left: 12, top: 12, display: "flex", gap: 6 }}
+                >
+                  <span className="pill pill--ring" style={{ height: 22, fontSize: 11 }}>
+                    {m.kind}
+                  </span>
+                </div>
+                {m.colors.length > 0 ? (
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 12,
+                      bottom: 12,
+                      display: "flex",
+                      gap: 4,
+                    }}
+                  >
+                    {m.colors.map((c) => (
+                      <span
+                        key={c}
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: 100,
+                          background: c,
+                          boxShadow: "0 0 0 1.5px white",
+                        }}
+                      />
                     ))}
                   </div>
+                ) : null}
+              </div>
+              <div style={{ padding: 14 }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--fg-1)" }}>
+                  {m.name}
                 </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ))}
+                <div className="t-small" style={{ marginTop: 4, fontSize: 12 }}>
+                  {m.validTo
+                    ? `Available until ${new Date(m.validTo).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}`
+                    : m.validFrom
+                      ? `Available from ${new Date(m.validFrom).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                        })}`
+                      : m.motifs.length > 0
+                        ? m.motifs.slice(0, 3).join(" · ")
+                        : "Evergreen"}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
