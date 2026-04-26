@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Studio · Brand-correct image generation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=Fraunces:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="design/colors_and_type.css">
+<link rel="stylesheet" href="design/studio.css">
+<style>
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hover-actions { opacity: 0 !important; }
+.card:hover .hover-actions { opacity: 1 !important; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
+/* Generation form responsive grid */
+.gen-grid { display: grid; grid-template-columns: 1fr 320px; }
+@media (max-width: 1200px) {
+  .gen-grid { grid-template-columns: 1fr; }
+  .gen-grid > :last-child { border-left: 0 !important; border-top: 1px solid var(--cal-gray-200); }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design/icons.jsx"></script>
+<script type="text/babel" src="design/data.jsx"></script>
+<script type="text/babel" src="design/shell.jsx"></script>
+<script type="text/babel" src="design/screens-marketing.jsx"></script>
+<script type="text/babel" src="design/screens-onboarding.jsx"></script>
+<script type="text/babel" src="design/screens-generate.jsx"></script>
+<script type="text/babel" src="design/screens-app1.jsx"></script>
+<script type="text/babel" src="design/screens-app2.jsx"></script>
+<script type="text/babel" src="design/screens-projects.jsx"></script>
+
+<script type="text/babel">
+function App() {
+  const [route, navigate] = useHashRoute();
+
+  // Marketing/auth/onboarding render outside the shell
+  if (route === "/landing" || route === "/") return <Landing navigate={navigate}/>;
+  if (route === "/signin") return <AuthPage mode="signin" navigate={navigate}/>;
+  if (route === "/signup") return <AuthPage mode="signup" navigate={navigate}/>;
+  if (route === "/onboarding") return <Onboarding navigate={navigate}/>;
+
+  // Everything else lives in the shell
+  let page;
+  if (route === "/generate") page = <GeneratePage navigate={navigate}/>;
+  else if (route.startsWith("/results/")) page = <ResultsPage navigate={navigate} genId={route.split("/")[2]}/>;
+  else if (route === "/history") page = <HistoryPage navigate={navigate}/>;
+  else if (route === "/projects") page = <ProjectsPage navigate={navigate}/>;
+  else if (route.startsWith("/projects/")) page = <ProjectDetailPage navigate={navigate} projectId={route.split("/")[2]}/>;
+  else if (route.startsWith("/brands/")) page = <BrandPage navigate={navigate} brandId={route.split("/")[2]}/>;
+  else if (route === "/moods") page = <MoodsPage navigate={navigate}/>;
+  else if (route === "/billing") page = <BillingPage navigate={navigate}/>;
+  else if (route === "/admin/moods") page = <AdminMoodsPage navigate={navigate}/>;
+  else if (route === "/admin/inspector") page = <AdminInspectorPage navigate={navigate}/>;
+  else if (route === "/settings") page = (
+    <div className="page">
+      <h1 className="page__title">Settings</h1>
+      <p className="page__sub">Account, workspace, integrations.</p>
+      <div className="card" style={{ padding: 24, marginTop: 24 }}>
+        <p className="muted">Settings sections live here. See the brand editor for a richer settings-style page pattern.</p>
+        <button className="btn btn--secondary" onClick={() => navigate("/admin/inspector")} style={{ marginTop: 12 }}>
+          <I.Shield size={14}/>Open admin: generation inspector
+        </button>
+      </div>
+    </div>
+  );
+  else if (route === "/stock") page = (
+    <div className="page">
+      <h1 className="page__title">Stock library</h1>
+      <p className="page__sub">Browse curated stock used in mood compositions.</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginTop: 24 }}>
+        {STOCK.map((s,i) => <div key={i} style={{ aspectRatio: "1/1", borderRadius: 10, overflow: "hidden", boxShadow: "var(--shadow-ring)" }}><img src={s} style={{width:"100%",height:"100%",objectFit:"cover"}}/></div>)}
+      </div>
+    </div>
+  );
+  else page = <GeneratePage navigate={navigate}/>;
+
+  return <Shell navigate={navigate} route={route}>{page}</Shell>;
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <ToastProvider>
+    <StoreProvider>
+      <App/>
+    </StoreProvider>
+  </ToastProvider>
+);
+</script>
+</body>
+</html>

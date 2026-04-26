@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: "20.11.0"
+  PNPM_VERSION: "10.16.1"
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+  lint:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm format:check
+
+  typecheck:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+
+  unit:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:unit
+
+  integration:
+    needs: install
+    runs-on: ubuntu-latest
+    if: true
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: studio
+          POSTGRES_PASSWORD: dev
+          POSTGRES_DB: studio
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U studio"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://studio:dev@localhost:5432/studio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @studio/db db:migrate
+      - run: pnpm test:int
+
+  e2e:
+    needs: install
+    runs-on: ubuntu-latest
+    if: false
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "E2E runs after slice 50"

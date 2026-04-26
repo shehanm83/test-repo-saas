@@ -1,0 +1,35 @@
+{
+  "name": "@studio/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run",
+    "test:unit": "vitest run --reporter=default",
+    "test:int": "vitest run --reporter=default --config ../../vitest.integration.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.26.0",
+    "@studio/api": "workspace:*",
+    "@studio/auth": "workspace:*",
+    "@studio/billing": "workspace:*",
+    "@studio/db": "workspace:*",
+    "@studio/gateway": "workspace:*",
+    "@studio/queue": "workspace:*",
+    "@studio/shared": "workspace:*",
+    "@studio/storage": "workspace:*",
+    "drizzle-orm": "^0.44.5",
+    "next": "^15.5.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "@studio/api",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./billing": "./src/billing.ts",
+    "./brand": "./src/brand.ts",
+    "./caption": "./src/caption.ts",
+    "./generation": "./src/generation.ts",
+    "./inspiration": "./src/inspiration.ts",
+    "./mood": "./src/mood.ts",
+    "./pricebook": "./src/pricebook.ts",
+    "./stock": "./src/stock.ts",
+    "./template": "./src/template.ts",
+    "./workspace": "./src/workspace.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src --max-warnings=0",
+    "test": "vitest run",
+    "test:unit": "vitest run --reporter=default",
+    "test:int": "vitest run --reporter=default --config ../../vitest.integration.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@studio/auth": "workspace:*",
+    "@studio/billing": "workspace:*",
+    "@studio/db": "workspace:*",
+    "@studio/shared": "workspace:*",
+    "@studio/storage": "workspace:*",
+    "cheerio": "^1.1.2",
+    "file-type": "^22.0.1",
+    "isomorphic-dompurify": "^2.26.0",
+    "node-vibrant": "^4.0.3",
+    "sharp": "^0.34.5",
+    "svgo": "^4.0.0",
+    "zod": "^3.25.76"
+  }
+}

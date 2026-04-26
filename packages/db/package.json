@@ -1,0 +1,41 @@
+{
+  "name": "@studio/db",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./operators": "./src/operators.ts",
+    "./queries/brand": "./src/queries/brand.ts",
+    "./schema": "./src/schema/index.ts",
+    "./queries/mood": "./src/queries/mood.ts",
+    "./queries/pricebook": "./src/queries/pricebook.ts",
+    "./queries/stock": "./src/queries/stock.ts",
+    "./queries/template": "./src/queries/template.ts",
+    "./with-workspace": "./src/with-workspace.ts",
+    "./queries/identity": "./src/queries/identity.ts",
+    "./queries/workspace": "./src/queries/workspace.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:migrate": "node --import tsx/esm scripts/migrate.ts",
+    "db:studio": "drizzle-kit studio --config drizzle.config.ts",
+    "lint": "eslint src --max-warnings=0",
+    "test": "vitest run",
+    "test:unit": "vitest run --reporter=default",
+    "test:int": "vitest run --reporter=default --config vitest.integration.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.5",
+    "postgres": "^3.4.7"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.5",
+    "drizzle-kit": "^0.31.4",
+    "tsx": "^4.20.5"
+  }
+}

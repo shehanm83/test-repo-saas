@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "apps/web" },
+    { "path": "apps/worker" },
+    { "path": "packages/api" },
+    { "path": "packages/auth" },
+    { "path": "packages/billing" },
+    { "path": "packages/db" },
+    { "path": "packages/gateway" },
+    { "path": "packages/queue" },
+    { "path": "packages/renderer" },
+    { "path": "packages/shared" },
+    { "path": "packages/storage" }
+  ]
+}

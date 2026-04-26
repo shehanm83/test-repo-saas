@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "composite": true
+  },
+  "references": [
+    { "path": "../../packages/shared" },
+    { "path": "../../packages/db" },
+    { "path": "../../packages/billing" },
+    { "path": "../../packages/gateway" },
+    { "path": "../../packages/queue" },
+    { "path": "../../packages/renderer" },
+    { "path": "../../packages/storage" }
+  ],
+  "include": ["src/**/*", "scripts/**/*"]
+}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Studio · Brand-correct image generation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=Fraunces:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="design-bundle/colors_and_type.css">
+<link rel="stylesheet" href="design-bundle/studio.css">
+<style>
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hover-actions { opacity: 0 !important; }
+.card:hover .hover-actions { opacity: 1 !important; }
+</style>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=400&q=80" data-resource-id="img1"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=400&q=80" data-resource-id="img2"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80" data-resource-id="img3"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&q=80" data-resource-id="img4"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400&q=80" data-resource-id="img5"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=400&q=80" data-resource-id="img6"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1509557965875-b88c97052f0e?w=400&q=80" data-resource-id="img7"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=600&q=80" data-resource-id="img9"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1481833761820-0509d3217039?w=600&q=80" data-resource-id="img10"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=600&q=80" data-resource-id="img11"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=600&q=80" data-resource-id="img12"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&q=80" data-resource-id="img13"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&q=80" data-resource-id="img14"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1509557965875-b88c97052f0e?w=600&q=80" data-resource-id="img15"/>
+<meta name="ext-resource-dependency" content="https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80" data-resource-id="img16"/>
+<template id="__bundler_thumbnail" data-bg-color="#FBE5C2">
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#FBE5C2"/>
+  <g transform="translate(600 400)">
+    <circle r="180" fill="#7A0E0E"/>
+    <circle r="120" fill="#5E5CE6"/>
+    <circle r="60" fill="#1F7A5A"/>
+    <text x="0" y="280" font-family="Georgia, serif" font-size="64" font-style="italic" font-weight="500" text-anchor="middle" fill="#0E0E10">Studio</text>
+  </g>
+</svg>
+</template>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-bundle/icons.jsx"></script>
+<script type="text/babel" src="design-bundle/data.jsx"></script>
+<script type="text/babel" src="design-bundle/shell.jsx"></script>
+<script type="text/babel" src="design-bundle/screens-marketing.jsx"></script>
+<script type="text/babel" src="design-bundle/screens-onboarding.jsx"></script>
+<script type="text/babel" src="design-bundle/screens-generate.jsx"></script>
+<script type="text/babel" src="design-bundle/screens-app1.jsx"></script>
+<script type="text/babel" src="design-bundle/screens-app2.jsx"></script>
+<script type="text/babel" src="design-bundle/screens-projects.jsx"></script>
+
+<script type="text/babel">
+function App() {
+  const [route, navigate] = useHashRoute();
+
+  // Marketing/auth/onboarding render outside the shell
+  if (route === "/landing" || route === "/") return <Landing navigate={navigate}/>;
+  if (route === "/signin") return <AuthPage mode="signin" navigate={navigate}/>;
+  if (route === "/signup") return <AuthPage mode="signup" navigate={navigate}/>;
+  if (route === "/onboarding") return <Onboarding navigate={navigate}/>;
+
+  // Everything else lives in the shell
+  let page;
+  if (route === "/generate") page = <GeneratePage navigate={navigate}/>;
+  else if (route.startsWith("/results/")) page = <ResultsPage navigate={navigate} genId={route.split("/")[2]}/>;
+  else if (route === "/history") page = <HistoryPage navigate={navigate}/>;
+  else if (route === "/projects") page = <ProjectsPage navigate={navigate}/>;
+  else if (route.startsWith("/projects/")) page = <ProjectDetailPage navigate={navigate} projectId={route.split("/")[2]}/>;
+  else if (route.startsWith("/brands/")) page = <BrandPage navigate={navigate} brandId={route.split("/")[2]}/>;
+  else if (route === "/moods") page = <MoodsPage navigate={navigate}/>;
+  else if (route === "/billing") page = <BillingPage navigate={navigate}/>;
+  else if (route === "/admin/moods") page = <AdminMoodsPage navigate={navigate}/>;
+  else if (route === "/admin/inspector") page = <AdminInspectorPage navigate={navigate}/>;
+  else if (route === "/settings") page = (
+    <div className="page">
+      <h1 className="page__title">Settings</h1>
+      <p className="page__sub">Account, workspace, integrations.</p>
+      <div className="card" style={{ padding: 24, marginTop: 24 }}>
+        <p className="muted">Settings sections live here. See the brand editor for a richer settings-style page pattern.</p>
+        <button className="btn btn--secondary" onClick={() => navigate("/admin/inspector")} style={{ marginTop: 12 }}>
+          <I.Shield size={14}/>Open admin: generation inspector
+        </button>
+      </div>
+    </div>
+  );
+  else if (route === "/stock") page = (
+    <div className="page">
+      <h1 className="page__title">Stock library</h1>
+      <p className="page__sub">Browse curated stock used in mood compositions.</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginTop: 24 }}>
+        {STOCK.map((s,i) => <div key={i} style={{ aspectRatio: "1/1", borderRadius: 10, overflow: "hidden", boxShadow: "var(--shadow-ring)" }}><img src={s} style={{width:"100%",height:"100%",objectFit:"cover"}}/></div>)}
+      </div>
+    </div>
+  );
+  else page = <GeneratePage navigate={navigate}/>;
+
+  return <Shell navigate={navigate} route={route}>{page}</Shell>;
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <ToastProvider>
+    <StoreProvider>
+      <App/>
+    </StoreProvider>
+  </ToastProvider>
+);
+</script>
+</body>
+</html>

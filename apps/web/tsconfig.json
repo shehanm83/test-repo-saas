@@ -1,0 +1,57 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist-types",
+    "rootDir": ".",
+    "jsx": "preserve",
+    "noEmit": true,
+    "allowJs": false,
+    "baseUrl": ".",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "types": [
+      "vitest/globals"
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "references": [
+    {
+      "path": "../../packages/api"
+    },
+    {
+      "path": "../../packages/auth"
+    },
+    {
+      "path": "../../packages/billing"
+    },
+    {
+      "path": "../../packages/db"
+    },
+    {
+      "path": "../../packages/queue"
+    },
+    {
+      "path": "../../packages/shared"
+    },
+    {
+      "path": "../../packages/storage"
+    }
+  ],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

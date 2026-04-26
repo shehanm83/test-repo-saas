@@ -1,0 +1,21 @@
+function template({ background, brand, slots, output }) {
+  return h(
+    "div",
+    {
+      style: {
+        display: "flex",
+        width: output.width,
+        height: output.height,
+        backgroundImage: "url(" + background.dataUrl + ")",
+        backgroundSize: "cover",
+        color: brand.palette.primary,
+        fontFamily: brand.fonts.heading.family,
+      }
+    },
+    h(
+      "div",
+      { style: { padding: 40, fontSize: 64, fontWeight: 700 } },
+      slots.headline || ""
+    )
+  );
+}

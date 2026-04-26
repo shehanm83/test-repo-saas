@@ -1,0 +1,29 @@
+import { NextResponse } from "next/server";
+
+import { BrandApi } from "@studio/api/brand";
+import { createDb, listBrands } from "@studio/db";
+import { loadConfig } from "@studio/shared";
+
+import { getSessionWorkspace } from "@/lib/auth/server";
+import { createServerAdapters } from "@/lib/server/adapters";
+
+export async function GET() {
+  const { session } = await getSessionWorkspace();
+  if (!session.workspaceId) {
+    return NextResponse.json([], { status: 200 });
+  }
+
+  const brands = await listBrands(createDb(loadConfig().db.url, "app_user"), session.workspaceId);
+  return NextResponse.json(brands);
+}
+
+export async function POST(request: Request) {
+  const { session } = await getSessionWorkspace();
+  if (!session.workspaceId) {
+    return NextResponse.json({ error: "no-workspace" }, { status: 400 });
+  }
+
+  const api = new BrandApi(loadConfig(), createServerAdapters() as never);
+  const payload = await api.create(session.workspaceId, await request.json());
+  return NextResponse.json(payload);
+}

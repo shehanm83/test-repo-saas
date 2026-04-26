@@ -1,0 +1,10 @@
+node_modules
+dist
+.next
+.open-next
+coverage
+pnpm-lock.yaml
+*.tsbuildinfo
+plans
+specs
+template

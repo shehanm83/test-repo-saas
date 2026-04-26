@@ -1,0 +1,306 @@
+/* =========================================================
+   Cal Design System — Colors & Type Tokens
+   Inspired by Cal.com's monochrome scheduling aesthetic.
+   ========================================================= */
+
+/* ---- Webfonts ----
+   Cal Sans is open-source (Mark Davis / Cal.com).
+   Inter & Roboto Mono via Google Fonts CDN — load these
+   in your HTML <head>:
+
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+   Cal Sans is provided locally in /fonts.
+*/
+
+@font-face {
+  font-family: "Cal Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./fonts/CalSans-SemiBold.ttf") format("truetype");
+}
+
+:root {
+  /* =========================================================
+     COLOR — base palette
+     ========================================================= */
+  --cal-charcoal: #242424;       /* primary heading + button */
+  --cal-midnight: #111111;       /* deepest text/overlay */
+  --cal-black: #000000;          /* pure black, link emphasis */
+  --cal-white: #ffffff;          /* canvas */
+  --cal-gray-50: #fafafa;
+  --cal-gray-100: #f5f5f5;       /* faint section tint */
+  --cal-gray-200: #ececec;
+  --cal-gray-300: #d4d4d4;
+  --cal-gray-400: #a3a3a3;
+  --cal-gray-500: #898989;       /* secondary text */
+  --cal-gray-600: #6b6b6b;
+  --cal-gray-700: #525252;
+  --cal-gray-800: #333333;
+
+  --cal-link: #0099ff;
+  --cal-link-default: #0000ee;
+  --cal-focus: rgba(59, 130, 246, 0.5);
+
+  /* Subtle hairline borders, used as ring shadows */
+  --cal-ring-08: rgba(34, 42, 53, 0.08);
+  --cal-ring-10: rgba(34, 42, 53, 0.10);
+  --cal-shadow-soft: rgba(34, 42, 53, 0.05);
+  --cal-shadow-contact: rgba(19, 19, 22, 0.7);
+  --cal-shadow-contact-alt: rgba(36, 36, 36, 0.7);
+  --cal-shadow-soft-alt: rgba(36, 36, 36, 0.05);
+  --cal-inset-highlight: rgba(255, 255, 255, 0.15);
+  --cal-inset-recessed: rgba(0, 0, 0, 0.16);
+
+  /* =========================================================
+     SEMANTIC COLOR — fg / bg / surface
+     ========================================================= */
+  --fg-1: var(--cal-charcoal);   /* headings, primary UI text */
+  --fg-2: var(--cal-midnight);   /* deep nav text, links */
+  --fg-3: var(--cal-gray-500);   /* secondary, muted */
+  --fg-4: var(--cal-gray-400);   /* tertiary, hint */
+  --fg-inverse: var(--cal-white);
+
+  --bg-canvas: var(--cal-white);
+  --bg-subtle: var(--cal-gray-100);
+  --bg-muted: var(--cal-gray-50);
+  --bg-inverse: var(--cal-charcoal);
+
+  --surface-card: var(--cal-white);
+  --surface-overlay: var(--cal-white);
+
+  --border-hairline: var(--cal-ring-08);
+  --border-strong: var(--cal-ring-10);
+
+  --link-fg: var(--cal-link);
+
+  /* =========================================================
+     TYPOGRAPHY — families
+     ========================================================= */
+  --font-display: "Cal Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* =========================================================
+     RADII — 2px → pill
+     ========================================================= */
+  --radius-2: 2px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-29: 29px;
+  --radius-100: 100px;
+  --radius-pill: 9999px;
+
+  /* =========================================================
+     SPACING — 8px base, tight scale
+     ========================================================= */
+  --space-px: 1px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-section: 80px;
+  --space-section-lg: 96px;
+
+  /* =========================================================
+     SHADOWS — multi-layered, ring + diffuse + contact
+     ========================================================= */
+  --shadow-inset: rgba(0, 0, 0, 0.16) 0px 1px 1.9px 0px inset;
+  --shadow-card:
+    rgba(19, 19, 22, 0.7) 0px 1px 5px -4px,
+    rgba(34, 42, 53, 0.08) 0px 0px 0px 1px,
+    rgba(34, 42, 53, 0.05) 0px 4px 8px 0px;
+  --shadow-card-alt:
+    rgba(36, 36, 36, 0.7) 0px 1px 5px -4px,
+    rgba(36, 36, 36, 0.05) 0px 4px 8px 0px;
+  --shadow-soft: rgba(34, 42, 53, 0.05) 0px 4px 8px;
+  --shadow-ring: rgba(34, 42, 53, 0.08) 0px 0px 0px 1px;
+  --shadow-button-highlight: rgba(255, 255, 255, 0.15) 0px 2px 0px inset;
+  --shadow-elevated:
+    rgba(19, 19, 22, 0.7) 0px 1px 5px -4px,
+    rgba(34, 42, 53, 0.10) 0px 0px 0px 1px,
+    rgba(34, 42, 53, 0.08) 0px 12px 24px -4px;
+
+  /* =========================================================
+     MOTION
+     ========================================================= */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 280ms;
+}
+
+/* =========================================================
+   SEMANTIC TYPE — drop these classes onto elements directly
+   ========================================================= */
+
+.t-display {
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 1.10;
+  letter-spacing: 0px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.t-h1 {
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 1.10;
+  letter-spacing: 0px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 1.15;
+  letter-spacing: 0px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.t-h3 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.30;
+  letter-spacing: 0px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.t-h4 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.20;
+  letter-spacing: 0.2px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.t-h5 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.10;
+  letter-spacing: 0.2px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.t-eyebrow {
+  font-family: var(--font-display);
+  font-size: 12px;
+  line-height: 1.50;
+  letter-spacing: 0.2px;
+  font-weight: 600;
+  color: var(--fg-3);
+  text-transform: none;
+}
+
+.t-lede {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.55;
+  letter-spacing: -0.1px;
+  font-weight: 400;
+  color: var(--fg-3);
+}
+
+.t-body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  letter-spacing: 0px;
+  font-weight: 400;
+  color: var(--fg-1);
+}
+
+.t-body-muted {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  letter-spacing: 0px;
+  font-weight: 400;
+  color: var(--fg-3);
+}
+
+.t-small {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: 0px;
+  font-weight: 400;
+  color: var(--fg-3);
+}
+
+.t-ui {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.0;
+  letter-spacing: 0px;
+  font-weight: 500;
+  color: var(--fg-2);
+}
+
+.t-ui-strong {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.0;
+  letter-spacing: 0px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.t-micro {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.0;
+  letter-spacing: 0px;
+  font-weight: 500;
+  color: var(--fg-3);
+}
+
+.t-code {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.0;
+  letter-spacing: 0px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+a.t-link, .t-link {
+  color: var(--cal-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+a.t-link:hover, .t-link:hover { opacity: 0.7; }
+
+/* Element defaults — opt-in by attaching to a scoped root */
+.cal-typography {
+  font-family: var(--font-body);
+  color: var(--fg-1);
+  -webkit-font-smoothing: antialiased;
+}
+.cal-typography h1 { font-family: var(--font-display); font-size: 48px; line-height: 1.10; font-weight: 600; }
+.cal-typography h2 { font-family: var(--font-display); font-size: 32px; line-height: 1.15; font-weight: 600; }
+.cal-typography h3 { font-family: var(--font-display); font-size: 24px; line-height: 1.30; font-weight: 600; }
+.cal-typography h4 { font-family: var(--font-display); font-size: 20px; line-height: 1.20; font-weight: 600; letter-spacing: 0.2px; }
+.cal-typography p  { font-family: var(--font-body); font-size: 16px; line-height: 1.55; color: var(--fg-1); margin: 0 0 1em; }
+.cal-typography small { font-size: 14px; color: var(--fg-3); }
+.cal-typography code { font-family: var(--font-mono); font-size: 0.9em; }
+.cal-typography a { color: var(--cal-link); text-decoration: underline; text-underline-offset: 2px; }
