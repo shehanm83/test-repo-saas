@@ -2,9 +2,21 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { CaptionApi } from "./caption.js";
 
+vi.mock("./workspace-status", () => ({
+  assertWorkspaceCanGenerate: vi.fn(async () => undefined),
+}));
+
+vi.mock("./aup", () => ({
+  scanBriefForAup: vi.fn(() => ({ flagged: false, tags: [] })),
+  assertBriefAllowed: vi.fn(async () => undefined),
+}));
+
 vi.mock("@studio/db", () => ({
   createDb: vi.fn(() => ({})),
   insertCaption: vi.fn(async () => ({ id: "cap-1" })),
+  workspaces: {},
+  auditLog: {},
+  eq: vi.fn(),
 }));
 
 const mockReserve = vi.fn(async () => undefined);
@@ -33,6 +45,11 @@ const BASE_CONFIG = {
 
 const BASE_ADAPTERS = {
   queue: { send: mockSend },
+  telemetry: {
+    captureException: vi.fn(),
+    metric: vi.fn(),
+    startSpan: <T,>(_name: string, fn: () => Promise<T> | T) => Promise.resolve().then(fn),
+  },
 } as never;
 
 beforeEach(() => {
@@ -80,7 +97,7 @@ describe("CaptionApi.create", () => {
     expect(result.reservedCredits).toBe(5);
   });
 
-  it("throws when reserve fails (insufficient credits)", async () => {
+  it("throws AppError 402 when reserve fails (insufficient credits)", async () => {
     const { InsufficientCredits } = await import("@studio/billing");
     mockReserve.mockRejectedValueOnce(new InsufficientCredits(0, 3));
 
@@ -91,7 +108,10 @@ describe("CaptionApi.create", () => {
         userId: "user-1",
         input: { brief: "Caption for product", lengthTier: "medium" },
       }),
-    ).rejects.toThrow("insufficient-credits");
+    ).rejects.toMatchObject({
+      code: "billing.insufficient_credits",
+      httpStatus: 402,
+    });
 
     expect(mockSend).not.toHaveBeenCalled();
   });

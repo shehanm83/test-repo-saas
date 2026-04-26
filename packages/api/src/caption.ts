@@ -1,9 +1,13 @@
 import { randomUUID } from "node:crypto";
 
-import { Ledger } from "@studio/billing";
+import { InsufficientCredits, Ledger } from "@studio/billing";
 import { createDb, insertCaption } from "@studio/db";
+import { AppError, CODES } from "@studio/shared";
 import type { Adapters, Config } from "@studio/shared";
 import { z } from "zod";
+
+import { assertBriefAllowed } from "./aup";
+import { assertWorkspaceCanGenerate } from "./workspace-status";
 
 const COSTS = { short: 1, medium: 3, long: 5 } as const;
 
@@ -29,13 +33,33 @@ export class CaptionApi {
     const cost = COSTS[v.lengthTier];
     const id = randomUUID();
 
-    const ledger = new Ledger(this.db("app_admin"));
-    await ledger.reserve({
+    const adminDb = this.db("app_admin");
+    await assertWorkspaceCanGenerate(adminDb, args.workspaceId);
+    await assertBriefAllowed(adminDb, {
+      brief: v.brief,
       workspaceId: args.workspaceId,
-      amount: cost,
-      idempotencyKey: `cap-reserve-${id}`,
-      captionJobId: id,
+      userId: args.userId,
     });
+
+    const ledger = new Ledger(adminDb, this.adapters.telemetry);
+    try {
+      await ledger.reserve({
+        workspaceId: args.workspaceId,
+        amount: cost,
+        idempotencyKey: `cap-reserve-${id}`,
+        captionJobId: id,
+      });
+    } catch (e) {
+      if (e instanceof InsufficientCredits) {
+        throw new AppError(
+          CODES.BILLING_INSUFFICIENT_CREDITS,
+          "You don't have enough credits to create this caption.",
+          402,
+          { balance: e.balance, requested: e.requested },
+        );
+      }
+      throw e;
+    }
 
     await insertCaption(this.db(), args.workspaceId, {
       id,
@@ -52,6 +76,9 @@ export class CaptionApi {
       { jobId: id, workspaceId: args.workspaceId },
       { idempotencyKey: id },
     );
+
+    this.adapters.telemetry.metric("caption.created", 1, { tier: v.lengthTier });
+    this.adapters.telemetry.metric("caption.credits_reserved", cost, { tier: v.lengthTier });
 
     return { jobId: id, status: "pending" as const, reservedCredits: cost };
   }

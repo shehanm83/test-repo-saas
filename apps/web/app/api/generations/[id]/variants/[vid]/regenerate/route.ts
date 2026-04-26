@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { CaptionApi, rateLimit } from "@studio/api";
+import { GenerationApi, assertGenerationCapacity, rateLimit } from "@studio/api";
 import { createDb } from "@studio/db";
 import { AppError, loadConfig } from "@studio/shared";
 
@@ -15,15 +15,25 @@ const RATE_LIMITS_BY_PLAN: Record<string, number> = {
   agency: 240,
 };
 
-export async function POST(request: Request) {
+export async function POST(
+  _request: Request,
+  context: { params: Promise<{ id: string; vid: string }> },
+) {
   const { session, workspace } = await getSessionWorkspace();
   if (!session.workspaceId) {
     return NextResponse.json(
-      { error: { code: "auth.no_workspace", message: "No active workspace.", requestId: crypto.randomUUID() } },
+      {
+        error: {
+          code: "auth.no_workspace",
+          message: "No active workspace.",
+          requestId: crypto.randomUUID(),
+        },
+      },
       { status: 400 },
     );
   }
 
+  const params = await context.params;
   const config = loadConfig();
   const adminDb = createDb(config.db.url, "app_admin");
   const planCode = workspace?.planCode ?? "free";
@@ -31,16 +41,18 @@ export async function POST(request: Request) {
   try {
     await rateLimit(
       adminDb,
-      `cap:user:${session.userId}`,
+      `gen:user:${session.userId}`,
       RATE_LIMITS_BY_PLAN[planCode] ?? 10,
       60,
     );
+    await assertGenerationCapacity(adminDb, session.workspaceId, planCode);
 
-    const api = new CaptionApi(config, createServerAdapters() as never);
-    const payload = await api.create({
+    const api = new GenerationApi(config, createServerAdapters() as never);
+    const payload = await api.regenerateVariant({
       workspaceId: session.workspaceId,
       userId: session.userId,
-      input: await request.json(),
+      generationId: params.id,
+      variantId: params.vid,
     });
     return NextResponse.json(payload);
   } catch (e) {
@@ -54,7 +66,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: {
-          code: typed.code ?? "caption.failed",
+          code: typed.code ?? "generation.failed",
           message: typed.message,
           requestId: crypto.randomUUID(),
         },

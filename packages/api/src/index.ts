@@ -10,3 +10,6 @@ export { TemplateApi } from "./template";
 export { WorkspaceApi } from "./workspace";
 export { rateLimit } from "./rate-limit";
 export { assertGenerationCapacity } from "./concurrency";
+export { assertWorkspaceCanGenerate } from "./workspace-status";
+export { scanBriefForAup, assertBriefAllowed } from "./aup";
+export type { AupScanResult } from "./aup";

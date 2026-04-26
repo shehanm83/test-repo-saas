@@ -3,6 +3,15 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { GenerationApi } from "./generation.js";
 
+vi.mock("./workspace-status", () => ({
+  assertWorkspaceCanGenerate: vi.fn(async () => undefined),
+}));
+
+vi.mock("./aup", () => ({
+  scanBriefForAup: vi.fn(() => ({ flagged: false, tags: [] })),
+  assertBriefAllowed: vi.fn(async () => undefined),
+}));
+
 // Mock all @studio/db imports
 vi.mock("@studio/db", () => ({
   createDb: vi.fn(() => ({})),
@@ -21,6 +30,11 @@ vi.mock("@studio/db", () => ({
   getGenerationFull: vi.fn(async () => null),
   updateGenerationInspirationKey: vi.fn(async () => undefined),
   priceBookLookup: vi.fn(async () => ({ creditCost: 10, version: 1 })),
+  generations: {},
+  workspaces: {},
+  auditLog: {},
+  and: vi.fn(),
+  eq: vi.fn(),
 }));
 
 // Mock @studio/billing
@@ -87,7 +101,8 @@ function makeAdapters(
       telemetry: {
         captureException: vi.fn(),
         metric: vi.fn(),
-        startSpan: vi.fn(async <T,>(_n: string, fn: () => Promise<T> | T) => fn()),
+        startSpan: <T,>(_name: string, fn: () => Promise<T> | T): Promise<T> =>
+          Promise.resolve().then(fn),
         ...overrides.telemetry,
       },
     },
@@ -142,9 +157,12 @@ describe("GenerationApi.create", () => {
     vi.mocked(pickTemplates).mockResolvedValueOnce([]);
     const [adapters] = makeAdapters();
     const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);
-    await expect(api.create({ workspaceId: "ws", userId: "u", input: baseInput })).rejects.toThrow(
-      /no-template-found/,
-    );
+    await expect(
+      api.create({ workspaceId: "ws", userId: "u", input: baseInput }),
+    ).rejects.toMatchObject({
+      code: "validation.no_template",
+      httpStatus: 404,
+    });
   });
 
   it("throws 402 billing code when insufficient credits", async () => {

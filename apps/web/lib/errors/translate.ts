@@ -14,7 +14,14 @@ export const FRIENDLY: Record<string, string> = {
   [CODES.AUTH_INSUFFICIENT_ROLE]: "You don't have permission to do that.",
   [CODES.GENERATION_MODEL_UNAVAILABLE]: "The AI model is temporarily unavailable. Please try again.",
   [CODES.GENERATION_TEMPLATE_NOT_FOUND]: "No matching template was found for your settings.",
+  [CODES.GENERATION_NOT_FOUND]: "We couldn't find that generation.",
+  [CODES.GENERATION_VARIANT_NOT_FOUND]: "We couldn't find that variant.",
+  [CODES.AUP_BRIEF_BLOCKED]:
+    "This brief was blocked by content policy. Edit your brief or contact support if this is a mistake.",
+  [CODES.WORKSPACE_SUSPENDED]:
+    "This workspace has been suspended. Contact support if you believe this is a mistake.",
   [CODES.VALIDATION_FAILED]: "Please check your input and try again.",
+  [CODES.VALIDATION_NO_TEMPLATE]: "No matching template was found for your settings.",
 };
 
 export function friendly(code?: string): string {
