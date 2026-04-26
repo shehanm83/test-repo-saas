@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createDb, generations, generationVariants, templates } from "@studio/db";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { loadConfig, createAdapters } from "@studio/shared";
 
 import { getServerSession } from "@/lib/auth/server";
@@ -41,7 +41,7 @@ export async function POST(
     return NextResponse.json({ error: "Fallback template not found" }, { status: 404 });
   }
 
-  const variantsToOverride = body.variantId
+  const candidateVariants = body.variantId
     ? await db
         .select()
         .from(generationVariants)
@@ -51,22 +51,30 @@ export async function POST(
         .from(generationVariants)
         .where(eq(generationVariants.generationId, id));
 
-  const adapters = createAdapters(config);
-  let overridden = 0;
+  const variantsToOverride = candidateVariants.filter((v) =>
+    v.status === "failed" || v.status === "failed_safety" || v.status === "queued",
+  );
 
-  for (const variant of variantsToOverride) {
+  const adapters = createAdapters(config);
+  const overridden = variantsToOverride.length;
+
+  if (overridden > 0) {
+    const variantIds = variantsToOverride.map((v) => v.id);
+
     await db
       .update(generationVariants)
       .set({ templateId: body.fallbackTemplateId, status: "queued", errorPayload: null })
-      .where(eq(generationVariants.id, variant.id));
+      .where(inArray(generationVariants.id, variantIds));
 
-    await adapters.queue.send(config.queue.generationsQueue, {
-      generationId: id,
-      variantId: variant.id,
-      workspaceId: generation.workspaceId,
-    });
-
-    overridden++;
+    await Promise.all(
+      variantsToOverride.map((variant) =>
+        adapters.queue.send(config.queue.generationsQueue, {
+          generationId: id,
+          variantId: variant.id,
+          workspaceId: generation.workspaceId,
+        }),
+      ),
+    );
   }
 
   await writeAdminAudit({

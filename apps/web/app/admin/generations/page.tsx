@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { createDb, generations, workspaces } from "@studio/db";
-import { eq, desc, ilike } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { loadConfig } from "@studio/shared";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,11 @@ export default async function AdminGenerationsPage({
     workspaceName: string | null;
   }>;
 
-  if (q?.trim()) {
+  const trimmedQ = q?.trim() ?? "";
+  const isUuid = /^[0-9a-f-]{36}$/i.test(trimmedQ);
+  const invalidSearch = trimmedQ.length > 0 && !isUuid;
+
+  if (isUuid) {
     const results = await db
       .select({
         id: generations.id,
@@ -35,9 +39,8 @@ export default async function AdminGenerationsPage({
       })
       .from(generations)
       .leftJoin(workspaces, eq(workspaces.id, generations.workspaceId))
-      .where(ilike(generations.id, `%${q.trim()}%`))
-      .orderBy(desc(generations.createdAt))
-      .limit(50);
+      .where(eq(generations.id, trimmedQ))
+      .limit(1);
     rows = results;
   } else {
     const results = await db
@@ -102,7 +105,9 @@ export default async function AdminGenerationsPage({
         </button>
       </form>
 
-      {rows.length === 0 ? (
+      {invalidSearch ? (
+        <p style={{ color: "#991b1b" }}>Enter a valid generation ID (36-character UUID).</p>
+      ) : rows.length === 0 ? (
         <p style={{ color: "#6b7280" }}>No generations found.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>

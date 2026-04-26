@@ -41,7 +41,7 @@ export async function POST(
   }
 
   const ledger = new Ledger(db);
-  const idempotencyKey = `admin-refund-gen-${id}-${Date.now()}`;
+  const idempotencyKey = `admin-refund-gen-${id}`;
 
   await ledger.adjustment({
     workspaceId: generation.workspaceId,

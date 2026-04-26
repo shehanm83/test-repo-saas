@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createDb, generations, generationVariants } from "@studio/db";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { loadConfig, createAdapters } from "@studio/shared";
 
 import { getServerSession } from "@/lib/auth/server";
@@ -37,22 +37,23 @@ export async function POST(
   }
 
   const adapters = createAdapters(config);
-  let resumed = 0;
+  const resumed = toResume.length;
+  const variantIds = toResume.map((v) => v.id);
 
-  for (const variant of toResume) {
-    await db
-      .update(generationVariants)
-      .set({ status: "queued", errorPayload: null })
-      .where(eq(generationVariants.id, variant.id));
+  await db
+    .update(generationVariants)
+    .set({ status: "queued", errorPayload: null })
+    .where(inArray(generationVariants.id, variantIds));
 
-    await adapters.queue.send(config.queue.generationsQueue, {
-      generationId: id,
-      variantId: variant.id,
-      workspaceId: generation.workspaceId,
-    });
-
-    resumed++;
-  }
+  await Promise.all(
+    toResume.map((variant) =>
+      adapters.queue.send(config.queue.generationsQueue, {
+        generationId: id,
+        variantId: variant.id,
+        workspaceId: generation.workspaceId,
+      }),
+    ),
+  );
 
   await writeAdminAudit({
     workspaceId: generation.workspaceId,

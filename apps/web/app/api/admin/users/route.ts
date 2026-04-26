@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createDb, users, workspaces, workspaceMembers } from "@studio/db";
-import { ilike, or, eq } from "drizzle-orm";
+import { ilike, or, eq, desc } from "drizzle-orm";
 import { loadConfig } from "@studio/shared";
 
 import { getServerSession } from "@/lib/auth/server";
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       .from(users)
       .leftJoin(workspaceMembers, eq(workspaceMembers.userId, users.id))
       .leftJoin(workspaces, eq(workspaces.id, workspaceMembers.workspaceId))
-      .orderBy(users.createdAt)
+      .orderBy(desc(users.createdAt))
       .limit(50);
 
     return NextResponse.json({ results: rows });

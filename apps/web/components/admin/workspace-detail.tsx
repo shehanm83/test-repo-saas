@@ -116,14 +116,10 @@ export function WorkspaceDetail(props: {
               background:
                 workspace.status === "active"
                   ? "#d1fae5"
-                  : workspace.status === "banned"
-                  ? "#1c0a00"
                   : "#fee2e2",
               color:
                 workspace.status === "active"
                   ? "#065f46"
-                  : workspace.status === "banned"
-                  ? "#fca5a5"
                   : "#991b1b",
             }}
           >
@@ -270,15 +266,15 @@ export function WorkspaceDetail(props: {
           </button>
           <button
             type="button"
-            disabled={workspace.status === "banned" || loading !== null}
+            disabled={workspace.status === "suspended" || loading !== null}
             onClick={() => void handleSuspend("ban")}
             style={{
               padding: "0.5rem 1rem",
               borderRadius: "0.375rem",
               border: "1px solid #7f1d1d",
-              background: workspace.status !== "banned" && loading === null ? "#450a0a" : "#f3f4f6",
-              color: workspace.status !== "banned" && loading === null ? "#fca5a5" : "#9ca3af",
-              cursor: workspace.status !== "banned" && loading === null ? "pointer" : "not-allowed",
+              background: workspace.status !== "suspended" && loading === null ? "#450a0a" : "#f3f4f6",
+              color: workspace.status !== "suspended" && loading === null ? "#fca5a5" : "#9ca3af",
+              cursor: workspace.status !== "suspended" && loading === null ? "pointer" : "not-allowed",
               fontSize: "0.875rem",
               fontWeight: 500,
             }}
