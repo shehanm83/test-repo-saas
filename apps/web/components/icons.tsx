@@ -396,6 +396,51 @@ export const I = {
       <path d="M2 12h20M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z" />
     </Icon>
   ),
+  Inbox: (p: IconProps) => (
+    <Icon {...p}>
+      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+      <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+    </Icon>
+  ),
+  FileText: (p: IconProps) => (
+    <Icon {...p}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+    </Icon>
+  ),
+  Hash: (p: IconProps) => (
+    <Icon {...p}>
+      <path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18" />
+    </Icon>
+  ),
+  Save: (p: IconProps) => (
+    <Icon {...p}>
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+      <polyline points="17 21 17 13 7 13 7 21" />
+      <polyline points="7 3 7 8 15 8" />
+    </Icon>
+  ),
+  Database: (p: IconProps) => (
+    <Icon {...p}>
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M3 5v14a9 3 0 0 0 18 0V5M3 12a9 3 0 0 0 18 0" />
+    </Icon>
+  ),
+  Code: (p: IconProps) => (
+    <Icon {...p}>
+      <path d="m16 18 6-6-6-6M8 6l-6 6 6 6" />
+    </Icon>
+  ),
+  Drag: (p: IconProps) => (
+    <Icon {...p}>
+      <circle cx="9" cy="5" r="1" />
+      <circle cx="9" cy="12" r="1" />
+      <circle cx="9" cy="19" r="1" />
+      <circle cx="15" cy="5" r="1" />
+      <circle cx="15" cy="12" r="1" />
+      <circle cx="15" cy="19" r="1" />
+    </Icon>
+  ),
 };
 
 export type IconComponent = (props: IconProps) => React.ReactElement;

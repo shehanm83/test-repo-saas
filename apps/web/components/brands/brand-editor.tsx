@@ -1,36 +1,86 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
-export function BrandEditor(props: {
+import { I } from "@/components/icons";
+
+interface BrandEditorProps {
   brand: {
     id: string;
     name: string;
     sourceUrl: string | null;
     voiceNotes: string | null;
-    palette: { primary: string; secondary?: string; accent?: string; extras?: string[] } | null;
+    palette:
+      | { primary: string; secondary?: string; accent?: string; extras?: string[] }
+      | null;
     fonts:
       | {
           heading: { family: string; weight?: string };
           body: { family: string; weight?: string };
         }
       | null;
+    createdAt?: string;
+    generationCount?: number;
   };
-  assets: Array<{ id: string; kind: string }>;
-}) {
+  assets: Array<{ id: string; kind: string; s3Key?: string; url?: string | null }>;
+}
+
+const DOT_COLORS = ["#1D3B2A", "#5E5CE6", "#C97A3F", "#7A0E0E", "#1F7A5A", "#B5651D"];
+function dot(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return DOT_COLORS[h % DOT_COLORS.length]!;
+}
+
+function Stat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 22 }}>{value}</div>
+      <div className="t-small" style={{ fontSize: 11 }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
+export function BrandEditor(props: BrandEditorProps) {
+  const router = useRouter();
   const [tab, setTab] = useState<"colors" | "fonts" | "voice" | "references" | "danger">(
     "colors",
   );
-  const [confirm, setConfirm] = useState("");
+  const [confirmText, setConfirmText] = useState("");
+  const [delModal, setDelModal] = useState(false);
+  const [voice, setVoice] = useState(props.brand.voiceNotes ?? "");
+  const [name, setName] = useState(props.brand.name);
+  const [editingName, setEditingName] = useState(false);
+
   const palette = props.brand.palette ?? {
     primary: "#222222",
     secondary: "#666666",
     accent: "#5E5CE6",
-    extras: ["#EDEBF8"],
+    extras: [] as string[],
   };
-  const colors = [palette.primary, palette.secondary, palette.accent, ...(palette.extras ?? [])].filter(
-    Boolean,
-  ) as string[];
+  const colors = [
+    palette.primary,
+    palette.secondary,
+    palette.accent,
+    ...(palette.extras ?? []),
+  ].filter((c): c is string => Boolean(c));
+
+  const fontHeading = props.brand.fonts?.heading.family ?? "Cal Sans";
+  const fontBody = props.brand.fonts?.body.family ?? "Inter";
+  const created = props.brand.createdAt
+    ? new Date(props.brand.createdAt).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "—";
+  const initials = props.brand.name.slice(0, 2).toUpperCase();
+  const labelFor = (i: number): string =>
+    ["Primary", "Secondary", "Accent", "Extra 1", "Extra 2", "Extra 3", "Extra 4"][i] ??
+    `Color ${i + 1}`;
 
   async function patch(body: unknown) {
     await fetch(`/api/brands/${props.brand.id}`, {
@@ -38,154 +88,419 @@ export function BrandEditor(props: {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });
+    router.refresh();
+  }
+
+  async function deleteBrand() {
+    setDelModal(false);
+    await fetch(`/api/brands/${props.brand.id}/delete`, { method: "POST" });
+    router.push("/brands");
   }
 
   return (
-    <div className="studio-page">
-      <div className="studio-brand-hero">
-        <div className="studio-brand-preview">
-          <div className="studio-brand-preview__mark">{props.brand.name.slice(0, 2).toUpperCase()}</div>
+    <div className="page">
+      <div
+        className="card"
+        style={{
+          padding: 24,
+          display: "grid",
+          gridTemplateColumns: "120px 1fr auto",
+          gap: 24,
+          alignItems: "center",
+          marginBottom: 24,
+        }}
+      >
+        <div
+          className="checker"
+          style={{
+            width: 120,
+            height: 120,
+            borderRadius: 12,
+            display: "grid",
+            placeItems: "center",
+            boxShadow: "var(--shadow-ring)",
+          }}
+        >
+          <div
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 14,
+              background: palette.primary || dot(props.brand.id),
+              color: palette.accent || "white",
+              display: "grid",
+              placeItems: "center",
+              fontFamily: "var(--font-display)",
+              fontSize: 28,
+            }}
+          >
+            {initials}
+          </div>
         </div>
-        <div className="studio-brand-hero__body">
-          <input
-            className="studio-brand-name-input"
-            defaultValue={props.brand.name}
-            onBlur={(event) => void patch({ name: event.target.value })}
-          />
-          <p>{props.brand.sourceUrl ?? "No source URL recorded yet."}</p>
+        <div>
+          {editingName ? (
+            <input
+              className="input input--lg"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => {
+                setEditingName(false);
+                if (name !== props.brand.name) void patch({ name });
+              }}
+              autoFocus
+              style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 600 }}
+            />
+          ) : (
+            <h1 className="t-h2" style={{ margin: 0 }}>
+              {props.brand.name}
+            </h1>
+          )}
+          <div
+            className="t-small"
+            style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <I.Globe size={12} />
+            {props.brand.sourceUrl ?? "—"}
+            <span style={{ color: "var(--fg-4)" }}>·</span>
+            Created {created}
+          </div>
+          <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
+            <Stat label="Generations" value={props.brand.generationCount ?? 0} />
+            <Stat label="References" value={props.assets.length} />
+            <Stat label="Colors" value={colors.length} />
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={() => setEditingName(true)}
+          >
+            <I.Edit size={14} />
+            Edit name
+          </button>
+          <button
+            type="button"
+            className="btn btn--accent"
+            onClick={() => router.push("/generate")}
+          >
+            <I.Sparkle size={14} />
+            Generate
+          </button>
         </div>
       </div>
 
-      <div className="studio-tab-row">
-        {[
-          ["colors", "Colors"],
-          ["fonts", "Fonts"],
-          ["voice", "Voice"],
-          ["references", "References"],
-          ["danger", "Danger zone"],
-        ].map(([key, label]) => (
-          <button
-            key={key}
-            className={`studio-tab${tab === key ? " is-active" : ""}`}
-            type="button"
-            onClick={() => setTab(key as typeof tab)}
+      <div className="tabs" style={{ marginBottom: 24 }}>
+        {(["colors", "fonts", "voice", "references"] as const).map((t) => (
+          <div
+            key={t}
+            className={`tab ${tab === t ? "is-active" : ""}`}
+            onClick={() => setTab(t)}
+            style={{ textTransform: "capitalize" }}
           >
-            {label}
-          </button>
+            {t}
+            {t === "references" ? (
+              <span
+                className="pill"
+                style={{ height: 18, fontSize: 10, marginLeft: 4, padding: "0 6px" }}
+              >
+                {props.assets.length}
+              </span>
+            ) : null}
+          </div>
         ))}
+        <div className="grow" />
+        <div
+          className={`tab ${tab === "danger" ? "is-active" : ""}`}
+          onClick={() => setTab("danger")}
+          style={{ color: "var(--studio-red)" }}
+        >
+          Danger zone
+        </div>
       </div>
 
       {tab === "colors" ? (
-        <div className="studio-card studio-copy-card">
-          <h2>Palette</h2>
-          <div className="studio-color-grid">
-            {colors.map((color, index) => (
-              <label key={`${color}-${index}`} className="studio-color-card">
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(event) => {
-                    const next = colors.map((entry, entryIndex) =>
-                      entryIndex === index ? event.target.value : entry,
-                    );
-                    void patch({
-                      palette: {
-                        primary: next[0],
-                        secondary: next[1],
-                        accent: next[2],
-                        extras: next.slice(3),
-                      },
-                    });
+        <div>
+          <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
+            {colors.map((c, i) => (
+              <div key={i} style={{ width: 140, position: "relative" }}>
+                <div
+                  style={{
+                    height: 140,
+                    borderRadius: 12,
+                    background: c,
+                    boxShadow: "var(--shadow-ring)",
+                    cursor: "pointer",
                   }}
                 />
-                <span style={{ background: color }} />
-                <strong>{color}</strong>
-              </label>
+                <div style={{ marginTop: 8, fontSize: 13, fontWeight: 500 }}>
+                  {labelFor(i)}
+                </div>
+                <div className="mono t-small" style={{ fontSize: 11 }}>
+                  {c}
+                </div>
+              </div>
             ))}
+            <div
+              style={{
+                width: 140,
+                height: 140,
+                border: "2px dashed var(--cal-gray-300)",
+                borderRadius: 12,
+                display: "grid",
+                placeItems: "center",
+                color: "var(--fg-3)",
+                cursor: "pointer",
+              }}
+            >
+              <I.Plus size={20} />
+            </div>
+          </div>
+
+          <div className="t-eyebrow" style={{ marginTop: 32, marginBottom: 12 }}>
+            Preview on a sample design
+          </div>
+          <div
+            className="card"
+            style={{
+              padding: 32,
+              background: colors[0] ?? "#222",
+              color: colors[2] ?? "#fff",
+              maxWidth: 480,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 32,
+                color: colors[2] ?? "#fff",
+              }}
+            >
+              Holiday Sale
+            </div>
+            <div
+              style={{
+                fontSize: 14,
+                color: colors[3] ?? colors[2] ?? "#fff",
+                marginTop: 6,
+              }}
+            >
+              30% off everything · this week only
+            </div>
+            <div
+              style={{
+                marginTop: 20,
+                display: "inline-flex",
+                padding: "10px 16px",
+                borderRadius: 100,
+                background: colors[1] ?? "#fff",
+                color: colors[4] ?? colors[2] ?? "white",
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              Shop the sale →
+            </div>
           </div>
         </div>
       ) : null}
 
       {tab === "fonts" ? (
-        <div className="studio-two-column">
-          <div className="studio-card studio-copy-card">
-            <h2>Heading font</h2>
-            <input
-              className="studio-input"
-              defaultValue={props.brand.fonts?.heading.family ?? "Cal Sans"}
-              onBlur={(event) =>
-                void patch({
-                  fonts: {
-                    heading: { family: event.target.value, weight: "600" },
-                    body: props.brand.fonts?.body ?? { family: "Inter", weight: "400" },
-                  },
-                })
-              }
-            />
-          </div>
-          <div className="studio-card studio-copy-card">
-            <h2>Body font</h2>
-            <input
-              className="studio-input"
-              defaultValue={props.brand.fonts?.body.family ?? "Inter"}
-              onBlur={(event) =>
-                void patch({
-                  fonts: {
-                    heading: props.brand.fonts?.heading ?? { family: "Cal Sans", weight: "600" },
-                    body: { family: event.target.value, weight: "400" },
-                  },
-                })
-              }
-            />
-          </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+          {(
+            [
+              {
+                l: "Heading font",
+                v: fontHeading,
+                sample: "Cozy living room scenes",
+                isDisplay: true,
+              },
+              {
+                l: "Body font",
+                v: fontBody,
+                sample:
+                  "We craft a soft, generous register where the product feels warm to hold.",
+                isDisplay: false,
+              },
+            ] as const
+          ).map((f, i) => (
+            <div key={i} className="card" style={{ padding: 24 }}>
+              <div className="t-eyebrow">{f.l}</div>
+              <div
+                style={{
+                  marginTop: 8,
+                  fontFamily: "var(--font-display)",
+                  fontSize: 22,
+                }}
+              >
+                {f.v}
+              </div>
+              <div
+                style={{
+                  marginTop: 24,
+                  fontFamily: f.isDisplay ? "var(--font-display)" : "var(--font-body)",
+                  fontSize: f.isDisplay ? 28 : 16,
+                  color: "var(--fg-2)",
+                  lineHeight: 1.4,
+                }}
+              >
+                {f.sample}
+              </div>
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                style={{ marginTop: 24 }}
+              >
+                Change font
+              </button>
+            </div>
+          ))}
         </div>
       ) : null}
 
       {tab === "voice" ? (
-        <div className="studio-card studio-copy-card">
-          <h2>Voice notes</h2>
+        <div style={{ maxWidth: 720 }}>
+          <label className="label">Voice notes</label>
           <textarea
-            className="studio-textarea"
-            defaultValue={props.brand.voiceNotes ?? ""}
+            className="textarea"
             rows={8}
-            onBlur={(event) => void patch({ voiceNotes: event.target.value })}
+            value={voice}
+            onChange={(e) => setVoice(e.target.value)}
+            onBlur={() => {
+              if (voice !== props.brand.voiceNotes) void patch({ voiceNotes: voice });
+            }}
           />
+          <div className="hint">Saved automatically when you click away.</div>
         </div>
       ) : null}
 
       {tab === "references" ? (
-        <div className="studio-card studio-copy-card">
-          <h2>References</h2>
-          <div className="studio-reference-grid">
-            {props.assets.map((asset) => (
-              <div key={asset.id} className="studio-reference-tile">
-                <div className="studio-reference-art" />
-                <strong>{asset.kind}</strong>
+        <div>
+          <button type="button" className="btn btn--accent" style={{ marginBottom: 16 }}>
+            <I.Plus size={14} />
+            Add reference images
+          </button>
+          {props.assets.length === 0 ? (
+            <div className="empty card">
+              <div className="empty__art">
+                <I.Image size={28} />
               </div>
-            ))}
-          </div>
+              <div className="empty__title">No reference images yet</div>
+              <div className="empty__sub">
+                Upload PNG, JPG, or WebP files to ground generations in your visual style.
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(5, 1fr)",
+                gap: 12,
+              }}
+            >
+              {props.assets.map((a) => (
+                <div
+                  key={a.id}
+                  style={{
+                    aspectRatio: "1/1",
+                    borderRadius: 10,
+                    overflow: "hidden",
+                    boxShadow: "var(--shadow-ring)",
+                    cursor: "pointer",
+                    position: "relative",
+                    background: "var(--cal-gray-100)",
+                  }}
+                >
+                  {a.url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={a.url}
+                      alt=""
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : null}
 
       {tab === "danger" ? (
-        <div className="studio-card studio-copy-card studio-danger-card">
-          <h2>Delete brand</h2>
-          <p>Type the brand name to confirm the cascade delete.</p>
-          <input className="studio-input" value={confirm} onChange={(event) => setConfirm(event.target.value)} />
+        <div
+          className="card"
+          style={{ padding: 24, maxWidth: 640, borderTop: "3px solid var(--studio-red)" }}
+        >
+          <h3 className="t-h4" style={{ margin: 0, color: "var(--studio-red)" }}>
+            Delete this brand
+          </h3>
+          <p className="t-small" style={{ marginTop: 6 }}>
+            Cascade-deletes all generations, references, and ledger entries (the last is
+            recorded as audit).
+          </p>
           <button
-            className="studio-button studio-button--danger"
-            disabled={confirm !== props.brand.name}
             type="button"
-            onClick={async () => {
-              await fetch(`/api/brands/${props.brand.id}/delete`, { method: "POST" });
-              window.location.href = "/brands";
-            }}
+            className="btn btn--secondary btn--danger"
+            style={{ marginTop: 16 }}
+            onClick={() => setDelModal(true)}
           >
-            Delete brand
+            <I.Trash size={14} />
+            Delete {props.brand.name}
           </button>
         </div>
+      ) : null}
+
+      {delModal ? (
+        <>
+          <div className="scrim" onClick={() => setDelModal(false)} />
+          <div className="modal">
+            <h2 className="t-h3" style={{ margin: 0 }}>
+              Delete {props.brand.name}?
+            </h2>
+            <p className="t-small" style={{ marginTop: 8 }}>
+              This cannot be undone. All generations and reference images for this brand will
+              be removed.
+            </p>
+            <label className="label" style={{ marginTop: 20 }}>
+              Type &quot;{props.brand.name}&quot; to confirm
+            </label>
+            <input
+              className="input"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+            />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+                marginTop: 24,
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() => setDelModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn--accent"
+                disabled={confirmText !== props.brand.name}
+                style={{ background: "var(--studio-red)" }}
+                onClick={() => void deleteBrand()}
+              >
+                Delete brand
+              </button>
+            </div>
+          </div>
+        </>
       ) : null}
     </div>
   );
 }
-
