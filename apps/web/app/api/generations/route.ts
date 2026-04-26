@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         error: {
           code: typed.code ?? "generation.failed",
           message: typed.message,
+          requestId: crypto.randomUUID(),
         },
       },
       { status: typed.httpStatus ?? 400 },

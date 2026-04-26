@@ -10,6 +10,11 @@ export const FRIENDLY: Record<string, string> = {
   [CODES.VALIDATION_MOOD_ASPECT_MISMATCH]: "This mood doesn't support that output size. Pick another mood or change the output.",
   [CODES.VALIDATION_FILE_TOO_LARGE]: "File is too large (max 10 MB).",
   [CODES.VALIDATION_INVALID_IMAGE]: "That doesn't look like a supported image (PNG, JPG, WebP).",
+  [CODES.AUTH_INVALID_SESSION]: "Your session has expired. Please sign in again.",
+  [CODES.AUTH_INSUFFICIENT_ROLE]: "You don't have permission to do that.",
+  [CODES.GENERATION_MODEL_UNAVAILABLE]: "The AI model is temporarily unavailable. Please try again.",
+  [CODES.GENERATION_TEMPLATE_NOT_FOUND]: "No matching template was found for your settings.",
+  [CODES.VALIDATION_FAILED]: "Please check your input and try again.",
 };
 
 export function friendly(code?: string): string {

@@ -7,17 +7,20 @@ import { AppError, loadConfig } from "@studio/shared";
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
 
+const RATE_LIMITS_BY_PLAN: Record<string, number> = { free: 10, starter: 30, pro: 60, business: 120, agency: 240 };
+
 export async function POST(request: Request) {
-  const { session } = await getSessionWorkspace();
+  const { session, workspace } = await getSessionWorkspace();
   if (!session.workspaceId) {
     return NextResponse.json({ error: "no-workspace" }, { status: 400 });
   }
 
   const config = loadConfig();
   const adminDb = createDb(config.db.url, "app_admin");
+  const planCode = workspace?.planCode ?? "free";
 
   try {
-    await rateLimit(adminDb, `upload:user:${session.userId}`, 10, 60);
+    await rateLimit(adminDb, `upload:user:${session.userId}`, RATE_LIMITS_BY_PLAN[planCode] ?? 10, 60);
 
     const formData = await request.formData();
     const file = formData.get("file");
