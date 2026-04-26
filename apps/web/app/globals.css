@@ -1,7 +1,3 @@
 /* Template design system — single source of truth */
 @import "./cal-tokens.css";
 @import "./cal-studio.css";
-
-/* Legacy app styles — kept while pages are ported screen-by-screen.
-   Each ported screen deletes its rules from legacy.css. Goal: empty file. */
-@import "./legacy.css";

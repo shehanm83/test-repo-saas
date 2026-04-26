@@ -408,6 +408,12 @@ export const I = {
       <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
     </Icon>
   ),
+  Calendar: (p: IconProps) => (
+    <Icon {...p}>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </Icon>
+  ),
   Hash: (p: IconProps) => (
     <Icon {...p}>
       <path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18" />

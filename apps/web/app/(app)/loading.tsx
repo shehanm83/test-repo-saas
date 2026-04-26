@@ -1,10 +1,12 @@
 export default function Loading() {
   return (
-    <div className="studio-loading-grid">
-      <div className="studio-loading-card" />
-      <div className="studio-loading-card" />
-      <div className="studio-loading-card" />
+    <div className="page">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="skeleton" style={{ height: 200 }} />
+        <div className="skeleton" style={{ height: 200 }} />
+        <div className="skeleton" style={{ height: 200 }} />
+        <div className="skeleton" style={{ height: 200 }} />
+      </div>
     </div>
   );
 }
-
