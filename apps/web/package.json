@@ -15,8 +15,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.26.0",
-    "@sentry/nextjs": "^8.45.0",
+    "@clerk/nextjs": "^7.2.7",
+    "@sentry/nextjs": "^10.50.0",
     "@studio/api": "workspace:*",
     "@studio/auth": "workspace:*",
     "@studio/billing": "workspace:*",
@@ -26,14 +26,14 @@
     "@studio/queue": "workspace:*",
     "@studio/shared": "workspace:*",
     "@studio/storage": "workspace:*",
-    "drizzle-orm": "^0.44.5",
-    "next": "^15.5.2",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "drizzle-orm": "^0.45.2",
+    "next": "^16.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   },
   "devDependencies": {
-    "@opennextjs/aws": "^3.5.6",
-    "@testing-library/jest-dom": "^6.8.0",
-    "@testing-library/react": "^16.3.0"
+    "@opennextjs/aws": "^3.10.4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2"
   }
 }

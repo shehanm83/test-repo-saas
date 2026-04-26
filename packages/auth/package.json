@@ -16,9 +16,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@clerk/backend": "^3.4.1",
     "@studio/db": "workspace:*",
-    "@clerk/backend": "^2.4.0",
-    "jose": "^6.1.0",
-    "svix": "^1.68.0"
+    "jose": "^6.2.2",
+    "svix": "^1.92.2"
   }
 }

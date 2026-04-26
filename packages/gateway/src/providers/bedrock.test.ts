@@ -3,9 +3,17 @@ import { BedrockImageProvider } from "./bedrock.js";
 
 vi.mock("@aws-sdk/client-bedrock-runtime", () => {
   const mockSend = vi.fn();
+  class BedrockRuntimeClient {
+    send = mockSend;
+  }
+  class InvokeModelCommand {
+    constructor(input: unknown) {
+      Object.assign(this, input);
+    }
+  }
   return {
-    BedrockRuntimeClient: vi.fn(() => ({ send: mockSend })),
-    InvokeModelCommand: vi.fn((input) => input),
+    BedrockRuntimeClient,
+    InvokeModelCommand,
     __mockSend: mockSend,
   };
 });

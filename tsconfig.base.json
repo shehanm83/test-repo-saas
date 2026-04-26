@@ -17,6 +17,8 @@
     "verbatimModuleSyntax": true,
     "incremental": true,
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "types": ["node"],
+    "ignoreDeprecations": "6.0"
   }
 }

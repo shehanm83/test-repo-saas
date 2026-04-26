@@ -12,7 +12,7 @@ import type { Config } from "@studio/shared/config";
 import { z } from "zod";
 
 const inviteSchema = z.object({
-  workspaceId: z.string().uuid(),
+  workspaceId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
   inviteeEmail: z.string().email(),
   role: z.enum(["admin", "editor", "viewer"]),
 });
@@ -22,18 +22,18 @@ const acceptSchema = z.object({
 });
 
 const switchSchema = z.object({
-  workspaceId: z.string().uuid(),
+  workspaceId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
 });
 
 const roleSchema = z.object({
-  workspaceId: z.string().uuid(),
-  targetUserId: z.string().uuid(),
+  workspaceId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
+  targetUserId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
   newRole: z.enum(["admin", "editor", "viewer"]),
 });
 
 const revokeSchema = z.object({
-  workspaceId: z.string().uuid(),
-  targetUserId: z.string().uuid(),
+  workspaceId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
+  targetUserId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
 });
 
 export class WorkspaceApi {

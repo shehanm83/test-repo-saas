@@ -4,10 +4,11 @@ import { OpenAIImageProvider } from "./openai-image.js";
 vi.mock("openai", () => {
   const mockGenerate = vi.fn();
   const mockEdit = vi.fn();
+  class MockOpenAI {
+    images = { generate: mockGenerate, edit: mockEdit };
+  }
   return {
-    default: vi.fn(() => ({
-      images: { generate: mockGenerate, edit: mockEdit },
-    })),
+    default: MockOpenAI,
     __mockGenerate: mockGenerate,
     __mockEdit: mockEdit,
   };

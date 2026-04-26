@@ -31,11 +31,11 @@ import { assertWorkspaceCanGenerate } from "./workspace-status";
 const VARIANT_COUNT = 4;
 
 const Input = z.object({
-  brandId: z.string().uuid(),
-  moodId: z.string().uuid().optional().nullable(),
+  brandId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
+  moodId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional().nullable(),
   brief: z.string().min(1).max(500),
   outputTarget: z.unknown(),
-  inspirationUploadId: z.string().uuid().optional(),
+  inspirationUploadId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional(),
   inspirationInfluence: z.enum(["subtle", "balanced", "strong"]).optional(),
   flags: z
     .object({
@@ -48,7 +48,16 @@ const Input = z.object({
       applyMoodAccentColors: z.boolean().default(true),
       usePremiumModel: z.boolean().default(false),
     })
-    .default({}),
+    .default({
+      useBrandColors: true,
+      useBrandLogo: true,
+      useBrandFonts: true,
+      brandStrict: false,
+      applyMoodModifiers: true,
+      applyMoodDecorations: true,
+      applyMoodAccentColors: true,
+      usePremiumModel: false,
+    }),
 });
 
 export class GenerationApi {

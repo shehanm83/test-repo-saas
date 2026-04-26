@@ -5,7 +5,7 @@ const baseSchema = z.object({
   APP_URL: z.string().url(),
 
   AUTH_MODE: z.enum(["clerk", "dev"]).default("dev"),
-  DEV_USER_ID: z.string().uuid().optional(),
+  DEV_USER_ID: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional(),
   CLERK_PUBLISHABLE_KEY: z.string().optional(),
   CLERK_SECRET_KEY: z.string().optional(),
   CLERK_WEBHOOK_SECRET: z.string().optional(),

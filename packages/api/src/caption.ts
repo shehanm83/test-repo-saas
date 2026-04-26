@@ -12,7 +12,7 @@ import { assertWorkspaceCanGenerate } from "./workspace-status";
 const COSTS = { short: 1, medium: 3, long: 5 } as const;
 
 const Input = z.object({
-  generationId: z.string().uuid().optional(),
+  generationId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional(),
   brief: z.string().min(1).max(500),
   voice: z.string().max(500).optional(),
   lengthTier: z.enum(["short", "medium", "long"]),

@@ -92,7 +92,7 @@ export class MoodApi {
 
   async adminSetBindings(moodId: string, input: unknown) {
     const bindings = z
-      .array(z.object({ templateId: z.string().uuid(), weight: z.number().int().min(1).max(1000) }))
+      .array(z.object({ templateId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i), weight: z.number().int().min(1).max(1000) }))
       .parse(input);
     await setBindings(this.db("app_admin"), moodId, bindings);
   }

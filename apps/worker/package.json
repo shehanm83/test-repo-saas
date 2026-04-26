@@ -14,7 +14,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@sentry/node": "^8.45.0",
+    "@sentry/node": "^10.50.0",
     "@studio/billing": "workspace:*",
     "@studio/db": "workspace:*",
     "@studio/gateway": "workspace:*",
@@ -23,6 +23,6 @@
     "@studio/renderer": "workspace:*",
     "@studio/shared": "workspace:*",
     "@studio/storage": "workspace:*",
-    "drizzle-orm": "^0.44.7"
+    "drizzle-orm": "^0.45.2"
   }
 }

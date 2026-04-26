@@ -25,6 +25,6 @@
     "@studio/billing": "workspace:*",
     "@studio/observability": "workspace:*",
     "@studio/storage": "workspace:*",
-    "zod": "^3.25.76"
+    "zod": "^4.3.6"
   }
 }
