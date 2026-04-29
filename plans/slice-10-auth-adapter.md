@@ -9,7 +9,7 @@
 - Dev provider returns `{ userId: DEV_USER_ID, workspaceId: <picked from dev seed>, role: 'user' }`
 - Clerk provider verifies the JWT against Clerk's JWKS, extracts `current_workspace_id` claim
 - `setActiveWorkspace` either updates Clerk user metadata (clerk) or no-ops (dev)
-- Adapter factory in `@studio/shared` returns the correct impl based on `AUTH_MODE`
+- Adapter factory in `@vyora/shared` returns the correct impl based on `AUTH_MODE`
 - Unit tests for both providers (Clerk uses a test JWKS fixture)
 
 ---
@@ -41,7 +41,7 @@ Files mirror the layout of `packages/shared` (slice 01). Add `pnpm-workspace` is
 `packages/auth/package.json`:
 ```json
 {
-  "name": "@studio/auth",
+  "name": "@vyora/auth",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -51,7 +51,7 @@ Files mirror the layout of `packages/shared` (slice 01). Add `pnpm-workspace` is
     "test": "vitest run"
   },
   "dependencies": {
-    "@studio/shared": "workspace:*",
+    "@vyora/shared": "workspace:*",
     "@clerk/backend": "^1.13.0",
     "jose": "^5.9.6"
   }
@@ -85,7 +85,7 @@ Update root `tsconfig.json` references to include `packages/auth`.
 `packages/auth/src/dev.ts`:
 
 ```ts
-import type { AuthIdentity, AuthProvider } from "@studio/shared";
+import type { AuthIdentity, AuthProvider } from "@vyora/shared";
 
 export class DevAuthProvider implements AuthProvider {
   constructor(private readonly devUserId: string) {}
@@ -139,7 +139,7 @@ describe("DevAuthProvider", () => {
 
 ```ts
 import { createClerkClient, verifyToken } from "@clerk/backend";
-import type { AuthIdentity, AuthProvider } from "@studio/shared";
+import type { AuthIdentity, AuthProvider } from "@vyora/shared";
 
 export interface ClerkAuthOptions {
   publishableKey: string;
@@ -226,17 +226,17 @@ export { ClerkAuthProvider } from "./clerk.js";
 export { DevAuthProvider } from "./dev.js";
 ```
 
-- [ ] **Step 7 — Wire factory in `@studio/shared`**
+- [ ] **Step 7 — Wire factory in `@vyora/shared`**
 
-Add `@studio/auth` as a dep:
+Add `@vyora/auth` as a dep:
 ```bash
-pnpm --filter @studio/shared add @studio/auth@workspace:*
+pnpm --filter @vyora/shared add @vyora/auth@workspace:*
 ```
 
 Edit `packages/shared/src/adapters/factory.ts`:
 
 ```ts
-import { ClerkAuthProvider, DevAuthProvider } from "@studio/auth";
+import { ClerkAuthProvider, DevAuthProvider } from "@vyora/auth";
 import { type Config } from "../config.js";
 import type {
   AIProvider, AuthProvider, BillingProvider, EmailProvider, QueueAdapter, StorageAdapter, Telemetry,
@@ -291,7 +291,7 @@ git commit -m "feat(auth): Clerk + dev-bypass auth providers wired through adapt
 ## Verification
 
 ```bash
-pnpm --filter @studio/auth test
+pnpm --filter @vyora/auth test
 pnpm typecheck
 ```
 

@@ -4,8 +4,8 @@ import {
   createDb,
   expirePricebookVersion,
   priceBookLookup,
-} from "@studio/db";
-import type { Config } from "@studio/shared/config";
+} from "@vyora/db";
+import type { Config } from "@vyora/shared/config";
 import { z } from "zod";
 
 const Entry = z.object({

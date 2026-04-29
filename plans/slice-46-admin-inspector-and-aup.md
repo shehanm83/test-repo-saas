@@ -57,7 +57,7 @@ Admin sees a list of generations flagged via `audit_log.action='generation.aup_f
 - [ ] **Step 5 — Commit**
 
 ```bash
-pnpm --filter @studio/web test
+pnpm --filter @vyora/web test
 git add -A
 git commit -m "feat(admin): generation inspector + user/workspace tools + AUP enforcement"
 ```

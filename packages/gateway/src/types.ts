@@ -1,4 +1,4 @@
-import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@studio/shared";
+import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@vyora/shared";
 
 export interface ProviderCapabilities {
   modelCodes: string[];

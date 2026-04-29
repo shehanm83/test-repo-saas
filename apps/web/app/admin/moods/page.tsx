@@ -1,5 +1,5 @@
-import { MoodApi } from "@studio/api/mood";
-import { loadConfig } from "@studio/shared";
+import { MoodApi } from "@vyora/api/mood";
+import { loadConfig } from "@vyora/shared";
 
 import { MoodStudio } from "@/components/admin/mood-studio";
 

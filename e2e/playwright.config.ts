@@ -27,7 +27,7 @@ export default defineConfig({
     ? {}
     : {
         webServer: {
-          command: "pnpm --filter @studio/web dev",
+          command: "pnpm --filter @vyora/web dev",
           url: baseURL,
           reuseExistingServer: true,
           timeout: 120_000,

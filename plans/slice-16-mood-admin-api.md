@@ -84,8 +84,8 @@ export async function setBindings(db: Db, moodId: string, items: { templateId: s
 
 ```ts
 import { z } from "zod";
-import { createDb, listAvailableMoods, adminListMoods, adminCreateMood, adminUpdateMood, adminBindings, setBindings } from "@studio/db";
-import type { Config } from "@studio/shared";
+import { createDb, listAvailableMoods, adminListMoods, adminCreateMood, adminUpdateMood, adminBindings, setBindings } from "@vyora/db";
+import type { Config } from "@vyora/shared";
 
 const ASPECT_RATIOS = z.enum(["1:1","4:5","9:16","16:9","1.91:1","2:3"]);
 
@@ -153,7 +153,7 @@ export class MoodApi {
 ```ts
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@studio/db", () => ({
+vi.mock("@vyora/db", () => ({
   createDb: () => ({}),
   listAvailableMoods: vi.fn(async () => [{ id: "m1", name: "Christmas" }]),
   adminListMoods: vi.fn(async () => []),
@@ -200,7 +200,7 @@ git commit -m "feat(api): mood admin CRUD + user-facing mood listing with availa
 ## Verification
 
 ```bash
-pnpm --filter @studio/api test
+pnpm --filter @vyora/api test
 ```
 
 ## Commit message

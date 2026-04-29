@@ -5,7 +5,7 @@
 **Spec references:** [Spec § 3.2 (Brand setup wizard)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 7 (Security — logo SVG XSS, EXIF strip)](../specs/2026-04-25-studio-v1-spec.md).
 
 **Definition of done:**
-- Brand CRUD endpoints in `@studio/api`
+- Brand CRUD endpoints in `@vyora/api`
 - Logo upload pipeline: SVG sanitized via DOMPurify-svg + svgo; PNG re-encoded via sharp + EXIF stripped
 - Reference image upload pipeline: re-encoded, embedded via embedding API, stored as `brand_assets`
 - Embedding via `AIProvider.describeImage` followed by text embedding through OpenAI/Anthropic embed endpoint
@@ -31,7 +31,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @studio/api add isomorphic-dompurify svgo sharp
+pnpm --filter @vyora/api add isomorphic-dompurify svgo sharp
 ```
 
 - [ ] **Step 2 — SVG sanitizer**
@@ -217,9 +217,9 @@ export async function listBrandAssets(db: Db, workspaceId: string, brandId: stri
 ```ts
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
-import { createDb, listBrands, getBrand, createBrand, updateBrand, addBrandAsset, listBrandAssets } from "@studio/db";
-import { keys } from "@studio/storage";
-import type { Adapters, Config } from "@studio/shared";
+import { createDb, listBrands, getBrand, createBrand, updateBrand, addBrandAsset, listBrandAssets } from "@vyora/db";
+import { keys } from "@vyora/storage";
+import type { Adapters, Config } from "@vyora/shared";
 import { sanitizeSvg } from "./sanitize/svg.js";
 import { reencodeImage } from "./sanitize/image.js";
 
@@ -326,7 +326,7 @@ export class BrandApi {
 ```ts
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@studio/db", () => ({
+vi.mock("@vyora/db", () => ({
   createDb: () => ({}),
   listBrands: vi.fn(async () => [{ id: "b1", name: "Acme" }]),
   getBrand: vi.fn(async () => ({ id: "b1", name: "Acme" })),
@@ -336,7 +336,7 @@ vi.mock("@studio/db", () => ({
   listBrandAssets: vi.fn(async () => []),
 }));
 
-vi.mock("@studio/storage", () => ({ keys: { brandLogo: () => "k", brandAsset: () => "k2" } }));
+vi.mock("@vyora/storage", () => ({ keys: { brandLogo: () => "k", brandAsset: () => "k2" } }));
 
 import { BrandApi } from "./brand.js";
 
@@ -371,7 +371,7 @@ git commit -m "feat(api): brand CRUD + asset upload with SVG/EXIF sanitization"
 ## Verification
 
 ```bash
-pnpm --filter @studio/api test
+pnpm --filter @vyora/api test
 ```
 
 ## Commit message

@@ -29,7 +29,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @studio/api add cheerio node-vibrant
+pnpm --filter @vyora/api add cheerio node-vibrant
 ```
 
 - [ ] **Step 2 — `ssrf.ts`**
@@ -204,7 +204,7 @@ git commit -m "feat(api): SSRF-safe URL extraction for brand pre-fill"
 ## Verification
 
 ```bash
-pnpm --filter @studio/api test
+pnpm --filter @vyora/api test
 ```
 
 ## Commit message

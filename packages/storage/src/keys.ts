@@ -14,6 +14,7 @@ export const keys = {
   globalStock: (assetId: string, ext: string) => `stock/${assetId}.${ext}`,
   globalTemplatePreview: (templateId: string) => `templates/${templateId}/preview.png`,
   globalMoodPreview: (moodId: string) => `moods/${moodId}/preview.png`,
+  landingHero: (cardId: string, ext: string) => `landing-hero/${cardId}.${ext}`,
 };
 
 export function workspacePrefix(workspaceId: string): string {

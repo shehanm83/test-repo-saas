@@ -31,8 +31,8 @@
 
 ```bash
 # Create package.json/tsconfig like prior packages, then:
-pnpm --filter @studio/storage add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
-pnpm --filter @studio/storage add @studio/shared@workspace:*
+pnpm --filter @vyora/storage add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+pnpm --filter @vyora/storage add @vyora/shared@workspace:*
 ```
 
 - [ ] **Step 2 — `packages/storage/src/keys.ts`**
@@ -64,7 +64,7 @@ export function workspacePrefix(wid: string): string { return `workspaces/${wid}
 ```ts
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import type { SignedUrl, StorageAdapter } from "@studio/shared";
+import type { SignedUrl, StorageAdapter } from "@vyora/shared";
 
 export interface S3Options {
   endpoint?: string;
@@ -134,7 +134,7 @@ export class S3StorageAdapter implements StorageAdapter {
 
 ```ts
 // packages/shared/src/adapters/factory.ts
-import { S3StorageAdapter } from "@studio/storage";
+import { S3StorageAdapter } from "@vyora/storage";
 // ... in createAdapters:
 const storage = new S3StorageAdapter({
   endpoint: config.storage.endpoint,
@@ -145,7 +145,7 @@ const storage = new S3StorageAdapter({
 });
 ```
 
-(Add `@studio/storage` as a dep in `@studio/shared`.)
+(Add `@vyora/storage` as a dep in `@vyora/shared`.)
 
 - [ ] **Step 5 — Integration test against MinIO**
 
@@ -202,7 +202,7 @@ git commit -m "feat(storage): S3/MinIO adapter with key helpers and signed URLs"
 ## Verification
 
 ```bash
-pnpm --filter @studio/storage test
+pnpm --filter @vyora/storage test
 pnpm test:int
 ```
 

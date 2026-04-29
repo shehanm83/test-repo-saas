@@ -1,7 +1,7 @@
-import { Ledger, PLANS, TOPUP_PACKS } from "@studio/billing";
-import { createDb, creditLedgerEntries } from "@studio/db";
-import { desc, eq } from "@studio/db/operators";
-import { loadConfig } from "@studio/shared";
+import { Ledger, PLANS, TOPUP_PACKS } from "@vyora/billing";
+import { createDb, creditLedgerEntries } from "@vyora/db";
+import { desc, eq } from "@vyora/db/operators";
+import { loadConfig } from "@vyora/shared";
 
 import { BillingPage } from "@/components/billing/billing-page";
 import { getSessionWorkspace } from "@/lib/auth/server";

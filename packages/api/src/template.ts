@@ -4,9 +4,9 @@ import {
   adminUpdateTemplate,
   createDb,
   listPublishedTemplatesForRouting,
-} from "@studio/db";
-import { ASPECT_RATIOS, MODEL_CODES, SlotSchema, TextSafeZonesSchema } from "@studio/shared";
-import type { Config } from "@studio/shared/config";
+} from "@vyora/db";
+import { ASPECT_RATIOS, MODEL_CODES, SlotSchema, TextSafeZonesSchema } from "@vyora/shared";
+import type { Config } from "@vyora/shared/config";
 import { z } from "zod";
 
 const TemplateInput = z.object({

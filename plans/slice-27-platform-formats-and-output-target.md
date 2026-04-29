@@ -167,7 +167,7 @@ git commit -m "feat(shared): static platform-formats lookup + output-target reso
 ## Verification
 
 ```bash
-pnpm --filter @studio/shared test
+pnpm --filter @vyora/shared test
 ```
 
 ## Commit message

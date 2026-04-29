@@ -1,5 +1,5 @@
 {
-  "name": "@studio/shared",
+  "name": "@vyora/shared",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -21,10 +21,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@studio/auth": "workspace:*",
-    "@studio/billing": "workspace:*",
-    "@studio/observability": "workspace:*",
-    "@studio/storage": "workspace:*",
+    "@vyora/auth": "workspace:*",
+    "@vyora/billing": "workspace:*",
+    "@vyora/observability": "workspace:*",
+    "@vyora/storage": "workspace:*",
     "zod": "^4.3.6"
   }
 }

@@ -1,4 +1,4 @@
-import { Ledger } from "@studio/billing";
+import { Ledger } from "@vyora/billing";
 import {
   createDb,
   getGenerationFull,
@@ -6,11 +6,11 @@ import {
   brands,
   moods,
   templates as templatesTable,
-} from "@studio/db";
-import { tagSpan } from "@studio/observability";
-import { render } from "@studio/renderer";
-import type { Adapters, Config, AIImageRequest } from "@studio/shared";
-import { keys } from "@studio/storage";
+} from "@vyora/db";
+import { tagSpan } from "@vyora/observability";
+import { render } from "@vyora/renderer";
+import type { Adapters, Config, AIImageRequest } from "@vyora/shared";
+import { keys } from "@vyora/storage";
 import { eq, sql } from "drizzle-orm";
 
 export interface VariantJob {

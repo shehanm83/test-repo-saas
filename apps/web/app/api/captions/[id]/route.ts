@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { captionJobs, createDb } from "@studio/db";
-import { eq } from "@studio/db/operators";
-import { loadConfig } from "@studio/shared";
+import { captionJobs, createDb } from "@vyora/db";
+import { eq } from "@vyora/db/operators";
+import { loadConfig } from "@vyora/shared";
 
 export async function GET(
   _request: Request,

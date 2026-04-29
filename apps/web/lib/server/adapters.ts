@@ -1,5 +1,5 @@
-import { createQueueAdapter } from "@studio/queue";
-import { createAdapters, loadConfig } from "@studio/shared";
+import { createQueueAdapter } from "@vyora/queue";
+import { createAdapters, loadConfig } from "@vyora/shared";
 
 export function createServerAdapters() {
   const config = loadConfig();

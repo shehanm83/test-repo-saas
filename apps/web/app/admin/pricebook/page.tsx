@@ -1,5 +1,5 @@
-import { PricebookApi } from "@studio/api/pricebook";
-import { loadConfig } from "@studio/shared";
+import { PricebookApi } from "@vyora/api/pricebook";
+import { loadConfig } from "@vyora/shared";
 
 import { PricebookAdmin } from "@/components/admin/pricebook-admin";
 

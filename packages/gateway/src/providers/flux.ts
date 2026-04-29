@@ -1,5 +1,5 @@
 import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@studio/shared";
+import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@vyora/shared";
 
 const ASPECT_TO_FLUX: Record<string, string> = {
   "1:1": "1:1", "4:5": "4:5", "9:16": "9:16", "16:9": "16:9", "1.91:1": "21:9", "2:3": "2:3",

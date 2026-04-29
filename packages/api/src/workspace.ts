@@ -6,9 +6,9 @@ import {
   listWorkspacesForUser,
   switchActiveWorkspace,
   revokeMember,
-} from "@studio/db";
-import { createAdapters } from "@studio/shared";
-import type { Config } from "@studio/shared/config";
+} from "@vyora/db";
+import { createAdapters } from "@vyora/shared";
+import type { Config } from "@vyora/shared/config";
 import { z } from "zod";
 
 const inviteSchema = z.object({

@@ -12,7 +12,7 @@ export default function HelpPage() {
     {
       icon: <I.Briefcase size={22} />,
       title: "Brand kit",
-      body: "Upload a logo, paste your palette, pick fonts, write voice notes. Studio uses these to ground every generation.",
+      body: "Upload a logo, paste your palette, pick fonts, write voice notes. Vyora uses these to ground every generation.",
       bg: "linear-gradient(135deg, #E8E7FA, #D4D2F5)",
       iconBg: "#5E5CE6",
     },

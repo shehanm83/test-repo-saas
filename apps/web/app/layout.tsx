@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import React, { Suspense } from "react";
 
-import { loadConfig } from "@studio/shared";
+import { loadConfig } from "@vyora/shared";
 
 import { NavProgress } from "@/components/nav-progress";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Studio",
-  description: "On-brand images, in a sentence.",
+  metadataBase: new URL("https://www.vyora.io"),
+  title: "Vyora",
+  description: "On-brand images, in a sentence. Create beyond imagination.",
+  applicationName: "Vyora",
+  icons: { icon: "/brand/logo.png" },
 };
 
 export const dynamic = "force-dynamic";

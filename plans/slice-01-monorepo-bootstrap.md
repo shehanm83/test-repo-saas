@@ -90,7 +90,7 @@ coverage/
   },
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --filter @studio/web dev",
+    "dev": "pnpm --filter @vyora/web dev",
     "test": "pnpm -r test",
     "test:unit": "pnpm -r test:unit",
     "test:int": "pnpm -r test:int",
@@ -162,7 +162,7 @@ packages:
 `packages/shared/package.json`:
 ```json
 {
-  "name": "@studio/shared",
+  "name": "@vyora/shared",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -196,7 +196,7 @@ export {}; // placeholder; populated in later slices
 `packages/db/package.json`:
 ```json
 {
-  "name": "@studio/db",
+  "name": "@vyora/db",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -205,7 +205,7 @@ export {}; // placeholder; populated in later slices
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@studio/shared": "workspace:*"
+    "@vyora/shared": "workspace:*"
   }
 }
 ```
@@ -236,7 +236,7 @@ export {};
 `packages/gateway/package.json`:
 ```json
 {
-  "name": "@studio/gateway",
+  "name": "@vyora/gateway",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -245,7 +245,7 @@ export {};
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@studio/shared": "workspace:*"
+    "@vyora/shared": "workspace:*"
   }
 }
 ```
@@ -276,7 +276,7 @@ export {};
 `packages/renderer/package.json`:
 ```json
 {
-  "name": "@studio/renderer",
+  "name": "@vyora/renderer",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -285,7 +285,7 @@ export {};
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@studio/shared": "workspace:*"
+    "@vyora/shared": "workspace:*"
   }
 }
 ```
@@ -316,7 +316,7 @@ export {};
 `apps/web/package.json`:
 ```json
 {
-  "name": "@studio/web",
+  "name": "@vyora/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -325,10 +325,10 @@ export {};
     "build": "echo 'web build wired in slice 35'"
   },
   "dependencies": {
-    "@studio/db": "workspace:*",
-    "@studio/gateway": "workspace:*",
-    "@studio/renderer": "workspace:*",
-    "@studio/shared": "workspace:*"
+    "@vyora/db": "workspace:*",
+    "@vyora/gateway": "workspace:*",
+    "@vyora/renderer": "workspace:*",
+    "@vyora/shared": "workspace:*"
   }
 }
 ```
@@ -364,7 +364,7 @@ export {}; // Next.js bootstrap added in slice 35
 `apps/worker/package.json`:
 ```json
 {
-  "name": "@studio/worker",
+  "name": "@vyora/worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -373,10 +373,10 @@ export {}; // Next.js bootstrap added in slice 35
     "build": "echo 'worker build wired in slice 30'"
   },
   "dependencies": {
-    "@studio/db": "workspace:*",
-    "@studio/gateway": "workspace:*",
-    "@studio/renderer": "workspace:*",
-    "@studio/shared": "workspace:*"
+    "@vyora/db": "workspace:*",
+    "@vyora/gateway": "workspace:*",
+    "@vyora/renderer": "workspace:*",
+    "@vyora/shared": "workspace:*"
   }
 }
 ```

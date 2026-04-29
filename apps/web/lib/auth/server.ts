@@ -6,9 +6,9 @@ import {
   users,
   workspaces,
   workspaceMembers,
-} from "@studio/db";
-import { and, eq, isNotNull } from "@studio/db/operators";
-import { loadConfig, createAdapters } from "@studio/shared";
+} from "@vyora/db";
+import { and, eq, isNotNull } from "@vyora/db/operators";
+import { loadConfig, createAdapters } from "@vyora/shared";
 
 export interface ServerSession {
   authUserId: string;

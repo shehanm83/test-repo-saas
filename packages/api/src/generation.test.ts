@@ -1,4 +1,4 @@
-import type { Adapters, Config } from "@studio/shared";
+import type { Adapters, Config } from "@vyora/shared";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { GenerationApi } from "./generation.js";
@@ -12,8 +12,8 @@ vi.mock("./aup", () => ({
   assertBriefAllowed: vi.fn(async () => undefined),
 }));
 
-// Mock all @studio/db imports
-vi.mock("@studio/db", () => ({
+// Mock all @vyora/db imports
+vi.mock("@vyora/db", () => ({
   createDb: vi.fn(() => ({})),
   listAvailableMoods: vi.fn(async () => [{ id: "mood-1", supportedAspectRatios: ["1:1", "4:5"] }]),
   pickTemplates: vi.fn(async () => [
@@ -37,10 +37,10 @@ vi.mock("@studio/db", () => ({
   eq: vi.fn(),
 }));
 
-// Mock @studio/billing
+// Mock @vyora/billing
 const mockReserve = vi.fn(async () => undefined);
 
-vi.mock("@studio/billing", () => {
+vi.mock("@vyora/billing", () => {
   class InsufficientCredits extends Error {
     constructor(
       public readonly balance: number,
@@ -59,8 +59,8 @@ vi.mock("@studio/billing", () => {
   return { Ledger, InsufficientCredits };
 });
 
-// Mock @studio/storage
-vi.mock("@studio/storage", () => ({
+// Mock @vyora/storage
+vi.mock("@vyora/storage", () => ({
   keys: {
     inspirationUploadStaging: vi.fn((ws: string, uid: string) => `staging/${ws}/${uid}.png`),
     inspirationClaimed: vi.fn((ws: string, gid: string) => `claimed/${ws}/${gid}.png`),
@@ -153,7 +153,7 @@ describe("GenerationApi.create", () => {
   });
 
   it("rejects when no templates found", async () => {
-    const { pickTemplates } = await import("@studio/db");
+    const { pickTemplates } = await import("@vyora/db");
     vi.mocked(pickTemplates).mockResolvedValueOnce([]);
     const [adapters] = makeAdapters();
     const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);
@@ -166,7 +166,7 @@ describe("GenerationApi.create", () => {
   });
 
   it("throws 402 billing code when insufficient credits", async () => {
-    const { InsufficientCredits } = await import("@studio/billing");
+    const { InsufficientCredits } = await import("@vyora/billing");
     mockReserve.mockRejectedValueOnce(new InsufficientCredits(0, 10));
     const [adapters] = makeAdapters();
     const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);

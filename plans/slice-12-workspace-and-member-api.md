@@ -36,16 +36,16 @@
 `packages/api/package.json`:
 ```json
 {
-  "name": "@studio/api",
+  "name": "@vyora/api",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
   "exports": { ".": "./src/index.ts" },
   "scripts": { "lint": "eslint src --max-warnings=0", "test": "vitest run" },
   "dependencies": {
-    "@studio/db": "workspace:*",
-    "@studio/shared": "workspace:*",
-    "@studio/auth": "workspace:*",
+    "@vyora/db": "workspace:*",
+    "@vyora/shared": "workspace:*",
+    "@vyora/auth": "workspace:*",
     "zod": "^3.23.8"
   }
 }
@@ -185,8 +185,8 @@ export async function revokeMember(
 
 ```ts
 import { z } from "zod";
-import { createDb, listWorkspacesForUser, inviteMember, acceptInvite, changeRole, revokeMember } from "@studio/db";
-import type { Config } from "@studio/shared";
+import { createDb, listWorkspacesForUser, inviteMember, acceptInvite, changeRole, revokeMember } from "@vyora/db";
+import type { Config } from "@vyora/shared";
 
 export class WorkspaceApi {
   constructor(private readonly config: Config) {}
@@ -234,7 +234,7 @@ export class WorkspaceApi {
 import { describe, expect, it, vi } from "vitest";
 
 const dbMock = {};
-vi.mock("@studio/db", () => ({
+vi.mock("@vyora/db", () => ({
   createDb: () => dbMock,
   listWorkspacesForUser: vi.fn(async () => [{ id: "w1", name: "W", role: "owner", planCode: "free" }]),
   inviteMember: vi.fn(async () => ({ token: "tok", userIdKnown: null })),
@@ -278,8 +278,8 @@ git commit -m "feat(api): workspace and member endpoints (list/invite/accept/rol
 ## Verification
 
 ```bash
-pnpm --filter @studio/api test
-pnpm --filter @studio/db test:int    # workspace.int.test.ts passes
+pnpm --filter @vyora/api test
+pnpm --filter @vyora/db test:int    # workspace.int.test.ts passes
 ```
 
 ## Commit message

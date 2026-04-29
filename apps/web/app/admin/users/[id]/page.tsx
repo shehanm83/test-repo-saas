@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 
-import { createDb, workspaces, workspaceMembers, users, creditLedgerEntries } from "@studio/db";
+import { createDb, workspaces, workspaceMembers, users, creditLedgerEntries } from "@vyora/db";
 import { eq, desc } from "drizzle-orm";
-import { loadConfig } from "@studio/shared";
+import { loadConfig } from "@vyora/shared";
 
 import { WorkspaceDetail } from "@/components/admin/workspace-detail";
 

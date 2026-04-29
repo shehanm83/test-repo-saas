@@ -1,4 +1,4 @@
-import { CODES } from "@studio/shared";
+import { CODES } from "@vyora/shared";
 
 export const FRIENDLY: Record<string, string> = {
   [CODES.BILLING_INSUFFICIENT_CREDITS]: "You don't have enough credits. Top up to continue.",

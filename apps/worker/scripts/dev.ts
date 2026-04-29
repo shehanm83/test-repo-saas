@@ -1,5 +1,5 @@
-import { createQueueAdapter } from "@studio/queue";
-import { loadConfig, createAdapters } from "@studio/shared";
+import { createQueueAdapter } from "@vyora/queue";
+import { loadConfig, createAdapters } from "@vyora/shared";
 
 import { GenerationWorker } from "../src/handler.js";
 import { initWorkerSentry } from "../src/instrumentation.js";

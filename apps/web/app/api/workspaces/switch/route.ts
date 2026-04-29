@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getServerSession } from "@/lib/auth/server";
-import { createAdapters, loadConfig } from "@studio/shared";
+import { createAdapters, loadConfig } from "@vyora/shared";
 
 export async function POST(request: Request) {
   const session = await getServerSession();

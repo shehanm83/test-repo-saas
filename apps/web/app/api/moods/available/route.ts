@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { MoodApi } from "@studio/api/mood";
-import { loadConfig } from "@studio/shared";
+import { MoodApi } from "@vyora/api/mood";
+import { loadConfig } from "@vyora/shared";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);

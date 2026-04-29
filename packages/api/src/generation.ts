@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { Ledger, InsufficientCredits } from "@studio/billing";
+import { Ledger, InsufficientCredits } from "@vyora/billing";
 import {
   and,
   createDb,
@@ -13,16 +13,16 @@ import {
   getGenerationFull,
   updateGenerationInspirationKey,
   priceBookLookup,
-} from "@studio/db";
-import { tagSpan } from "@studio/observability";
+} from "@vyora/db";
+import { tagSpan } from "@vyora/observability";
 import {
   AppError,
   CODES,
   resolveOutputTarget,
   assertMoodSupportsOutputAspectRatio,
-} from "@studio/shared";
-import type { Adapters, Config } from "@studio/shared";
-import { keys } from "@studio/storage";
+} from "@vyora/shared";
+import type { Adapters, Config } from "@vyora/shared";
+import { keys } from "@vyora/storage";
 import { z } from "zod";
 
 import { assertBriefAllowed } from "./aup";

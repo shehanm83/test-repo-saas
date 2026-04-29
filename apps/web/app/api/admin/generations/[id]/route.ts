@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { createDb, generations, generationVariants, creditLedgerEntries, auditLog, workspaces } from "@studio/db";
+import { createDb, generations, generationVariants, creditLedgerEntries, auditLog, workspaces } from "@vyora/db";
 import { eq, desc } from "drizzle-orm";
-import { loadConfig } from "@studio/shared";
+import { loadConfig } from "@vyora/shared";
 
 import { getServerSession } from "@/lib/auth/server";
 

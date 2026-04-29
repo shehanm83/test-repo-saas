@@ -31,9 +31,9 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @studio/web add @sentry/nextjs
-pnpm --filter @studio/worker add @sentry/node @sentry/profiling-node
-pnpm --filter @studio/observability add @aws-sdk/client-cloudwatch @sentry/node
+pnpm --filter @vyora/web add @sentry/nextjs
+pnpm --filter @vyora/worker add @sentry/node @sentry/profiling-node
+pnpm --filter @vyora/observability add @aws-sdk/client-cloudwatch @sentry/node
 ```
 
 - [ ] **Step 2 — `SentryTelemetry`**
@@ -42,7 +42,7 @@ pnpm --filter @studio/observability add @aws-sdk/client-cloudwatch @sentry/node
 // packages/observability/src/sentry.ts
 import * as Sentry from "@sentry/node";
 import { CloudWatchClient, PutMetricDataCommand } from "@aws-sdk/client-cloudwatch";
-import type { Telemetry } from "@studio/shared";
+import type { Telemetry } from "@vyora/shared";
 
 export class SentryTelemetry implements Telemetry {
   private cw?: CloudWatchClient;
@@ -149,7 +149,7 @@ git commit -m "feat(observability): Sentry + CloudWatch metrics + OTEL placehold
 ## Verification
 
 ```bash
-OBSERVABILITY=sentry SENTRY_DSN=... pnpm --filter @studio/worker dev
+OBSERVABILITY=sentry SENTRY_DSN=... pnpm --filter @vyora/worker dev
 # trigger a generation, observe Sentry transaction + CloudWatch metric appear
 ```
 

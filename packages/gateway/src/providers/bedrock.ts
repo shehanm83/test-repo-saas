@@ -1,6 +1,6 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse } from "@studio/shared";
+import type { AIImageRequest, AIImageResponse } from "@vyora/shared";
 
 const BEDROCK_SD35_COST_CENTS = 3;
 const NOVA_COST_CENTS = 4;

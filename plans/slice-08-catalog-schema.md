@@ -112,7 +112,7 @@ export * from "./catalog.js";
 - [ ] **Step 3 — Generate + edit migration**
 
 ```bash
-pnpm --filter @studio/db exec drizzle-kit generate --name=catalog
+pnpm --filter @vyora/db exec drizzle-kit generate --name=catalog
 ```
 
 Edit the generated `0003_catalog.sql`. Append:
@@ -154,7 +154,7 @@ GRANT ALL ON moods, templates, mood_template_bindings, stock_assets, price_book_
 - [ ] **Step 4 — Run migration**
 
 ```bash
-pnpm --filter @studio/db db:migrate
+pnpm --filter @vyora/db db:migrate
 ```
 
 - [ ] **Step 5 — Commit**

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { BillingApi } from "@studio/api/billing";
-import { createDb, workspaces } from "@studio/db";
-import { eq } from "@studio/db/operators";
-import { loadConfig } from "@studio/shared";
+import { BillingApi } from "@vyora/api/billing";
+import { createDb, workspaces } from "@vyora/db";
+import { eq } from "@vyora/db/operators";
+import { loadConfig } from "@vyora/shared";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";

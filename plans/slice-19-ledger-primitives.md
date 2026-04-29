@@ -28,7 +28,7 @@
 
 Mirror prior packages. Deps:
 ```bash
-pnpm --filter @studio/billing add @studio/db@workspace:* @studio/shared@workspace:* drizzle-orm
+pnpm --filter @vyora/billing add @vyora/db@workspace:* @vyora/shared@workspace:* drizzle-orm
 ```
 
 - [ ] **Step 2 — Errors**
@@ -57,7 +57,7 @@ export class IdempotencyConflict extends Error {
 
 ```ts
 import { eq, sql } from "drizzle-orm";
-import { creditLedgerEntries, withWorkspace, type Db } from "@studio/db";
+import { creditLedgerEntries, withWorkspace, type Db } from "@vyora/db";
 import { InsufficientCredits } from "./errors.js";
 
 type Kind = "grant" | "reservation" | "commit" | "release" | "topup" | "refund" | "adjustment";
@@ -171,7 +171,7 @@ Add a follow-up migration `0005_ledger_check.sql` (`pnpm db:generate --name=ledg
 ALTER TABLE credit_ledger_entries ADD CONSTRAINT ledger_balance_after_nonneg CHECK (balance_after >= 0);
 ```
 
-Run: `pnpm --filter @studio/db db:migrate`.
+Run: `pnpm --filter @vyora/db db:migrate`.
 
 - [ ] **Step 6 — Integration test (concurrency)**
 
@@ -179,7 +179,7 @@ Run: `pnpm --filter @studio/db db:migrate`.
 
 ```ts
 import { describe, expect, it } from "vitest";
-import { createDb, users, workspaces } from "@studio/db";
+import { createDb, users, workspaces } from "@vyora/db";
 import { Ledger } from "./ledger.js";
 
 const url = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
@@ -240,7 +240,7 @@ describe("Ledger", () => {
 - [ ] **Step 7 — Run integration**
 
 ```bash
-pnpm --filter @studio/db db:migrate
+pnpm --filter @vyora/db db:migrate
 DATABASE_URL=postgres://studio:dev@localhost:5432/studio pnpm test:int
 ```
 

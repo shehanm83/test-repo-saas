@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import { promptFingerprint } from "./gateway.js";
 import type { ImageProvider, TextProvider, VisionProvider, ModerationProvider } from "./types.js";
-import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@studio/shared";
+import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@vyora/shared";
 
 export class MockImageProvider implements ImageProvider {
   capabilities = {

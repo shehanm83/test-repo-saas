@@ -1,6 +1,6 @@
-import { Ledger, PLANS } from "@studio/billing";
-import { createDb } from "@studio/db";
-import { loadConfig } from "@studio/shared";
+import { Ledger, PLANS } from "@vyora/billing";
+import { createDb } from "@vyora/db";
+import { loadConfig } from "@vyora/shared";
 
 import { I } from "@/components/icons";
 import { listWorkspaceMembers, getSessionWorkspace } from "@/lib/auth/server";

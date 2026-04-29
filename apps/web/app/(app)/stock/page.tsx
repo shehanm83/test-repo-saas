@@ -1,5 +1,5 @@
-import { StockApi } from "@studio/api/stock";
-import { loadConfig } from "@studio/shared";
+import { StockApi } from "@vyora/api/stock";
+import { loadConfig } from "@vyora/shared";
 
 import { I } from "@/components/icons";
 

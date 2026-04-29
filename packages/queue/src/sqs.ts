@@ -4,7 +4,7 @@ import {
   ReceiveMessageCommand,
   DeleteMessageCommand,
 } from "@aws-sdk/client-sqs";
-import type { QueueAdapter, QueueMessage } from "@studio/shared";
+import type { QueueAdapter, QueueMessage } from "@vyora/shared";
 
 export class SqsQueueAdapter implements QueueAdapter {
   client: SQSClient;

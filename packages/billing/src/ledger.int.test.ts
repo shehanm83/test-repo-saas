@@ -1,4 +1,4 @@
-import { createDb, users, workspaces } from "@studio/db";
+import { createDb, users, workspaces } from "@vyora/db";
 import { describe, expect, it } from "vitest";
 
 import { Ledger } from "./ledger";

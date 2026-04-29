@@ -29,7 +29,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @studio/billing add stripe
+pnpm --filter @vyora/billing add stripe
 ```
 
 - [ ] **Step 2 — Plans**
@@ -67,7 +67,7 @@ export function planFromStripePriceId(env: Record<string, string | undefined>, p
 ```ts
 // packages/billing/src/stripe.ts
 import Stripe from "stripe";
-import type { BillingProvider } from "@studio/shared";
+import type { BillingProvider } from "@vyora/shared";
 
 export class StripeBillingProvider implements BillingProvider {
   private stripe: Stripe;
@@ -117,10 +117,10 @@ export class StripeBillingProvider implements BillingProvider {
 ```ts
 // packages/billing/src/stripe-webhook.ts
 import { eq } from "drizzle-orm";
-import { createDb, subscriptions, workspaces } from "@studio/db";
+import { createDb, subscriptions, workspaces } from "@vyora/db";
 import { Ledger } from "./ledger.js";
 import { PLANS, planFromStripePriceId } from "./plans.js";
-import type { Config } from "@studio/shared";
+import type { Config } from "@vyora/shared";
 import type Stripe from "stripe";
 
 export class StripeWebhookHandler {
@@ -219,7 +219,7 @@ git commit -m "feat(billing): Stripe subscription provider + webhook handler wit
 ## Verification
 
 ```bash
-pnpm --filter @studio/billing test
+pnpm --filter @vyora/billing test
 ```
 
 ## Commit message

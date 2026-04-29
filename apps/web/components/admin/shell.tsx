@@ -7,6 +7,7 @@ import React from "react";
 import { I } from "@/components/icons";
 
 const items = [
+  { href: "/admin/landing-hero", label: "Landing hero", icon: <I.Image size={16} /> },
   { href: "/admin/moods", label: "Moods", icon: <I.Library size={16} /> },
   { href: "/admin/templates", label: "Templates", icon: <I.Layout size={16} /> },
   { href: "/admin/stock", label: "Stock", icon: <I.Image size={16} /> },

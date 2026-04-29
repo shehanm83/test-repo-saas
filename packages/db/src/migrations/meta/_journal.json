@@ -43,6 +43,13 @@
       "when": 1777193005000,
       "tag": "0006_rate_limit_counters",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777193006000,
+      "tag": "0007_marketing",
+      "breakpoints": true
     }
   ]
 }

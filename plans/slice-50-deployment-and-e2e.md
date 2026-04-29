@@ -10,7 +10,7 @@
 - S3 lifecycle rule on `workspaces/*/uploads/inspiration/` — expire after 1 day
 - CI: deploy job pushes to staging on `push to main`, manual approval gate to prod
 - Playwright E2E test suite (4 critical journeys) wired into CI
-- `pnpm --filter @studio/web start:lambda` runs locally via `sst dev` or `aws-lambda-rie`
+- `pnpm --filter @vyora/web start:lambda` runs locally via `sst dev` or `aws-lambda-rie`
 
 ---
 
@@ -34,7 +34,7 @@
 - [ ] **Step 1 — OpenNext**
 
 ```bash
-pnpm --filter @studio/web add -D @opennextjs/aws
+pnpm --filter @vyora/web add -D @opennextjs/aws
 ```
 
 `apps/web/open-next.config.ts`:
@@ -53,8 +53,8 @@ export default {
 - [ ] **Step 2 — CDK app**
 
 ```bash
-pnpm --filter @studio/infra add aws-cdk-lib constructs
-pnpm --filter @studio/infra add -D aws-cdk
+pnpm --filter @vyora/infra add aws-cdk-lib constructs
+pnpm --filter @vyora/infra add -D aws-cdk
 ```
 
 `infra/lib/storage-stack.ts`:
@@ -127,7 +127,7 @@ export default defineConfig({
   testDir: "./tests",
   use: { baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000", screenshot: "only-on-failure", trace: "on-first-retry" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: process.env.CI ? undefined : { command: "pnpm --filter @studio/web dev", url: "http://localhost:3000", reuseExistingServer: true },
+  webServer: process.env.CI ? undefined : { command: "pnpm --filter @vyora/web dev", url: "http://localhost:3000", reuseExistingServer: true },
 });
 ```
 
@@ -196,14 +196,14 @@ In `.github/workflows/ci.yaml`, replace the disabled `e2e` job:
       - uses: actions/setup-node@v4
         with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @studio/db db:migrate
-      - run: pnpm --filter @studio/db exec tsx scripts/seed-pricebook.ts
-      - run: pnpm --filter @studio/web build
+      - run: pnpm --filter @vyora/db db:migrate
+      - run: pnpm --filter @vyora/db exec tsx scripts/seed-pricebook.ts
+      - run: pnpm --filter @vyora/web build
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm --filter @studio/web exec next start &
-      - run: pnpm --filter @studio/worker exec tsx scripts/dev.ts &
+      - run: pnpm --filter @vyora/web exec next start &
+      - run: pnpm --filter @vyora/worker exec tsx scripts/dev.ts &
       - run: sleep 10
-      - run: pnpm --filter @studio/e2e test
+      - run: pnpm --filter @vyora/e2e test
 ```
 
 ### C — Deploy workflow
@@ -228,12 +228,12 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @studio/db db:migrate
+      - run: pnpm --filter @vyora/db db:migrate
         env: { DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }} }
-      - run: pnpm --filter @studio/web build:lambda
+      - run: pnpm --filter @vyora/web build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with: { role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_STAGING }}, aws-region: us-east-1 }
-      - run: pnpm --filter @studio/infra exec cdk deploy --require-approval never
+      - run: pnpm --filter @vyora/infra exec cdk deploy --require-approval never
 
   deploy-prod:
     needs: deploy-staging
@@ -245,12 +245,12 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @studio/db db:migrate
+      - run: pnpm --filter @vyora/db db:migrate
         env: { DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }} }
-      - run: pnpm --filter @studio/web build:lambda
+      - run: pnpm --filter @vyora/web build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with: { role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_PROD }}, aws-region: us-east-1 }
-      - run: pnpm --filter @studio/infra exec cdk deploy --context env=prod --require-approval never
+      - run: pnpm --filter @vyora/infra exec cdk deploy --context env=prod --require-approval never
 ```
 
 - [ ] **Step 8 — Commit**
@@ -266,11 +266,11 @@ git commit -m "feat(deploy): OpenNext + CDK infra + Playwright E2E + CI deploy p
 
 ```bash
 # Local E2E
-pnpm --filter @studio/web build
-pnpm --filter @studio/e2e test
+pnpm --filter @vyora/web build
+pnpm --filter @vyora/e2e test
 
 # Local CDK synth
-pnpm --filter @studio/infra exec cdk synth
+pnpm --filter @vyora/infra exec cdk synth
 
 # Staging deploy (after secrets configured in GitHub)
 gh workflow run deploy.yaml

@@ -1,5 +1,5 @@
-import { createDb, workspaces } from "@studio/db";
-import { loadConfig } from "@studio/shared/config";
+import { createDb, workspaces } from "@vyora/db";
+import { loadConfig } from "@vyora/shared/config";
 
 import { StripeBillingProvider } from "../src/stripe";
 import { reconcileWorkspace } from "../src/reconcile";

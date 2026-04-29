@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { BrandApi } from "@studio/api/brand";
-import { createDb, listBrands } from "@studio/db";
-import { loadConfig } from "@studio/shared";
+import { BrandApi } from "@vyora/api/brand";
+import { createDb, listBrands } from "@vyora/db";
+import { loadConfig } from "@vyora/shared";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";

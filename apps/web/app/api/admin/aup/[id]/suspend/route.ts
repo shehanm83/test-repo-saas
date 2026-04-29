@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { createDb, workspaces } from "@studio/db";
+import { createDb, workspaces } from "@vyora/db";
 import { eq } from "drizzle-orm";
-import { loadConfig } from "@studio/shared";
+import { loadConfig } from "@vyora/shared";
 
 import { getServerSession } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";

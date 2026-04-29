@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { createDb, users, workspaces, workspaceMembers } from "@studio/db";
+import { createDb, users, workspaces, workspaceMembers } from "@vyora/db";
 import { eq, ilike, or } from "drizzle-orm";
-import { loadConfig } from "@studio/shared";
+import { loadConfig } from "@vyora/shared";
 
 import { I } from "@/components/icons";
 

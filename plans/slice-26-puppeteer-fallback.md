@@ -29,7 +29,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @studio/renderer add puppeteer-core @sparticuz/chromium
+pnpm --filter @vyora/renderer add puppeteer-core @sparticuz/chromium
 ```
 
 - [ ] **Step 2 — Browser renderer**
@@ -137,8 +137,8 @@ git commit -m "feat(renderer): Puppeteer browser-render fallback for templates n
 ## Verification
 
 ```bash
-pnpm --filter @studio/renderer test            # CI=true skips browser test
-CI= pnpm --filter @studio/renderer test         # local: runs browser test
+pnpm --filter @vyora/renderer test            # CI=true skips browser test
+CI= pnpm --filter @vyora/renderer test         # local: runs browser test
 ```
 
 ## Commit message

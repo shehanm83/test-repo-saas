@@ -1,5 +1,5 @@
-import { sql, type Db } from "@studio/db";
-import { AppError, CODES } from "@studio/shared";
+import { sql, type Db } from "@vyora/db";
+import { AppError, CODES } from "@vyora/shared";
 
 export async function rateLimit(db: Db, key: string, limit: number, windowSec: number): Promise<void> {
   const windowStart = new Date(Math.floor(Date.now() / (windowSec * 1000)) * windowSec * 1000);

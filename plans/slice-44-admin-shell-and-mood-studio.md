@@ -89,7 +89,7 @@ Each calls `MoodApi.adminCreate`, `adminUpdate`, etc. Each writes an `audit_log`
 - [ ] **Step 5 — Tests + commit**
 
 ```bash
-pnpm --filter @studio/web test
+pnpm --filter @vyora/web test
 git add -A
 git commit -m "feat(admin): admin shell + Mood Studio (CRUD + lifecycle + test-render)"
 ```

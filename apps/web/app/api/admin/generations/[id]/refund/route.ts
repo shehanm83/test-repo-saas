@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { createDb, generations, creditLedgerEntries } from "@studio/db";
+import { createDb, generations, creditLedgerEntries } from "@vyora/db";
 import { eq, and } from "drizzle-orm";
-import { loadConfig } from "@studio/shared";
-import { Ledger } from "@studio/billing";
+import { loadConfig } from "@vyora/shared";
+import { Ledger } from "@vyora/billing";
 
 import { getServerSession } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";

@@ -174,7 +174,7 @@ Replace the `scripts` section:
 {
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --filter @studio/web dev",
+    "dev": "pnpm --filter @vyora/web dev",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:int": "vitest run --config vitest.integration.config.ts",

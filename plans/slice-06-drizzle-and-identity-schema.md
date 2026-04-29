@@ -12,7 +12,7 @@
 - `app_user` and `app_admin` DB roles created (RLS enforced for app_user)
 - Helper `withWorkspace(workspaceId, fn)` opens a tx, sets `app.current_workspace_id`, runs fn
 - Property test `tenancy.test.ts` proves cross-tenant reads return 0 rows from app_user role
-- Drizzle generated types exported from `@studio/db`
+- Drizzle generated types exported from `@vyora/db`
 
 ---
 
@@ -40,8 +40,8 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @studio/db add drizzle-orm postgres
-pnpm --filter @studio/db add -D drizzle-kit @types/pg
+pnpm --filter @vyora/db add drizzle-orm postgres
+pnpm --filter @vyora/db add -D drizzle-kit @types/pg
 ```
 
 - [ ] **Step 2 — Create `packages/db/drizzle.config.ts`**
@@ -147,7 +147,7 @@ export * from "./identity.js";
 - [ ] **Step 6 — Generate migration SQL and edit it for RLS**
 
 ```bash
-pnpm --filter @studio/db exec drizzle-kit generate --name=identity
+pnpm --filter @vyora/db exec drizzle-kit generate --name=identity
 ```
 
 Open the generated SQL file at `packages/db/src/migrations/0001_*.sql` and rename to `0001_identity.sql`. Append RLS setup at the bottom:
@@ -235,7 +235,7 @@ await sql.end();
 
 Add tsx:
 ```bash
-pnpm --filter @studio/db add -D tsx
+pnpm --filter @vyora/db add -D tsx
 ```
 
 - [ ] **Step 9 — Implement `packages/db/src/with-workspace.ts`**
@@ -351,13 +351,13 @@ describe("RLS tenancy", () => {
 - [ ] **Step 12 — Run migrations**
 
 ```bash
-DATABASE_URL=postgres://studio:dev@localhost:5432/studio pnpm --filter @studio/db db:migrate
+DATABASE_URL=postgres://studio:dev@localhost:5432/studio pnpm --filter @vyora/db db:migrate
 ```
 
 - [ ] **Step 13 — Run integration tests, expect pass**
 
 ```bash
-DATABASE_URL=postgres://studio:dev@localhost:5432/studio pnpm --filter @studio/db test:int
+DATABASE_URL=postgres://studio:dev@localhost:5432/studio pnpm --filter @vyora/db test:int
 ```
 
 - [ ] **Step 14 — Update root `vitest.integration.config.ts` (new file)**
@@ -396,8 +396,8 @@ git commit -m "feat(db): drizzle setup + identity schema + RLS + tenancy isolati
 ## Verification
 
 ```bash
-pnpm --filter @studio/db db:migrate   # exits 0
-pnpm --filter @studio/db test:int     # 2 RLS tests pass
+pnpm --filter @vyora/db db:migrate   # exits 0
+pnpm --filter @vyora/db test:int     # 2 RLS tests pass
 psql "$DATABASE_URL" -c "\dt"         # 4 tables exist
 psql "$DATABASE_URL" -c "\du"         # app_user and app_admin roles exist
 ```

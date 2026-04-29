@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 
+import { VyoraWordmark } from "@/components/brand/vyora-mark";
 import { I } from "@/components/icons";
 
 const STEPS = ["identify", "logo", "palette", "fonts", "voice", "references"] as const;
@@ -18,17 +19,6 @@ const STEP_LABELS: Record<Step, string> = {
 
 const DEFAULT_PALETTE = ["#2A1F18", "#7C5232", "#E8DCC4", "#C9A86A", "#F5EFE3"];
 const PALETTE_LABELS = ["Primary", "Secondary", "Accent", "Extra 1", "Extra 2"];
-
-function StudioMark({ size = 24 }: { size?: number }) {
-  return (
-    <div
-      className="topbar__brand-mark"
-      style={{ width: size, height: size, fontSize: size * 0.55 }}
-    >
-      <span style={{ marginTop: -1 }}>S</span>
-    </div>
-  );
-}
 
 function StepDot({
   n,
@@ -193,18 +183,10 @@ export function BrandWizard({ step }: { step: Step }) {
     >
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontFamily: "var(--font-display)",
-            fontSize: 18,
-            marginBottom: 32,
-            cursor: "pointer",
-          }}
+          style={{ marginBottom: 32, cursor: "pointer", display: "inline-block" }}
           onClick={() => router.push("/")}
         >
-          <StudioMark /> Studio
+          <VyoraWordmark size={28} textSize={20} />
         </div>
 
         <div style={{ display: "flex", alignItems: "stretch", marginBottom: 32 }}>

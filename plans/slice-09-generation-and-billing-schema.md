@@ -147,7 +147,7 @@ export * from "./billing.js";
 - [ ] **Step 4 — Generate migration + add RLS edits**
 
 ```bash
-pnpm --filter @studio/db exec drizzle-kit generate --name=generation_billing
+pnpm --filter @vyora/db exec drizzle-kit generate --name=generation_billing
 ```
 
 Edit `0004_generation_billing.sql`. Append:
@@ -194,7 +194,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE
 - [ ] **Step 5 — Run migration**
 
 ```bash
-pnpm --filter @studio/db db:migrate
+pnpm --filter @vyora/db db:migrate
 ```
 
 - [ ] **Step 6 — Enable CI integration job**
@@ -218,7 +218,7 @@ In `.github/workflows/ci.yaml`, change `if: false` to `if: true` for the `integr
       - uses: actions/setup-node@v4
         with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @studio/db db:migrate
+      - run: pnpm --filter @vyora/db db:migrate
       - run: pnpm test:int
 ```
 
@@ -234,7 +234,7 @@ git commit -m "feat(db): generation + billing schema with RLS, idempotency keys,
 ## Verification
 
 ```bash
-pnpm --filter @studio/db db:migrate
+pnpm --filter @vyora/db db:migrate
 pnpm test:int
 psql "$DATABASE_URL" -c "\d credit_ledger_entries" | grep idempotency_key
 ```

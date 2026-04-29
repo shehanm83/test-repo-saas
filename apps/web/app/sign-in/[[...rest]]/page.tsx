@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { ClerkCard } from "@/components/auth/clerk-card";
-import { loadConfig } from "@studio/shared";
+import { loadConfig } from "@vyora/shared";
 
 export default async function SignInPage() {
   const config = loadConfig();
@@ -15,7 +15,7 @@ export default async function SignInPage() {
   return (
     <ClerkCard
       title="Welcome back"
-      subtitle="Continue into Studio and pick up where your last generation left off."
+      subtitle="Continue into Vyora and pick up where your last generation left off."
     >
       <SignIn
         appearance={{

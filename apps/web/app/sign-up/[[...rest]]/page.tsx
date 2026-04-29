@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { ClerkCard } from "@/components/auth/clerk-card";
-import { loadConfig } from "@studio/shared";
+import { loadConfig } from "@vyora/shared";
 
 export default async function SignUpPage() {
   const config = loadConfig();
@@ -14,7 +14,7 @@ export default async function SignUpPage() {
 
   return (
     <ClerkCard
-      title="Create your Studio account"
+      title="Create your Vyora account"
       subtitle="Free forever for one brand. No card required."
     >
       <SignUp

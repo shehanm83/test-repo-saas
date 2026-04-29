@@ -11,7 +11,7 @@ vi.mock("./aup", () => ({
   assertBriefAllowed: vi.fn(async () => undefined),
 }));
 
-vi.mock("@studio/db", () => ({
+vi.mock("@vyora/db", () => ({
   createDb: vi.fn(() => ({})),
   insertCaption: vi.fn(async () => ({ id: "cap-1" })),
   workspaces: {},
@@ -21,7 +21,7 @@ vi.mock("@studio/db", () => ({
 
 const mockReserve = vi.fn(async () => undefined);
 
-vi.mock("@studio/billing", () => {
+vi.mock("@vyora/billing", () => {
   class InsufficientCredits extends Error {
     constructor(
       public readonly balance: number,
@@ -98,7 +98,7 @@ describe("CaptionApi.create", () => {
   });
 
   it("throws AppError 402 when reserve fails (insufficient credits)", async () => {
-    const { InsufficientCredits } = await import("@studio/billing");
+    const { InsufficientCredits } = await import("@vyora/billing");
     mockReserve.mockRejectedValueOnce(new InsufficientCredits(0, 3));
 
     const api = new CaptionApi(BASE_CONFIG, BASE_ADAPTERS);

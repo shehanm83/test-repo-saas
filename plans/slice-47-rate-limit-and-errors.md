@@ -5,7 +5,7 @@
 **Spec references:** [Spec § 7 (Rate limiting)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 8 (Errors)](../specs/2026-04-25-studio-v1-spec.md).
 
 **Definition of done:**
-- `AppError` class in `@studio/shared` with namespaced codes
+- `AppError` class in `@vyora/shared` with namespaced codes
 - `rateLimit(key, limit, windowSec)` Postgres-backed function
 - Per-user rate limit on `POST /api/generations` and `/api/uploads/inspiration` (10/min Free, scaled by tier)
 - Per-workspace concurrent-generation cap (Free=1, Starter=2, Pro=4, Business=8, Agency=16)
@@ -88,8 +88,8 @@ CREATE INDEX rate_limit_window_idx ON rate_limit_counters (window_start);
 ```ts
 // packages/api/src/rate-limit.ts
 import { sql } from "drizzle-orm";
-import type { Db } from "@studio/db";
-import { AppError, CODES } from "@studio/shared";
+import type { Db } from "@vyora/db";
+import { AppError, CODES } from "@vyora/shared";
 
 export async function rateLimit(db: Db, key: string, limit: number, windowSec: number): Promise<void> {
   const windowStart = new Date(Math.floor(Date.now() / (windowSec * 1000)) * windowSec * 1000);
@@ -112,8 +112,8 @@ export async function rateLimit(db: Db, key: string, limit: number, windowSec: n
 ```ts
 // packages/api/src/concurrency.ts
 import { and, eq, inArray } from "drizzle-orm";
-import { type Db, generations } from "@studio/db";
-import { AppError, CODES } from "@studio/shared";
+import { type Db, generations } from "@vyora/db";
+import { AppError, CODES } from "@vyora/shared";
 
 const CAPS: Record<string, number> = { free: 1, starter: 2, pro: 4, business: 8, agency: 16 };
 
@@ -143,7 +143,7 @@ await assertGenerationCapacity(adminDb, session.workspaceId, plan);
 
 ```ts
 // apps/web/src/lib/errors/translate.ts
-import { CODES } from "@studio/shared";
+import { CODES } from "@vyora/shared";
 
 export const FRIENDLY: Record<string, string> = {
   [CODES.BILLING_INSUFFICIENT_CREDITS]: "You don't have enough credits. Top up to continue.",

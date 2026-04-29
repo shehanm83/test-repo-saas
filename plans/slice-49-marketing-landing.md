@@ -7,7 +7,7 @@
 **Definition of done:**
 - `/` (root) renders a marketing landing page (separate route group from authenticated app)
 - Sections per UI Prompt 1: Hero, How it works (3 steps), Differentiator, Pricing, Footer
-- Pricing section reuses `PLANS` from `@studio/billing` (single source of truth)
+- Pricing section reuses `PLANS` from `@vyora/billing` (single source of truth)
 - "Start free" CTA → `/sign-up`
 - "See it work" → modal with embedded video (use a placeholder URL — replace later)
 - Lighthouse ≥ 95 on Performance / Accessibility / Best Practices
@@ -82,7 +82,7 @@ export function Hero() {
 
 ```tsx
 // apps/web/src/components/marketing/pricing.tsx
-import { PLANS } from "@studio/billing";
+import { PLANS } from "@vyora/billing";
 
 export function Pricing() {
   return (
@@ -137,7 +137,7 @@ Authenticated landing was `/`; redirect to `/generate` in app layout when sessio
 - [ ] **Step 9 — Commit**
 
 ```bash
-pnpm --filter @studio/web build
+pnpm --filter @vyora/web build
 git add -A
 git commit -m "feat(web): public marketing landing page"
 ```
@@ -147,7 +147,7 @@ git commit -m "feat(web): public marketing landing page"
 ## Verification
 
 ```bash
-pnpm --filter @studio/web build && pnpm --filter @studio/web start
+pnpm --filter @vyora/web build && pnpm --filter @vyora/web start
 # Visit / and confirm Lighthouse ≥ 95 across Perf / A11y / Best Practices
 ```
 

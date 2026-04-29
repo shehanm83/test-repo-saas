@@ -1,5 +1,5 @@
-import { GenerationApi } from "@studio/api/generation";
-import { loadConfig } from "@studio/shared";
+import { GenerationApi } from "@vyora/api/generation";
+import { loadConfig } from "@vyora/shared";
 
 import { GenerationView } from "@/components/results/generation-view";
 import { getSessionWorkspace } from "@/lib/auth/server";

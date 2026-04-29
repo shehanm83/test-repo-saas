@@ -1,9 +1,13 @@
 import Link from "next/link";
 import React from "react";
 
-import { PLANS, type PlanCode } from "@studio/billing";
+import { PLANS, type PlanCode } from "@vyora/billing";
 
+import { VyoraMark, VyoraWordmark } from "@/components/brand/vyora-mark";
 import { I } from "@/components/icons";
+
+import type { HeroCard } from "./hero-cards";
+import { HeroCardImage } from "./hero-cards";
 
 const STOCK = [
   "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=600&q=80",
@@ -57,169 +61,86 @@ const PLAN_FEATURES: Record<PlanCode, string[]> = {
   agency: ["50 brands", "Unlimited seats", "15,000 credits / month", "API access", "White-label"],
 };
 
-function StudioMark({ size = 24 }: { size?: number }) {
-  return (
-    <div
-      className="topbar__brand-mark"
-      style={{ width: size, height: size, fontSize: size * 0.55 }}
-    >
-      <span style={{ marginTop: -1 }}>S</span>
-    </div>
-  );
-}
-
-export function Landing({ isAuthed = false }: { isAuthed?: boolean }) {
+export function Landing({
+  isAuthed = false,
+  heroCards,
+}: {
+  isAuthed?: boolean;
+  heroCards: HeroCard[];
+}) {
   const primaryHref = isAuthed ? "/generate" : "/sign-up";
-  const primaryLabel = isAuthed ? "Open Studio" : "Start free";
+  const primaryLabel = isAuthed ? "Open Vyora" : "Start free";
   return (
     <div style={{ background: "var(--cal-white)", minHeight: "100vh", overflow: "hidden" }}>
-      {/* Nav */}
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          background: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(8px)",
-          borderBottom: "1px solid var(--cal-gray-200)",
-        }}
-      >
+      {/* Compact top-right utility (sign-in only when signed out) */}
+      {isAuthed ? null : (
         <div
           style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: "14px 24px",
+            position: "absolute",
+            top: 24,
+            right: 32,
+            zIndex: 50,
             display: "flex",
-            alignItems: "center",
-            gap: 24,
+            gap: 8,
           }}
         >
           <Link
-            href="/"
+            href="/sign-in"
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
               fontFamily: "var(--font-display)",
-              fontSize: 20,
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--fg-2)",
               textDecoration: "none",
-              color: "var(--fg-1)",
+              padding: "8px 14px",
             }}
           >
-            <StudioMark /> Studio
+            Sign in
           </Link>
-          <div style={{ display: "flex", gap: 24, marginLeft: 32 }}>
-            <a className="t-ui muted" href="#product" style={{ cursor: "pointer" }}>
-              Product
-            </a>
-            <a className="t-ui muted" href="#moods" style={{ cursor: "pointer" }}>
-              Moods
-            </a>
-            <a className="t-ui muted" href="#pricing" style={{ cursor: "pointer" }}>
-              Pricing
-            </a>
-            <a className="t-ui muted" href="#footer" style={{ cursor: "pointer" }}>
-              Docs
-            </a>
-          </div>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-            {isAuthed ? (
-              <Link className="btn btn--primary" href="/generate" style={{ textDecoration: "none" }}>
-                Open Studio
-              </Link>
-            ) : (
-              <>
-                <Link className="btn btn--ghost" href="/sign-in" style={{ textDecoration: "none" }}>
-                  Sign in
-                </Link>
-                <Link
-                  className="btn btn--primary"
-                  href="/sign-up"
-                  style={{ textDecoration: "none" }}
-                >
-                  Start free
-                </Link>
-              </>
-            )}
-          </div>
         </div>
-      </header>
+      )}
 
       {/* HERO */}
       <section
         id="product"
         style={{
           position: "relative",
-          padding: "72px 24px 88px",
+          padding: "56px 24px 96px",
           background:
-            "radial-gradient(ellipse 90% 70% at 50% 0%, #FBE5C2 0%, transparent 55%), radial-gradient(ellipse 60% 60% at 100% 30%, #E8E7FA 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 0% 60%, #D7E5C7 0%, transparent 60%), var(--cal-white)",
+            "radial-gradient(ellipse 80% 60% at 0% 0%, #FBEFD8 0%, transparent 60%), radial-gradient(ellipse 70% 60% at 100% 0%, #F4E6D5 0%, transparent 60%), #FCF7EE",
         }}
       >
         <div
           style={{
-            position: "absolute",
-            top: 90,
-            right: "8%",
-            transform: "rotate(-6deg)",
-            display: "flex",
-            gap: 6,
-            opacity: 0.85,
+            maxWidth: 1180,
+            margin: "0 auto",
+            position: "relative",
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+            gap: 56,
+            alignItems: "start",
           }}
         >
-          {["#7A0E0E", "#0E5C2F", "#E8C66B", "#5E5CE6"].map((c) => (
-            <span
-              key={c}
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: 4,
-                background: c,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              }}
-            />
-          ))}
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            top: 220,
-            left: "6%",
-            transform: "rotate(7deg)",
-            padding: "8px 14px",
-            borderRadius: 100,
-            background: "white",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-            fontFamily: "var(--font-display)",
-            fontSize: 14,
-            color: "var(--studio-violet)",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <I.Sparkle size={14} /> 47 generations today
-        </div>
-
-        <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative" }}>
-          <div style={{ maxWidth: 820 }}>
-            <div
-              className="pill"
-              style={{
-                marginBottom: 24,
-                background: "white",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.06), var(--shadow-ring)",
-                height: 28,
-              }}
-            >
-              <span className="dot" style={{ background: "var(--studio-violet)" }} />
-              Studio v1 · live now
+          {/* LEFT */}
+          <div style={{ position: "relative", zIndex: 2 }}>
+            <div style={{ marginBottom: 16, marginLeft: 0 }}>
+              <VyoraWordmark width={480} />
             </div>
             <h1
-              className="t-display"
-              style={{ fontSize: 88, lineHeight: 0.96, margin: 0, letterSpacing: "-1.5px" }}
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 70,
+                lineHeight: 1.0,
+                margin: 0,
+                letterSpacing: "-2.2px",
+                fontWeight: 800,
+                color: "var(--cal-charcoal)",
+              }}
             >
               On-brand images,
               <br />
+              <span style={{ color: "#3F62D9" }}>in</span>{" "}
+              <span style={{ color: "#7A4F8E" }}>a</span>{" "}
               <span
                 style={{
                   background:
@@ -229,249 +150,310 @@ export function Landing({ isAuthed = false }: { isAuthed?: boolean }) {
                   backgroundClip: "text",
                 }}
               >
-                in a sentence.
+                sentence.
               </span>
             </h1>
-            <p className="t-lede" style={{ fontSize: 20, marginTop: 24, maxWidth: 620, color: "var(--fg-2)" }}>
-              Describe what you want. Pick your brand. Click generate. Studio produces finished
-              marketing images with your logo, fonts, and colors — exact, every time.
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: 18,
+                lineHeight: 1.55,
+                color: "var(--fg-2)",
+                marginTop: 22,
+                maxWidth: 460,
+              }}
+            >
+              Describe what you want. Pick your brand. Click generate. Vyora creates stunning,
+              on-brand content for every platform.
             </p>
-            <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 12, marginTop: 28, flexWrap: "wrap" }}>
               <Link
-                className="btn btn--accent btn--lg"
                 href={primaryHref}
-                style={{ textDecoration: "none" }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "14px 28px",
+                  borderRadius: 10,
+                  background:
+                    "linear-gradient(180deg, #7A65EA 0%, #5743D6 100%)",
+                  color: "white",
+                  fontFamily: "var(--font-display)",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  boxShadow:
+                    "0 6px 16px rgba(94,76,222,0.34), 0 1px 0 rgba(255,255,255,0.22) inset",
+                  letterSpacing: -0.2,
+                }}
               >
                 {primaryLabel}
                 <I.ArrowRight size={16} />
               </Link>
-              <a className="btn btn--secondary btn--lg" href="#showcase" style={{ background: "white" }}>
-                <I.Play size={14} />
-                See it work · 90s
+              <a
+                href="#showcase"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "14px 26px",
+                  borderRadius: 10,
+                  background: "white",
+                  color: "var(--cal-charcoal)",
+                  fontFamily: "var(--font-display)",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  border: "1px solid var(--cal-gray-300)",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                  letterSpacing: -0.2,
+                }}
+              >
+                <I.Play size={13} />
+                See it in action &middot; 90s
               </a>
             </div>
-            <div className="t-small" style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 16 }}>
-              <span>
-                <I.Check size={11} style={{ verticalAlign: "-1px", color: "var(--studio-green)" }} />{" "}
+            <div
+              style={{
+                marginTop: 20,
+                display: "flex",
+                gap: 22,
+                fontSize: 13,
+                color: "var(--fg-3)",
+                fontFamily: "var(--font-body)",
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <I.Check size={12} style={{ color: "var(--studio-violet)" }} />
                 Free for one brand
               </span>
-              <span>
-                <I.Check size={11} style={{ verticalAlign: "-1px", color: "var(--studio-green)" }} />{" "}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <I.Check size={12} style={{ color: "var(--studio-violet)" }} />
                 No card required
               </span>
-              <span>
-                <I.Check size={11} style={{ verticalAlign: "-1px", color: "var(--studio-green)" }} />{" "}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <I.Check size={12} style={{ color: "var(--studio-violet)" }} />
                 Cancel anytime
               </span>
             </div>
-          </div>
 
-          {/* Hero visual */}
-          <div
-            style={{
-              marginTop: 64,
+            {/* Brief / Brand / Mood card — anchors the bottom of left column,
+                vertically aligned with the bottom row of hero cards on the right. */}
+            <div style={{ marginTop: 56 }}>
+              <div
+                style={{
+                  maxWidth: 460,
+              background: "white",
+              borderRadius: 14,
+              padding: 16,
+              boxShadow:
+                "0 18px 48px rgba(20,20,40,0.10), 0 2px 6px rgba(20,20,40,0.06), 0 0 0 1px rgba(34,42,53,0.05)",
+              pointerEvents: "auto",
               display: "grid",
-              gridTemplateColumns: "360px 60px 1fr",
-              gap: 24,
-              alignItems: "center",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 14,
             }}
           >
-            <div className="card card--elevated" style={{ padding: 20, background: "white" }}>
-              <div className="t-eyebrow" style={{ marginBottom: 8, color: "var(--studio-violet)" }}>
+            <div>
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--fg-3)",
+                  marginBottom: 6,
+                }}
+              >
                 Brief
               </div>
               <div
                 style={{
-                  background: "var(--cal-gray-50)",
-                  borderRadius: 8,
-                  padding: 14,
-                  fontSize: 14,
+                  fontSize: 12,
+                  lineHeight: 1.4,
                   color: "var(--fg-1)",
-                  boxShadow: "var(--shadow-inset)",
+                  background: "var(--cal-gray-50)",
+                  border: "1px solid var(--cal-gray-200)",
+                  borderRadius: 8,
+                  padding: "8px 10px",
                 }}
               >
-                &quot;Christmas sale, cozy living room with a glowing tree, 30% off&quot;
+                &ldquo;Christmas sale, cozy living
+                <br />
+                room with a glowing tree, 30% off&rdquo;
               </div>
-              <div className="t-eyebrow" style={{ marginTop: 16, marginBottom: 8 }}>
+            </div>
+            <div>
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--fg-3)",
+                  marginBottom: 6,
+                }}
+              >
                 Brand
               </div>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
-                  padding: 10,
-                  background: "var(--cal-gray-50)",
-                  borderRadius: 8,
+                  gap: 8,
+                  marginBottom: 10,
                 }}
               >
                 <div
                   style={{
-                    width: 32,
-                    height: 32,
+                    width: 26,
+                    height: 26,
                     borderRadius: 6,
                     background: "#2A1F18",
                     color: "#E8DCC4",
                     display: "grid",
                     placeItems: "center",
                     fontFamily: "var(--font-display)",
-                    fontSize: 13,
+                    fontSize: 10,
+                    fontWeight: 700,
                   }}
                 >
                   NW
                 </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>Northwind Coffee</div>
-                  <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-                    {["#2A1F18", "#7C5232", "#E8DCC4", "#C9A86A"].map((c) => (
-                      <span
-                        key={c}
-                        style={{
-                          width: 12,
-                          height: 12,
-                          borderRadius: 3,
-                          background: c,
-                          boxShadow: "var(--shadow-ring)",
-                        }}
-                      />
-                    ))}
-                  </div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-1)" }}>
+                  Northwind Coffee
+                </div>
+                <div style={{ display: "flex", gap: 3, marginLeft: "auto" }}>
+                  {["#2A1F18", "#7C5232", "#E8DCC4", "#C9A86A"].map((c) => (
+                    <span
+                      key={c}
+                      style={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: 2,
+                        background: c,
+                        boxShadow: "0 0 0 1px rgba(0,0,0,0.06)",
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
-              <div className="t-eyebrow" style={{ marginTop: 16, marginBottom: 8 }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--fg-3)",
+                  marginBottom: 6,
+                }}
+              >
                 Mood
               </div>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
-                  padding: 10,
-                  background: "linear-gradient(135deg, #FCE5C5, #F8D8D8)",
+                  gap: 8,
+                  padding: "6px 10px",
                   borderRadius: 8,
+                  background: "linear-gradient(135deg, #FCE5C5, #F8D8D8)",
                 }}
               >
                 <div
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 6,
+                    width: 18,
+                    height: 18,
+                    borderRadius: 4,
                     background: "#7A0E0E",
                     display: "grid",
                     placeItems: "center",
                     color: "#E8C66B",
                   }}
                 >
-                  <I.Snowflake size={16} />
+                  <I.Snowflake size={11} />
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>Christmas</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-1)" }}>
+                  Christmas
+                </div>
               </div>
             </div>
-            <div style={{ display: "grid", placeItems: "center", color: "var(--studio-violet)" }}>
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 100,
-                  background: "white",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                  display: "grid",
-                  placeItems: "center",
-                }}
-              >
-                <I.ArrowRight size={20} />
               </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {[STOCK[0], STOCK[3], STOCK[5], STOCK[2]].map((s, i) => (
-                <div
-                  key={s}
-                  className="card"
-                  style={{
-                    padding: 0,
-                    overflow: "hidden",
-                    aspectRatio: "1 / 1",
-                    position: "relative",
-                    transform: i === 1 ? "rotate(1deg)" : i === 2 ? "rotate(-1deg)" : "none",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.08), var(--shadow-ring)",
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={s}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    alt=""
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 12,
-                      top: 12,
-                      color: "white",
-                      fontFamily: "var(--font-display)",
-                      fontSize: 16,
-                      textShadow: "0 1px 4px rgba(0,0,0,0.4)",
-                    }}
-                  >
-                    30% off
-                  </div>
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 12,
-                      bottom: 12,
-                      width: 28,
-                      height: 28,
-                      borderRadius: 6,
-                      background: "rgba(255,255,255,0.95)",
-                      display: "grid",
-                      placeItems: "center",
-                      fontFamily: "var(--font-display)",
-                      fontSize: 11,
-                      color: "#2A1F18",
-                    }}
-                  >
-                    NW
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
 
-          {/* Trust strip */}
+          {/* RIGHT — bigger staggered polaroid cards */}
           <div
             style={{
-              marginTop: 80,
-              padding: "20px 0",
-              borderTop: "1px solid var(--cal-gray-200)",
-              borderBottom: "1px solid var(--cal-gray-200)",
-              display: "flex",
-              alignItems: "center",
-              gap: 32,
-              flexWrap: "wrap",
-              justifyContent: "center",
+              position: "relative",
+              width: 620,
+              height: 720,
+              marginLeft: "auto",
             }}
           >
-            <span
-              className="t-small"
-              style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5 }}
-            >
-              Trusted by 1,400+ teams
-            </span>
-            {["NORTHWIND", "LUMEN", "ATLAS", "KESTREL", "PALOMA", "HEMLOCK"].map((n) => (
-              <div
-                key={n}
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 14,
-                  letterSpacing: 2,
-                  color: "var(--fg-3)",
-                }}
-              >
-                {n}
-              </div>
-            ))}
+            {heroCards.slice(0, 4).map((card, i) => {
+              const slots = [
+                { top: 30, left: 0, rotate: -4, z: 2 },
+                { top: 0, left: 300, rotate: 5, z: 3 },
+                { top: 380, left: 30, rotate: -5, z: 1 },
+                { top: 380, left: 320, rotate: 3, z: 2 },
+              ];
+              const slot = slots[i]!;
+              return (
+                <div
+                  key={card.id}
+                  style={{
+                    position: "absolute",
+                    top: slot.top,
+                    left: slot.left,
+                    width: 290,
+                    transform: `rotate(${slot.rotate}deg)`,
+                    zIndex: slot.z,
+                  }}
+                >
+                  <HeroCardImage card={{ ...card, rotation: 0 }} />
+                </div>
+              );
+            })}
           </div>
+        </div>
+
+        {/* Trust strip */}
+        <div
+          style={{
+            maxWidth: 1180,
+            margin: "80px auto 0",
+            padding: "20px 0",
+            borderTop: "1px solid var(--cal-gray-200)",
+            display: "flex",
+            alignItems: "center",
+            gap: 32,
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 11,
+              textTransform: "uppercase",
+              letterSpacing: 1.5,
+              color: "var(--fg-3)",
+              fontFamily: "var(--font-body)",
+            }}
+          >
+            Trusted by 1,400+ teams
+          </span>
+          {["NORTHWIND", "LUMEN", "ATLAS", "KESTREL", "PALOMA", "HEMLOCK"].map((n) => (
+            <div
+              key={n}
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 14,
+                letterSpacing: 2,
+                color: "var(--fg-3)",
+              }}
+            >
+              {n}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -1023,7 +1005,7 @@ export function Landing({ isAuthed = false }: { isAuthed?: boolean }) {
                 marginBottom: 12,
               }}
             >
-              <StudioMark /> Studio
+              <VyoraMark size={24} /> Vyora
             </div>
             <p className="t-small" style={{ maxWidth: 280 }}>
               Brand-correct image generation for SMBs, marketers, and creators. © 2026.

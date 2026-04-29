@@ -124,9 +124,9 @@ export default function MoodsPage() {
 
 ```ts
 import { NextResponse } from "next/server";
-import { createDb, moods } from "@studio/db";
+import { createDb, moods } from "@vyora/db";
 import { and, eq, gt, lt, isNotNull, isNull, or } from "drizzle-orm";
-import { loadConfig } from "@studio/shared";
+import { loadConfig } from "@vyora/shared";
 
 export async function GET() {
   const db = createDb(loadConfig().db.url, "app_user");
@@ -145,7 +145,7 @@ export async function GET() {
 - [ ] **Step 5 — Commit**
 
 ```bash
-pnpm --filter @studio/web test
+pnpm --filter @vyora/web test
 git add -A
 git commit -m "feat(web): mood browser page with filtering and grouping"
 ```

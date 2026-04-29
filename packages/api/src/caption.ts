@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 
-import { InsufficientCredits, Ledger } from "@studio/billing";
-import { createDb, insertCaption } from "@studio/db";
-import { AppError, CODES } from "@studio/shared";
-import type { Adapters, Config } from "@studio/shared";
+import { InsufficientCredits, Ledger } from "@vyora/billing";
+import { createDb, insertCaption } from "@vyora/db";
+import { AppError, CODES } from "@vyora/shared";
+import type { Adapters, Config } from "@vyora/shared";
 import { z } from "zod";
 
 import { assertBriefAllowed } from "./aup";

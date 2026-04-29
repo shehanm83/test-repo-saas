@@ -1,4 +1,4 @@
-import type { Adapters, Config } from "@studio/shared";
+import type { Adapters, Config } from "@vyora/shared";
 import { z } from "zod";
 
 export class BillingApi {

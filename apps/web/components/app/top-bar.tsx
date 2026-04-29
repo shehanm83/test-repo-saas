@@ -1,6 +1,7 @@
 import Link from "next/link";
 import React from "react";
 
+import { VyoraMark } from "@/components/brand/vyora-mark";
 import { I } from "@/components/icons";
 
 import { AvatarMenu } from "./avatar-menu";
@@ -16,11 +17,13 @@ export function TopBar(props: {
 }) {
   return (
     <div className="topbar">
-      <Link href="/generate" className="topbar__brand" style={{ cursor: "pointer" }}>
-        <div className="topbar__brand-mark">
-          <span style={{ marginTop: -1 }}>S</span>
-        </div>
-        <span>Studio</span>
+      <Link
+        href="/generate"
+        className="topbar__brand"
+        style={{ cursor: "pointer", textDecoration: "none" }}
+      >
+        <VyoraMark size={26} />
+        <span>Vyora</span>
       </Link>
 
       <div className="divider-y" style={{ height: 24 }} />

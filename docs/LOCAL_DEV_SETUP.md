@@ -32,8 +32,8 @@ for q in studio-generations studio-captions studio-generations-dlq; do
 done
 
 # in two terminals:
-pnpm --filter @studio/web dev          # http://localhost:3000
-pnpm --filter @studio/worker dev       # processes SQS messages
+pnpm --filter @vyora/web dev          # http://localhost:3000
+pnpm --filter @vyora/worker dev       # processes SQS messages
 ```
 
 You'll have a working app at `http://localhost:3000` running entirely on local infra. Auth is bypassed (`AUTH_MODE=dev`), AI is mocked (`AI_MODE=mock`), billing is stubbed (`BILLING_MODE=stub`), email goes to Mailpit. Skip to the sections you want to wire up.
@@ -72,7 +72,7 @@ CLERK_PUBLISHABLE_KEY=pk_test_…
 CLERK_SECRET_KEY=sk_test_…
 CLERK_WEBHOOK_SECRET=whsec_…
 ```
-Restart `pnpm --filter @studio/web dev` (env changes don't hot-reload).
+Restart `pnpm --filter @vyora/web dev` (env changes don't hot-reload).
 
 ### Verify
 1. Open an incognito window → http://localhost:3000 → click **Start free**
@@ -467,7 +467,7 @@ SENTRY_ENVIRONMENT=local
 
 ## Troubleshooting
 
-**"My env changes aren't picked up"** — restart `pnpm --filter @studio/web dev` and `pnpm --filter @studio/worker dev`. Next.js caches env at boot.
+**"My env changes aren't picked up"** — restart `pnpm --filter @vyora/web dev` and `pnpm --filter @vyora/worker dev`. Next.js caches env at boot.
 
 **"Connection slots reserved"** Postgres error — the dev server leaked pool connections. Run:
 ```sql

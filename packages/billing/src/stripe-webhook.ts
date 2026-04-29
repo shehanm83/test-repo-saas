@@ -1,5 +1,5 @@
-import { createDb, subscriptions, workspaces } from "@studio/db";
-import type { Config } from "@studio/shared";
+import { createDb, subscriptions, workspaces } from "@vyora/db";
+import type { Config } from "@vyora/shared";
 import { eq } from "drizzle-orm";
 
 import { Ledger } from "./ledger";

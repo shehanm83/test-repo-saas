@@ -78,10 +78,10 @@ export default function HistoryPage() {
 // apps/web/src/app/api/history/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
-import { createDb, generations, generationVariants } from "@studio/db";
-import { withWorkspace } from "@studio/db";
+import { createDb, generations, generationVariants } from "@vyora/db";
+import { withWorkspace } from "@vyora/db";
 import { and, desc, eq, ilike, sql } from "drizzle-orm";
-import { loadConfig } from "@studio/shared";
+import { loadConfig } from "@vyora/shared";
 
 export async function GET(req: Request) {
   const session = await getServerSession();
@@ -119,7 +119,7 @@ export async function GET(req: Request) {
 - [ ] **Step 5 — Tests + commit**
 
 ```bash
-pnpm --filter @studio/web test
+pnpm --filter @vyora/web test
 git add -A
 git commit -m "feat(web): brand kit editor (5 tabs) and history list with filters/search"
 ```

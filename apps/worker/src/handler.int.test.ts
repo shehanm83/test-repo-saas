@@ -1,4 +1,4 @@
-import { Ledger } from "@studio/billing";
+import { Ledger } from "@vyora/billing";
 import {
   createDb,
   users,
@@ -9,21 +9,21 @@ import {
   generations,
   generationVariants,
   creditLedgerEntries,
-} from "@studio/db";
+} from "@vyora/db";
 import {
   Gateway,
   MockImageProvider,
   MockTextProvider,
   MockVisionProvider,
   MockModerationProvider,
-} from "@studio/gateway";
-import type { StorageAdapter, Config } from "@studio/shared";
+} from "@vyora/gateway";
+import type { StorageAdapter, Config } from "@vyora/shared";
 import { eq } from "drizzle-orm";
 import { describe, it, expect, vi, beforeAll } from "vitest";
 
 import { GenerationWorker } from "./handler.js";
 
-vi.mock("@studio/renderer", () => ({
+vi.mock("@vyora/renderer", () => ({
   render: vi.fn().mockResolvedValue({
     pngBytes: Buffer.from("FAKEPNG"),
     renderMs: 5,

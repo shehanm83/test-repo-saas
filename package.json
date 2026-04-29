@@ -1,5 +1,5 @@
 {
-  "name": "studio-v1",
+  "name": "vyora",
   "private": true,
   "version": "0.0.0",
   "packageManager": "pnpm@10.16.1",
@@ -8,8 +8,8 @@
   },
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --filter @studio/web dev",
-    "dev:all": "concurrently \"pnpm dev\" \"pnpm --filter @studio/worker dev\"",
+    "dev": "pnpm --filter @vyora/web dev",
+    "dev:all": "concurrently \"pnpm dev\" \"pnpm --filter @vyora/worker dev\"",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:int": "vitest run --config vitest.integration.config.ts",
@@ -18,18 +18,18 @@
     "typecheck": "tsc -b",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:generate": "pnpm --filter @studio/db db:generate",
-    "db:migrate": "pnpm --filter @studio/db db:migrate",
-    "db:studio": "pnpm --filter @studio/db db:studio",
+    "db:generate": "pnpm --filter @vyora/db db:generate",
+    "db:migrate": "pnpm --filter @vyora/db db:migrate",
+    "db:studio": "pnpm --filter @vyora/db db:studio",
     "db:seed": "tsx scripts/seed.ts",
-    "db:seed:pricebook": "pnpm --filter @studio/db exec tsx scripts/seed-pricebook.ts",
+    "db:seed:pricebook": "pnpm --filter @vyora/db exec tsx scripts/seed-pricebook.ts",
     "minio:bootstrap": "./scripts/minio-bootstrap.sh",
-    "worker:dev": "pnpm --filter @studio/worker dev"
+    "worker:dev": "pnpm --filter @vyora/worker dev"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1037.0",
-    "@studio/db": "workspace:*",
-    "@studio/shared": "workspace:*"
+    "@vyora/db": "workspace:*",
+    "@vyora/shared": "workspace:*"
   },
   "devDependencies": {
     "@clerk/backend": "^3.4.1",

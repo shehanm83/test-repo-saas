@@ -32,9 +32,9 @@ Key bits:
 // /api/billing/topup
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
-import { BillingApi } from "@studio/api";
-import { loadConfig, createAdapters } from "@studio/shared";
-import { createDb, workspaces } from "@studio/db";
+import { BillingApi } from "@vyora/api";
+import { loadConfig, createAdapters } from "@vyora/shared";
+import { createDb, workspaces } from "@vyora/db";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
@@ -74,7 +74,7 @@ For sparkline: aggregate the past 30 days of `commit` entries by day from `credi
 - [ ] **Commit**
 
 ```bash
-pnpm --filter @studio/web test
+pnpm --filter @vyora/web test
 git add -A
 git commit -m "feat(web): billing page with plan card, credit balance, top-ups, customer portal, invoices"
 ```

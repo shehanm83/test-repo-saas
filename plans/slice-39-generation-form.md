@@ -33,7 +33,7 @@
 // apps/web/src/components/generate/output-target-picker.tsx
 "use client";
 import { useState } from "react";
-import { PLATFORM_FORMATS } from "@studio/shared";
+import { PLATFORM_FORMATS } from "@vyora/shared";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -204,9 +204,9 @@ export default function GeneratePage() {
 // apps/web/src/app/api/generations/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
-import { GenerationApi } from "@studio/api";
-import { PricebookApi } from "@studio/api";
-import { loadConfig, createAdapters } from "@studio/shared";
+import { GenerationApi } from "@vyora/api";
+import { PricebookApi } from "@vyora/api";
+import { loadConfig, createAdapters } from "@vyora/shared";
 
 export async function POST(req: Request) {
   const session = await getServerSession();
@@ -252,7 +252,7 @@ describe("OutputTargetPicker", () => {
 - [ ] **Step 7 — Commit**
 
 ```bash
-pnpm --filter @studio/web test
+pnpm --filter @vyora/web test
 git add -A
 git commit -m "feat(web): generation form (output target + inspiration + brief + brand + mood + toggles)"
 ```

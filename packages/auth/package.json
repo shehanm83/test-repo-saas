@@ -1,5 +1,5 @@
 {
-  "name": "@studio/auth",
+  "name": "@vyora/auth",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@clerk/backend": "^3.4.1",
-    "@studio/db": "workspace:*",
+    "@vyora/db": "workspace:*",
     "jose": "^6.2.2",
     "svix": "^1.92.2"
   }

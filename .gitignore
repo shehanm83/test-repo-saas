@@ -19,3 +19,10 @@ test-results/
 .vscode/
 .idea/
 .npmrc
+
+# Local scratch artifacts
+.playwright-mcp/
+/Screenshot*.jpg
+/Screenshot*.png
+/hero-attempt-*.png
+/images/

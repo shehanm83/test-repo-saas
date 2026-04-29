@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { PricebookApi } from "@studio/api/pricebook";
-import { loadConfig } from "@studio/shared";
+import { PricebookApi } from "@vyora/api/pricebook";
+import { loadConfig } from "@vyora/shared";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";

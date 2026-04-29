@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { ClerkWebhookHandler } from "@studio/auth";
-import { loadConfig } from "@studio/shared";
+import { ClerkWebhookHandler } from "@vyora/auth";
+import { loadConfig } from "@vyora/shared";
 
 export async function POST(request: Request) {
   const config = loadConfig();

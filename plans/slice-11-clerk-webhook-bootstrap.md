@@ -31,8 +31,8 @@
 - [ ] **Step 1 — Add Svix**
 
 ```bash
-pnpm --filter @studio/auth add svix
-pnpm --filter @studio/auth add @studio/db@workspace:*
+pnpm --filter @vyora/auth add svix
+pnpm --filter @vyora/auth add @vyora/db@workspace:*
 ```
 
 - [ ] **Step 2 — Helper queries `packages/db/src/queries/identity.ts`**
@@ -92,8 +92,8 @@ Update `packages/db/src/index.ts` to also export `./queries/identity.js`.
 
 ```ts
 import { Webhook } from "svix";
-import { bootstrapNewUser, softDeleteWorkspaceForUser, createDb } from "@studio/db";
-import type { Config } from "@studio/shared";
+import { bootstrapNewUser, softDeleteWorkspaceForUser, createDb } from "@vyora/db";
+import type { Config } from "@vyora/shared";
 
 export interface ClerkWebhookEvent {
   id: string;
@@ -145,7 +145,7 @@ export class ClerkWebhookHandler {
 ```ts
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@studio/db", () => ({
+vi.mock("@vyora/db", () => ({
   createDb: vi.fn(() => ({})),
   bootstrapNewUser: vi.fn(async () => ({ userId: "u", workspaceId: "w" })),
   softDeleteWorkspaceForUser: vi.fn(async () => undefined),
@@ -179,7 +179,7 @@ describe("ClerkWebhookHandler", () => {
 - [ ] **Step 5 — Run tests, expect green**
 
 ```bash
-pnpm --filter @studio/auth test
+pnpm --filter @vyora/auth test
 ```
 
 - [ ] **Step 6 — Commit**
@@ -194,7 +194,7 @@ git commit -m "feat(auth): Clerk webhook handler bootstraps user + workspace + i
 ## Verification
 
 ```bash
-pnpm --filter @studio/auth test
+pnpm --filter @vyora/auth test
 pnpm typecheck
 ```
 

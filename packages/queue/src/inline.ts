@@ -1,4 +1,4 @@
-import type { QueueAdapter, QueueMessage } from "@studio/shared";
+import type { QueueAdapter, QueueMessage } from "@vyora/shared";
 
 type Handler = (msg: unknown) => Promise<void>;
 

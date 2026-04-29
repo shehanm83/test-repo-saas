@@ -99,7 +99,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @studio/db db:migrate
+      - run: pnpm --filter @vyora/db db:migrate
       - run: pnpm test:int
 
   e2e:
@@ -163,12 +163,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @studio/db db:migrate
-      - run: pnpm --filter @studio/db exec tsx scripts/seed-pricebook.ts
-      - run: pnpm --filter @studio/web build
-      - run: pnpm --filter @studio/e2e exec playwright install --with-deps chromium
-      - run: pnpm --filter @studio/web exec next start &
-      - run: pnpm --filter @studio/worker exec tsx scripts/dev.ts &
+      - run: pnpm --filter @vyora/db db:migrate
+      - run: pnpm --filter @vyora/db exec tsx scripts/seed-pricebook.ts
+      - run: pnpm --filter @vyora/web build
+      - run: pnpm --filter @vyora/e2e exec playwright install --with-deps chromium
+      - run: pnpm --filter @vyora/web exec next start &
+      - run: pnpm --filter @vyora/worker exec tsx scripts/dev.ts &
       - run: |
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:3000 >/dev/null 2>&1; then
@@ -177,7 +177,7 @@ jobs:
             sleep 1
           done
           echo "web did not start"; exit 1
-      - run: pnpm --filter @studio/e2e test
+      - run: pnpm --filter @vyora/e2e test
         env:
           E2E_BASE_URL: http://localhost:3000
           CI: "true"

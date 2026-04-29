@@ -1,4 +1,4 @@
-import type { BillingProvider } from "@studio/shared";
+import type { BillingProvider } from "@vyora/shared";
 import Stripe from "stripe";
 
 export class StripeBillingProvider implements BillingProvider {

@@ -6,9 +6,9 @@ import {
   createDb,
   listAvailableMoods,
   setBindings,
-} from "@studio/db";
-import { ASPECT_RATIOS } from "@studio/shared";
-import type { Config } from "@studio/shared/config";
+} from "@vyora/db";
+import { ASPECT_RATIOS } from "@vyora/shared";
+import type { Config } from "@vyora/shared/config";
 import { z } from "zod";
 
 const AspectRatioSchema = z.enum(ASPECT_RATIOS.options);

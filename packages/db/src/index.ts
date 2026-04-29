@@ -5,6 +5,7 @@ export * from "./queries/generation";
 export * from "./schema";
 export * from "./queries/identity";
 export * from "./queries/mood";
+export * from "./queries/landing-hero";
 export * from "./queries/pricebook";
 export * from "./queries/stock";
 export * from "./queries/template";

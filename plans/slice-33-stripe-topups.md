@@ -103,8 +103,8 @@ In `packages/api/src/billing.ts` (new file):
 
 ```ts
 import { z } from "zod";
-import type { Adapters, Config } from "@studio/shared";
-import { TOPUP_PACKS } from "@studio/billing";
+import type { Adapters, Config } from "@vyora/shared";
+import { TOPUP_PACKS } from "@vyora/billing";
 
 export class BillingApi {
   constructor(private readonly config: Config, private readonly adapters: Adapters) {}
@@ -133,7 +133,7 @@ git commit -m "feat(billing): PAYG top-up packs with Stripe Checkout + webhook â
 ## Verification
 
 ```bash
-pnpm --filter @studio/billing test
+pnpm --filter @vyora/billing test
 ```
 
 ## Commit message

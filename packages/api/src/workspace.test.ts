@@ -1,4 +1,4 @@
-import type { Config } from "@studio/shared/config";
+import type { Config } from "@vyora/shared/config";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   revokeMember: vi.fn(async () => undefined),
 }));
 
-vi.mock("@studio/db", () => ({
+vi.mock("@vyora/db", () => ({
   createDb: mocks.createDb,
   listWorkspacesForUser: mocks.listWorkspacesForUser,
   switchActiveWorkspace: mocks.switchActiveWorkspace,
@@ -26,7 +26,7 @@ vi.mock("@studio/db", () => ({
   revokeMember: mocks.revokeMember,
 }));
 
-vi.mock("@studio/shared", () => ({
+vi.mock("@vyora/shared", () => ({
   createAdapters: () => ({
     auth: {
       setActiveWorkspace: mocks.setActiveWorkspace,

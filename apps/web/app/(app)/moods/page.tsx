@@ -1,6 +1,6 @@
-import { createDb, moods } from "@studio/db";
-import { eq } from "@studio/db/operators";
-import { loadConfig } from "@studio/shared";
+import { createDb, moods } from "@vyora/db";
+import { eq } from "@vyora/db/operators";
+import { loadConfig } from "@vyora/shared";
 
 import { MoodsBrowser } from "@/components/moods/moods-browser";
 

@@ -1,5 +1,5 @@
 {
-  "name": "@studio/queue",
+  "name": "@vyora/queue",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -16,6 +16,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.1037.0",
-    "@studio/shared": "workspace:*"
+    "@vyora/shared": "workspace:*"
   }
 }

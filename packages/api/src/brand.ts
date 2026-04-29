@@ -8,10 +8,10 @@ import {
   listBrandAssets,
   listBrands,
   updateBrand,
-} from "@studio/db";
-import type { Adapters } from "@studio/shared/adapters";
-import type { Config } from "@studio/shared/config";
-import { keys } from "@studio/storage";
+} from "@vyora/db";
+import type { Adapters } from "@vyora/shared/adapters";
+import type { Config } from "@vyora/shared/config";
+import { keys } from "@vyora/storage";
 import { z } from "zod";
 import type { UrlExtraction } from "./url-extract";
 

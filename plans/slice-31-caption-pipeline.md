@@ -52,9 +52,9 @@ export async function updateCaption(db: Db, workspaceId: string, id: string, pat
 // packages/api/src/caption.ts
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { createDb, insertCaption } from "@studio/db";
-import { Ledger } from "@studio/billing";
-import type { Adapters, Config } from "@studio/shared";
+import { createDb, insertCaption } from "@vyora/db";
+import { Ledger } from "@vyora/billing";
+import type { Adapters, Config } from "@vyora/shared";
 
 const COSTS = { short: 1, medium: 3, long: 5 } as const;
 
@@ -93,10 +93,10 @@ export class CaptionApi {
 ```ts
 // apps/worker/src/caption-handler.ts
 import { eq, sql } from "drizzle-orm";
-import { createDb, captionJobs } from "@studio/db";
-import { Ledger } from "@studio/billing";
-import { updateCaption } from "@studio/db";
-import type { Adapters, Config } from "@studio/shared";
+import { createDb, captionJobs } from "@vyora/db";
+import { Ledger } from "@vyora/billing";
+import { updateCaption } from "@vyora/db";
+import type { Adapters, Config } from "@vyora/shared";
 
 const TARGET_TOKENS = { short: 80, medium: 200, long: 500 };
 
@@ -143,7 +143,7 @@ git commit -m "feat(api/worker): caption pipeline (Anthropic Haiku) with credit 
 ## Verification
 
 ```bash
-pnpm --filter @studio/api test
+pnpm --filter @vyora/api test
 ```
 
 ## Commit message

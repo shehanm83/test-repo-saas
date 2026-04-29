@@ -7,11 +7,11 @@ const mocks = vi.hoisted(() => ({
   verify: vi.fn<(rawBody: string, headers: Record<string, string>) => unknown>(),
 }));
 
-vi.mock("@studio/db", () => ({
+vi.mock("@vyora/db", () => ({
   createDb: mocks.createDb,
 }));
 
-vi.mock("@studio/db/queries/identity", () => ({
+vi.mock("@vyora/db/queries/identity", () => ({
   bootstrapNewUser: mocks.bootstrapNewUser,
   softDeleteWorkspaceForUser: mocks.softDeleteWorkspaceForUser,
 }));

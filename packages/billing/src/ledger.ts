@@ -1,4 +1,4 @@
-import { creditLedgerEntries, type Db, workspaces, withWorkspace } from "@studio/db";
+import { creditLedgerEntries, type Db, workspaces, withWorkspace } from "@vyora/db";
 import { eq, sql } from "drizzle-orm";
 
 import { InsufficientCredits } from "./errors";

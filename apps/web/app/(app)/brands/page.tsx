@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { createDb, listBrands } from "@studio/db";
-import { loadConfig } from "@studio/shared";
+import { createDb, listBrands } from "@vyora/db";
+import { loadConfig } from "@vyora/shared";
 
 import { I } from "@/components/icons";
 import { getSessionWorkspace } from "@/lib/auth/server";

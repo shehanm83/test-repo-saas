@@ -1,5 +1,5 @@
-import { auditLog, type Db } from "@studio/db";
-import { AppError, CODES } from "@studio/shared";
+import { auditLog, type Db } from "@vyora/db";
+import { AppError, CODES } from "@vyora/shared";
 
 
 const PROHIBITED_PATTERNS: { tag: string; pattern: RegExp }[] = [

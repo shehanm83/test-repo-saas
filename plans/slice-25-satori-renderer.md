@@ -5,9 +5,9 @@
 **Spec references:** [Architecture § 5 (Template renderer)](../specs/2026-04-25-studio-v1-architecture.md), [Spec § 3.4 step 8 (renderer call)](../specs/2026-04-25-studio-v1-spec.md).
 
 **Definition of done:**
-- `@studio/renderer` package exposes `renderTemplate(args)` returning `{ pngBytes, renderMs }`
+- `@vyora/renderer` package exposes `renderTemplate(args)` returning `{ pngBytes, renderMs }`
 - Loads template JSX source from DB and compiles in a sandboxed Function — input is the template's `jsx_source` text string with a known parameter shape: `({ background, brand, mood, slots, output }) => SatoriElement`
-- Loads brand fonts from `@studio/storage` (cached in `/tmp` for warm starts)
+- Loads brand fonts from `@vyora/storage` (cached in `/tmp` for warm starts)
 - Renders via Satori → SVG → Resvg → PNG at exact pixel dimensions per `output.width × output.height`
 - Tests cover small/large/tall/wide aspect ratios with a fixture template
 
@@ -30,8 +30,8 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @studio/renderer add satori @resvg/resvg-js
-pnpm --filter @studio/renderer add @studio/shared@workspace:*
+pnpm --filter @vyora/renderer add satori @resvg/resvg-js
+pnpm --filter @vyora/renderer add @vyora/shared@workspace:*
 ```
 
 - [ ] **Step 2 — Types**
@@ -251,7 +251,7 @@ git commit -m "feat(renderer): Satori + Resvg template renderer with brand-font 
 ## Verification
 
 ```bash
-pnpm --filter @studio/renderer test
+pnpm --filter @vyora/renderer test
 ```
 
 ## Commit message

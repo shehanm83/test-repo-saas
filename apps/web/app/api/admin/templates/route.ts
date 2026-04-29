@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { TemplateApi } from "@studio/api/template";
-import { loadConfig } from "@studio/shared";
+import { TemplateApi } from "@vyora/api/template";
+import { loadConfig } from "@vyora/shared";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";

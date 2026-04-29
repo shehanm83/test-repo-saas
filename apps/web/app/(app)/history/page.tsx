@@ -5,10 +5,10 @@ import {
   generationVariants,
   listBrands,
   moods,
-} from "@studio/db";
-import { desc, eq, inArray } from "@studio/db/operators";
-import { loadConfig } from "@studio/shared";
-import { S3StorageAdapter } from "@studio/storage";
+} from "@vyora/db";
+import { desc, eq, inArray } from "@vyora/db/operators";
+import { loadConfig } from "@vyora/shared";
+import { S3StorageAdapter } from "@vyora/storage";
 
 import { HistoryList } from "@/components/history/history-list";
 import { getSessionWorkspace } from "@/lib/auth/server";

@@ -67,7 +67,7 @@ async refundCharge(args: { chargeId: string; reason?: string }) {
 
 ```ts
 // packages/billing/src/refund.ts
-import type { BillingProvider } from "@studio/shared";
+import type { BillingProvider } from "@vyora/shared";
 
 export class RefundService {
   constructor(private readonly billing: BillingProvider) {}
@@ -116,7 +116,7 @@ git commit -m "feat(billing): dunning state machine + refund webhook + reconcili
 ## Verification
 
 ```bash
-pnpm --filter @studio/billing test
+pnpm --filter @vyora/billing test
 ```
 
 ## Commit message

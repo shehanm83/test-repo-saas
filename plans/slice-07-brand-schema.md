@@ -83,7 +83,7 @@ export * from "./brand.js";
 - [ ] **Step 3 — Generate migration**
 
 ```bash
-pnpm --filter @studio/db exec drizzle-kit generate --name=brand
+pnpm --filter @vyora/db exec drizzle-kit generate --name=brand
 ```
 
 - [ ] **Step 4 — Edit generated migration**
@@ -154,8 +154,8 @@ describe("brand RLS", () => {
 - [ ] **Step 6 — Run migration + tests**
 
 ```bash
-pnpm --filter @studio/db db:migrate
-pnpm --filter @studio/db test:int
+pnpm --filter @vyora/db db:migrate
+pnpm --filter @vyora/db test:int
 ```
 Expected: green.
 
@@ -173,7 +173,7 @@ git commit -m "feat(db): brand schema (brands, assets, projects) with RLS + pgve
 ```bash
 psql "$DATABASE_URL" -c "\dt brand*"
 psql "$DATABASE_URL" -c "\d brand_assets" | grep embedding
-pnpm --filter @studio/db test:int
+pnpm --filter @vyora/db test:int
 ```
 
 ## Commit message

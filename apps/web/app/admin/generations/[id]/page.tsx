@@ -10,10 +10,10 @@ import {
   moods,
   users,
   workspaces,
-} from "@studio/db";
+} from "@vyora/db";
 import { eq, desc } from "drizzle-orm";
-import { loadConfig } from "@studio/shared";
-import { S3StorageAdapter } from "@studio/storage";
+import { loadConfig } from "@vyora/shared";
+import { S3StorageAdapter } from "@vyora/storage";
 
 import { GenerationInspector } from "@/components/admin/generation-inspector";
 

@@ -538,7 +538,7 @@ export function Generate(props: {
             </div>
             <h1 className="page__title">What are we making today?</h1>
             <p className="page__sub" style={{ marginTop: 6 }}>
-              Describe what you want. Studio handles the rest — 4 finished variants in
+              Describe what you want. Vyora handles the rest — 4 finished variants in
               about 30 seconds.
             </p>
           </div>

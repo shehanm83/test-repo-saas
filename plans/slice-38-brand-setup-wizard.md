@@ -32,7 +32,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @studio/web add react-hook-form @hookform/resolvers zod zustand
+pnpm --filter @vyora/web add react-hook-form @hookform/resolvers zod zustand
 ```
 
 - [ ] **Step 2 — Onboarding store**
@@ -124,8 +124,8 @@ For each step, write a component test for form validation (required fields, max 
 // apps/web/src/app/api/brands/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
-import { BrandApi } from "@studio/api";
-import { loadConfig, createAdapters } from "@studio/shared";
+import { BrandApi } from "@vyora/api";
+import { loadConfig, createAdapters } from "@vyora/shared";
 
 export async function POST(req: Request) {
   const session = await getServerSession();
@@ -158,7 +158,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 - [ ] **Step 7 — Commit**
 
 ```bash
-pnpm --filter @studio/web test
+pnpm --filter @vyora/web test
 git add -A
 git commit -m "feat(web): brand setup wizard (6 steps) with API integration"
 ```

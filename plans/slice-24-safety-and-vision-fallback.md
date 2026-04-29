@@ -35,7 +35,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @studio/gateway add @anthropic-ai/sdk
+pnpm --filter @vyora/gateway add @anthropic-ai/sdk
 ```
 
 - [ ] **Step 2 — Anthropic text provider**
@@ -44,7 +44,7 @@ pnpm --filter @studio/gateway add @anthropic-ai/sdk
 // packages/gateway/src/providers/anthropic-text.ts
 import Anthropic from "@anthropic-ai/sdk";
 import type { TextProvider } from "../types.js";
-import type { AITextRequest, AITextResponse } from "@studio/shared";
+import type { AITextRequest, AITextResponse } from "@vyora/shared";
 
 export class AnthropicTextProvider implements TextProvider {
   modelCodes = ["claude-haiku-4-5"];
@@ -258,7 +258,7 @@ git commit -m "feat(gateway): safety pipeline (mod + vision fallback) + Anthropi
 ## Verification
 
 ```bash
-pnpm --filter @studio/gateway test
+pnpm --filter @vyora/gateway test
 ```
 
 ## Commit message

@@ -1,5 +1,5 @@
-import { and, eq, inArray, type Db, generations } from "@studio/db";
-import { AppError, CODES } from "@studio/shared";
+import { and, eq, inArray, type Db, generations } from "@vyora/db";
+import { AppError, CODES } from "@vyora/shared";
 
 const CAPS: Record<string, number> = { free: 1, starter: 2, pro: 4, business: 8, agency: 16 };
 

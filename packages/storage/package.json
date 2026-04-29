@@ -1,5 +1,5 @@
 {
-  "name": "@studio/storage",
+  "name": "@vyora/storage",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",

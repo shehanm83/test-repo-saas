@@ -1,4 +1,4 @@
-import type { Config } from "@studio/shared/config";
+import type { Config } from "@vyora/shared/config";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   listPublishedTemplatesForRouting: vi.fn(async () => []),
 }));
 
-vi.mock("@studio/db", () => ({
+vi.mock("@vyora/db", () => ({
   createDb: mocks.createDb,
   adminListTemplates: mocks.adminListTemplates,
   adminCreateTemplate: mocks.adminCreateTemplate,

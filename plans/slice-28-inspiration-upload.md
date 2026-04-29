@@ -29,9 +29,9 @@
 // packages/api/src/inspiration.ts
 import { randomUUID } from "node:crypto";
 import { fileTypeFromBuffer } from "file-type";
-import { keys } from "@studio/storage";
+import { keys } from "@vyora/storage";
 import { reencodeImage } from "./sanitize/image.js";
-import type { Adapters, Config } from "@studio/shared";
+import type { Adapters, Config } from "@vyora/shared";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -65,7 +65,7 @@ export class InspirationUploadApi {
 ```
 
 ```bash
-pnpm --filter @studio/api add file-type
+pnpm --filter @vyora/api add file-type
 ```
 
 - [ ] **Step 2 — Test**
@@ -139,7 +139,7 @@ git commit -m "feat(api): inspiration image upload + claim with mime-sniff and 2
 ## Verification
 
 ```bash
-pnpm --filter @studio/api test
+pnpm --filter @vyora/api test
 ```
 
 ## Commit message

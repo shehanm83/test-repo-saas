@@ -1,4 +1,4 @@
-import { createDb, users, workspaces } from "@studio/db";
+import { createDb, users, workspaces } from "@vyora/db";
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 

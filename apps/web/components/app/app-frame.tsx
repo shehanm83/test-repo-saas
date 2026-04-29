@@ -1,8 +1,8 @@
 import React from "react";
 
-import { Ledger } from "@studio/billing";
-import { createDb, listBrands } from "@studio/db";
-import { loadConfig } from "@studio/shared";
+import { Ledger } from "@vyora/billing";
+import { createDb, listBrands } from "@vyora/db";
+import { loadConfig } from "@vyora/shared";
 
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";

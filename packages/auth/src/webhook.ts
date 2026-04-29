@@ -1,5 +1,5 @@
-import { createDb } from "@studio/db";
-import { bootstrapNewUser, softDeleteWorkspaceForUser } from "@studio/db/queries/identity";
+import { createDb } from "@vyora/db";
+import { bootstrapNewUser, softDeleteWorkspaceForUser } from "@vyora/db/queries/identity";
 import { Webhook } from "svix";
 
 interface ClerkWebhookConfig {

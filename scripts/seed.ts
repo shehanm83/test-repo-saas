@@ -1,4 +1,4 @@
-import { createDb } from "@studio/db/client";
+import { createDb } from "@vyora/db/client";
 import {
   brands,
   creditLedgerEntries,
@@ -8,8 +8,8 @@ import {
   users,
   workspaceMembers,
   workspaces,
-} from "@studio/db/schema";
-import { loadConfig } from "@studio/shared/config";
+} from "@vyora/db/schema";
+import { loadConfig } from "@vyora/shared/config";
 
 const config = loadConfig();
 const adminDb = createDb(config.db.url, "app_admin");

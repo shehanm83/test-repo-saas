@@ -14,7 +14,7 @@
 - Atomic fan-in: last variant completion marks generation completed; releases unspent reservation
 - Queue adapter wired (SQS / ElasticMQ / inline)
 - Tests cover: happy path, model failure → fallback, all variants fail → reservation released, fan-in
-- Worker dev script: `pnpm --filter @studio/worker dev` (long-running ElasticMQ poller)
+- Worker dev script: `pnpm --filter @vyora/worker dev` (long-running ElasticMQ poller)
 
 ---
 
@@ -38,15 +38,15 @@
 
 Bootstrap `packages/queue` with:
 ```bash
-pnpm --filter @studio/queue add @aws-sdk/client-sqs
-pnpm --filter @studio/queue add @studio/shared@workspace:*
+pnpm --filter @vyora/queue add @aws-sdk/client-sqs
+pnpm --filter @vyora/queue add @vyora/shared@workspace:*
 ```
 
 `packages/queue/src/sqs.ts`:
 
 ```ts
 import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
-import type { QueueAdapter, QueueMessage } from "@studio/shared";
+import type { QueueAdapter, QueueMessage } from "@vyora/shared";
 
 export class SqsQueueAdapter implements QueueAdapter {
   client: SQSClient;
@@ -84,7 +84,7 @@ export class SqsQueueAdapter implements QueueAdapter {
 `packages/queue/src/inline.ts`:
 
 ```ts
-import type { QueueAdapter, QueueMessage } from "@studio/shared";
+import type { QueueAdapter, QueueMessage } from "@vyora/shared";
 
 type Handler = (msg: unknown) => Promise<void>;
 
@@ -112,7 +112,7 @@ export * from "./inline.js";
 
 Wire factory:
 ```ts
-import { SqsQueueAdapter, InlineQueueAdapter } from "@studio/queue";
+import { SqsQueueAdapter, InlineQueueAdapter } from "@vyora/queue";
 const queue =
   config.queue.mode === "inline" ? new InlineQueueAdapter()
   : new SqsQueueAdapter({ region: config.queue.region, endpoint: config.queue.endpoint });
@@ -126,12 +126,12 @@ const queue =
 import { eq, sql } from "drizzle-orm";
 import {
   createDb, getGenerationFull, generations, generationVariants, brands, brandAssets, moods, templates as templatesTable,
-} from "@studio/db";
-import { keys } from "@studio/storage";
-import { Ledger } from "@studio/billing";
-import { render } from "@studio/renderer";
-import type { Adapters, Config } from "@studio/shared";
-import type { AIImageRequest } from "@studio/shared";
+} from "@vyora/db";
+import { keys } from "@vyora/storage";
+import { Ledger } from "@vyora/billing";
+import { render } from "@vyora/renderer";
+import type { Adapters, Config } from "@vyora/shared";
+import type { AIImageRequest } from "@vyora/shared";
 
 export interface VariantJob { generationId: string; variantId: string; workspaceId: string }
 
@@ -283,7 +283,7 @@ export class GenerationWorker {
 `apps/worker/scripts/dev.ts`:
 
 ```ts
-import { loadConfig, createAdapters } from "@studio/shared";
+import { loadConfig, createAdapters } from "@vyora/shared";
 import { GenerationWorker } from "../src/handler.js";
 
 const config = loadConfig();
@@ -329,7 +329,7 @@ git commit -m "feat(worker): generation pipeline handler with i2i + vision-fallb
 
 ```bash
 pnpm test:int
-# manual: AI_MODE=mock pnpm --filter @studio/worker dev   # runs locally
+# manual: AI_MODE=mock pnpm --filter @vyora/worker dev   # runs locally
 ```
 
 ## Commit message

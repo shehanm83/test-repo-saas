@@ -157,7 +157,7 @@ Implement the 5 routes listed above using `GenerationApi`, `CaptionApi`, and the
 - [ ] **Step 7 — Commit**
 
 ```bash
-pnpm --filter @studio/web test
+pnpm --filter @vyora/web test
 git add -A
 git commit -m "feat(web): generation results page with long-poll, variant edit-text, regenerate, caption modal"
 ```

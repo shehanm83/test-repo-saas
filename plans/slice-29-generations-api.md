@@ -93,11 +93,11 @@ export async function getGenerationFull(db: Db, workspaceId: string, generationI
 // packages/api/src/generation.ts
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { resolveOutputTarget, assertMoodSupportsAspectRatio } from "@studio/shared";
-import { createDb, listAvailableMoods, pickTemplates, insertGeneration, insertVariants, getGenerationFull } from "@studio/db";
-import { Ledger, InsufficientCredits } from "@studio/billing";
-import type { Adapters, Config } from "@studio/shared";
-import { keys } from "@studio/storage";
+import { resolveOutputTarget, assertMoodSupportsAspectRatio } from "@vyora/shared";
+import { createDb, listAvailableMoods, pickTemplates, insertGeneration, insertVariants, getGenerationFull } from "@vyora/db";
+import { Ledger, InsufficientCredits } from "@vyora/billing";
+import type { Adapters, Config } from "@vyora/shared";
+import { keys } from "@vyora/storage";
 
 const VARIANT_COUNT = 4;
 
@@ -277,7 +277,7 @@ git commit -m "feat(api): generation create + status endpoints with reservation,
 ## Verification
 
 ```bash
-pnpm --filter @studio/api test
+pnpm --filter @vyora/api test
 ```
 
 ## Commit message

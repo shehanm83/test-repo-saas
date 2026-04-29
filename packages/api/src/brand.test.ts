@@ -1,4 +1,4 @@
-import type { Config } from "@studio/shared/config";
+import type { Config } from "@vyora/shared/config";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   describeImage: vi.fn(async () => ({ description: "clean product shot" })),
 }));
 
-vi.mock("@studio/db", () => ({
+vi.mock("@vyora/db", () => ({
   createDb: mocks.createDb,
   listBrands: mocks.listBrands,
   getBrand: mocks.getBrand,

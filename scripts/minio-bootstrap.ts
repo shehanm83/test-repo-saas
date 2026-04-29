@@ -1,6 +1,6 @@
 import { S3Client, CreateBucketCommand, HeadBucketCommand } from "@aws-sdk/client-s3";
 
-import { loadConfig } from "@studio/shared/config";
+import { loadConfig } from "@vyora/shared/config";
 
 const config = loadConfig();
 
