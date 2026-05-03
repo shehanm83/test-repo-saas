@@ -5,6 +5,7 @@ import {
   generationVariants,
   listBrands,
   moods,
+  withWorkspace,
 } from "@vyora/db";
 import { desc, eq, inArray } from "@vyora/db/operators";
 import { loadConfig } from "@vyora/shared";
@@ -25,44 +26,43 @@ export default async function HistoryPage() {
   const ws = session.workspaceId;
   const allBrands = await listBrands(db, ws);
 
-  const rows = await db
-    .select()
-    .from(generations)
-    .where(eq(generations.workspaceId, ws))
-    .orderBy(desc(generations.createdAt))
-    .limit(50);
+  const { rows, brandRows, moodRows, variantRows } = await withWorkspace(db, ws, async (tx) => {
+    const rows = await tx
+      .select()
+      .from(generations)
+      .where(eq(generations.workspaceId, ws))
+      .orderBy(desc(generations.createdAt))
+      .limit(50);
 
-  if (rows.length === 0) {
-    return (
-      <HistoryList
-        items={[]}
-        brands={allBrands.map((b) => ({ id: b.id, name: b.name }))}
-      />
-    );
-  }
+    if (rows.length === 0) {
+      return { rows, brandRows: [], moodRows: [], variantRows: [] };
+    }
 
-  const brandRows = await db
-    .select()
-    .from(brands)
-    .where(inArray(brands.id, rows.map((r) => r.brandId)));
+    const brandRows = await tx
+      .select()
+      .from(brands)
+      .where(inArray(brands.id, rows.map((r) => r.brandId)));
 
-  const moodIds = rows
-    .map((r) => r.moodId)
-    .filter((v): v is string => Boolean(v));
-  const moodRows =
-    moodIds.length > 0
-      ? await db.select().from(moods).where(inArray(moods.id, moodIds))
-      : [];
+    const moodIds = rows
+      .map((r) => r.moodId)
+      .filter((v): v is string => Boolean(v));
+    const moodRows =
+      moodIds.length > 0
+        ? await tx.select().from(moods).where(inArray(moods.id, moodIds))
+        : [];
 
-  const variantRows = await db
-    .select({
-      id: generationVariants.id,
-      generationId: generationVariants.generationId,
-      outputS3Key: generationVariants.outputS3Key,
-      creditCost: generationVariants.creditCost,
-    })
-    .from(generationVariants)
-    .where(inArray(generationVariants.generationId, rows.map((r) => r.id)));
+    const variantRows = await tx
+      .select({
+        id: generationVariants.id,
+        generationId: generationVariants.generationId,
+        outputS3Key: generationVariants.outputS3Key,
+        creditCost: generationVariants.creditCost,
+      })
+      .from(generationVariants)
+      .where(inArray(generationVariants.generationId, rows.map((r) => r.id)));
+
+    return { rows, brandRows, moodRows, variantRows };
+  });
 
   const storage = new S3StorageAdapter({
     region: config.storage.region,

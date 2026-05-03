@@ -11,6 +11,8 @@ const queueConfig = {
   mode: config.queue.mode,
   region: config.queue.region,
   ...(config.queue.endpoint ? { endpoint: config.queue.endpoint } : {}),
+  ...(config.storage.accessKeyId ? { accessKeyId: config.storage.accessKeyId } : {}),
+  ...(config.storage.secretAccessKey ? { secretAccessKey: config.storage.secretAccessKey } : {}),
 };
 const adapters = {
   ...createAdapters(config),

@@ -1,3 +1,5 @@
+import { createDb, workspaces } from "@vyora/db";
+import { eq } from "@vyora/db/operators";
 import type { Adapters, Config } from "@vyora/shared";
 import { z } from "zod";
 
@@ -18,6 +20,15 @@ export class BillingApi {
         planCode: z.enum(["free", "starter", "pro", "business", "agency"]),
       })
       .parse(args.input);
+
+    if (v.planCode === "free") {
+      const db = createDb(this.config.db.url, "app_admin");
+      await db
+        .update(workspaces)
+        .set({ planCode: "free" })
+        .where(eq(workspaces.id, args.workspaceId));
+      return { url: `${this.config.appUrl}/billing?subscription=success` };
+    }
 
     const priceId = this.config.billing.prices[v.planCode];
     if (!priceId) {

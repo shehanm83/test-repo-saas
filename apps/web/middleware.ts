@@ -6,7 +6,17 @@ export default async function middleware(request: NextRequest, event: NextFetchE
   }
 
   const { clerkMiddleware } = await import("@clerk/nextjs/server");
-  return clerkMiddleware()(request, event);
+
+  return clerkMiddleware(async (auth, req) => {
+    const authObj = await auth();
+    const token = await authObj.getToken();
+    if (token) {
+      const requestHeaders = new Headers(req.headers);
+      requestHeaders.set("authorization", `Bearer ${token}`);
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
+    return NextResponse.next();
+  })(request, event);
 }
 
 export const config = {

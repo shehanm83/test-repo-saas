@@ -7,6 +7,7 @@ import {
   workspaces,
   workspaceMembers,
 } from "@vyora/db";
+import { bootstrapNewUser } from "@vyora/db/queries/identity";
 import { and, eq, isNotNull } from "@vyora/db/operators";
 import { loadConfig, createAdapters } from "@vyora/shared";
 
@@ -42,10 +43,25 @@ export async function getServerSession(): Promise<
   }
 
   const db = createDb(config.db.url, "app_admin");
-  const [user] =
+  let [user] =
     config.auth.mode === "clerk"
       ? await db.select().from(users).where(eq(users.clerkUserId, identity.userId)).limit(1)
       : await db.select().from(users).where(eq(users.id, identity.userId)).limit(1);
+
+  if (!user && config.auth.mode === "clerk") {
+    const { createClerkClient } = await import("@clerk/backend");
+    const clerk = createClerkClient({ secretKey: config.auth.secretKey });
+    const clerkUser = await clerk.users.getUser(identity.userId).catch(() => null);
+    const email = clerkUser?.emailAddresses[0]?.emailAddress;
+    if (email) {
+      await bootstrapNewUser(db, {
+        clerkUserId: identity.userId,
+        email,
+        eventId: `auto-bootstrap-${identity.userId}`,
+      });
+      [user] = await db.select().from(users).where(eq(users.clerkUserId, identity.userId)).limit(1);
+    }
+  }
 
   if (!user) {
     return null;
