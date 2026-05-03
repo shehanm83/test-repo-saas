@@ -62,7 +62,15 @@ class StubBillingProvider implements BillingProvider {
     return;
   }
 
-  async listPaidInvoices(): Promise<Array<{ invoiceId: string; priceId: string | null }>> {
+  async listPaidInvoices(): Promise<
+    Array<{
+      invoiceId: string;
+      priceId: string | null;
+      amount: string | null;
+      date: string | null;
+      hostedInvoiceUrl: string | null;
+    }>
+  > {
     return [];
   }
 }

@@ -108,7 +108,15 @@ export class StripeBillingProvider implements BillingProvider {
 
   async listPaidInvoices(args: {
     customerId: string;
-  }): Promise<Array<{ invoiceId: string; priceId: string | null }>> {
+  }): Promise<
+    Array<{
+      invoiceId: string;
+      priceId: string | null;
+      amount: string | null;
+      date: string | null;
+      hostedInvoiceUrl: string | null;
+    }>
+  > {
     const invoices = await this.stripe.invoices.list({
       customer: args.customerId,
       status: "paid",
@@ -121,6 +129,18 @@ export class StripeBillingProvider implements BillingProvider {
         typeof invoice.lines.data[0]?.pricing?.price_details?.price === "string"
           ? invoice.lines.data[0].pricing.price_details.price
           : null,
+      amount:
+        invoice.amount_paid != null
+          ? `$${(invoice.amount_paid / 100).toFixed(2)}`
+          : null,
+      date: invoice.created
+        ? new Date(invoice.created * 1000).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : null,
+      hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
     }));
   }
 }

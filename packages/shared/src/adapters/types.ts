@@ -61,7 +61,15 @@ export interface BillingProvider {
   refundCharge(args: { chargeId: string; reason?: string }): Promise<void>;
   listPaidInvoices(args: {
     customerId: string;
-  }): Promise<Array<{ invoiceId: string; priceId: string | null }>>;
+  }): Promise<
+    Array<{
+      invoiceId: string;
+      priceId: string | null;
+      amount: string | null;
+      date: string | null;
+      hostedInvoiceUrl: string | null;
+    }>
+  >;
 }
 
 export interface AIImageRequest {
