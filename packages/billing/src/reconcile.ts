@@ -6,7 +6,15 @@ import { PLANS, planFromStripePriceId } from "./plans";
 interface BillingReconciliationProvider {
   listPaidInvoices(args: {
     customerId: string;
-  }): Promise<Array<{ invoiceId: string; priceId: string | null }>>;
+  }): Promise<
+    Array<{
+      invoiceId: string;
+      priceId: string | null;
+      amount: string | null;
+      date: string | null;
+      hostedInvoiceUrl: string | null;
+    }>
+  >;
 }
 
 export interface ReconciliationReport {
