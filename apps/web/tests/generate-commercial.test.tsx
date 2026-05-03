@@ -170,6 +170,6 @@ describe("commercial generation page", () => {
     const createCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/generations"));
     const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<string, unknown>;
     const campaign = body.campaign as Record<string, unknown>;
-    expect(campaign.title).toBeFalsy();
+    expect(campaign.title).toBeUndefined();
   });
 });
