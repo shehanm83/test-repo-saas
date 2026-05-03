@@ -4,9 +4,17 @@ import React, { useState } from "react";
 
 import { I } from "@/components/icons";
 
+interface Invoice {
+  invoiceId: string;
+  priceId: string | null;
+  amount: string | null;
+  date: string | null;
+  hostedInvoiceUrl: string | null;
+}
+
 interface Props {
   balance: number;
-  invoices: Array<{ invoiceId: string; priceId: string | null; amount?: string; date?: string }>;
+  invoices: Invoice[];
   planCode: string;
   sparkline: number[];
   topupPacks: Array<{ code: string; credits: number; priceUsd: number; best?: boolean }>;
@@ -20,6 +28,9 @@ interface Props {
     popular?: boolean;
   }>;
   monthlyCreditGrant: number;
+  periodEnd: string | null;
+  subscriptionStatus: string | null;
+  cancelAtPeriodEnd: boolean;
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {
@@ -41,42 +52,80 @@ function Sparkline({ values }: { values: number[] }) {
   const points = values
     .map((v, i) => `${(i * stride).toFixed(1)},${(h - (v / max) * (h - 12)).toFixed(1)}`)
     .join(" ");
-  const polygon = values.length
-    ? `0,${h} ${points} ${w},${h}`
-    : `0,${h} ${w},${h}`;
+  const polygon = values.length ? `0,${h} ${points} ${w},${h}` : `0,${h} ${w},${h}`;
   return (
     <svg width="100%" height="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
-      <polyline
-        points={points}
-        fill="none"
-        stroke="var(--studio-violet)"
-        strokeWidth={2}
-      />
+      <polyline points={points} fill="none" stroke="var(--studio-violet)" strokeWidth={2} />
       <polygon points={polygon} fill="var(--studio-violet)" opacity={0.08} />
     </svg>
   );
 }
 
+function usePortalRedirect() {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function openPortal() {
+    setPending(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/billing/portal", { method: "POST" });
+      const json = (await r.json()) as { url?: string; error?: string };
+      if (!r.ok || !json.url) {
+        setError(json.error ?? "Failed to open billing portal. Please try again.");
+        return;
+      }
+      window.location.href = json.url;
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return { openPortal, pending, error, clearError: () => setError(null) };
+}
+
 export function BillingPage(props: Props) {
   const [compareOpen, setCompareOpen] = useState(false);
   const [pendingTopup, setPendingTopup] = useState<string | null>(null);
+  const [topupError, setTopupError] = useState<string | null>(null);
+  const portal = usePortalRedirect();
 
   const currentPlan = props.plans.find((p) => p.code === props.planCode);
   const planLabel = currentPlan?.name ?? props.planCode;
   const planPrice = currentPlan?.price ?? 0;
 
+  const renewalLabel = (() => {
+    if (!props.periodEnd) return null;
+    const d = new Date(props.periodEnd);
+    if (props.cancelAtPeriodEnd) {
+      return `Cancels on ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+    }
+    return `Renews on ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+  })();
+
+  const creditResetLabel = props.periodEnd
+    ? `Resets on ${new Date(props.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+    : `${props.monthlyCreditGrant.toLocaleString()} credits / month`;
+
   async function buyTopup(code: string) {
     setPendingTopup(code);
+    setTopupError(null);
     try {
       const r = await fetch("/api/billing/topup", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ packCode: code }),
       });
-      if (r.ok) {
-        const json = (await r.json()) as { url?: string };
-        if (json.url) window.location.href = json.url;
+      const json = (await r.json()) as { url?: string; error?: string };
+      if (!r.ok || !json.url) {
+        setTopupError(json.error ?? "Failed to start checkout. Please try again.");
+        return;
       }
+      window.location.href = json.url;
+    } catch {
+      setTopupError("Network error. Please check your connection and try again.");
     } finally {
       setPendingTopup(null);
     }
@@ -87,12 +136,11 @@ export function BillingPage(props: Props) {
       <div className="page__head">
         <div>
           <h1 className="page__title">Billing &amp; plan</h1>
-          <p className="page__sub">
-            Manage your subscription, credits, and payment method.
-          </p>
+          <p className="page__sub">Manage your subscription, credits, and payment method.</p>
         </div>
       </div>
 
+      {/* Section 1 — Current plan */}
       <div
         className="card"
         style={{
@@ -110,13 +158,7 @@ export function BillingPage(props: Props) {
             <h2 className="t-h2" style={{ margin: 0 }}>
               {planLabel}
             </h2>
-            <span
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 22,
-                color: "var(--fg-3)",
-              }}
-            >
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "var(--fg-3)" }}>
               ${planPrice}
               <span style={{ fontSize: 13, marginLeft: 2, color: "var(--fg-3)" }}>/mo</span>
             </span>
@@ -129,52 +171,61 @@ export function BillingPage(props: Props) {
               value={(currentPlan?.credits ?? props.monthlyCreditGrant).toLocaleString()}
             />
           </div>
+          {renewalLabel ? (
+            <div className="t-small" style={{ marginTop: 10, color: "var(--fg-3)" }}>
+              {props.subscriptionStatus === "past_due" ? (
+                <span style={{ color: "var(--color-error, #e53e3e)" }}>
+                  <I.AlertTriangle size={11} style={{ verticalAlign: "-1px", marginRight: 4 }} />
+                  Payment past due — update your payment method to avoid interruption
+                </span>
+              ) : (
+                renewalLabel
+              )}
+            </div>
+          ) : null}
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={() => setCompareOpen((o) => !o)}
-          >
-            Compare plans
-          </button>
-          <button type="button" className="btn btn--primary">
-            Change plan
-          </button>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => setCompareOpen((o) => !o)}
+            >
+              Compare plans
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={portal.pending}
+              onClick={() => void portal.openPortal()}
+            >
+              {portal.pending ? "Redirecting…" : "Change plan"}
+            </button>
+          </div>
+          {portal.error ? (
+            <div style={{ fontSize: 12, color: "var(--color-error, #e53e3e)", maxWidth: 280, textAlign: "right" }}>
+              {portal.error}
+            </div>
+          ) : null}
         </div>
       </div>
 
+      {/* Section 2 — Credits */}
       <div className="card" style={{ padding: 24, marginBottom: 16 }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <div className="t-eyebrow">Credits</div>
             <div style={{ fontFamily: "var(--font-display)", fontSize: 48, marginTop: 4 }}>
               {props.balance.toLocaleString()}{" "}
-              <span
-                style={{
-                  fontSize: 16,
-                  color: "var(--fg-3)",
-                  fontFamily: "var(--font-body)",
-                  fontWeight: 400,
-                }}
-              >
+              <span style={{ fontSize: 16, color: "var(--fg-3)", fontFamily: "var(--font-body)", fontWeight: 400 }}>
                 credits remaining
               </span>
             </div>
             <div className="t-small" style={{ marginTop: 4 }}>
-              Resets to {props.monthlyCreditGrant.toLocaleString()} on the 15th of each month.
+              {creditResetLabel}
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button type="button" className="btn btn--ghost">
-              View ledger
-            </button>
             <a className="btn btn--accent" href="#topups">
               <I.Plus size={14} />
               Buy top-up credits
@@ -193,36 +244,22 @@ export function BillingPage(props: Props) {
           }}
         >
           <Sparkline values={props.sparkline} />
-          <div
-            style={{
-              position: "absolute",
-              left: 16,
-              top: 12,
-              fontSize: 11,
-              color: "var(--fg-3)",
-            }}
-          >
+          <div style={{ position: "absolute", left: 16, top: 12, fontSize: 11, color: "var(--fg-3)" }}>
             Last 30 days · {props.sparkline.reduce((a, b) => a + b, 0)} credits used
           </div>
         </div>
       </div>
 
+      {/* Section 3 — Top-up packs */}
       <div id="topups" style={{ marginBottom: 16 }}>
         <div className="t-eyebrow" style={{ marginBottom: 12 }}>
           Top-up packs
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
           {props.topupPacks.map((t) => (
-            <div
-              key={t.code}
-              className="card"
-              style={{ padding: 20, position: "relative" }}
-            >
+            <div key={t.code} className="card" style={{ padding: 20, position: "relative" }}>
               {t.best ? (
-                <div
-                  className="pill pill--accent"
-                  style={{ position: "absolute", top: -10, left: 16 }}
-                >
+                <div className="pill pill--accent" style={{ position: "absolute", top: -10, left: 16 }}>
                   Best value
                 </div>
               ) : null}
@@ -230,16 +267,9 @@ export function BillingPage(props: Props) {
                 {t.credits.toLocaleString()} credits
               </div>
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: 12,
-                }}
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}
               >
-                <div style={{ fontFamily: "var(--font-display)", fontSize: 22 }}>
-                  ${t.priceUsd}
-                </div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 22 }}>${t.priceUsd}</div>
                 <button
                   type="button"
                   className="btn btn--secondary btn--sm"
@@ -252,11 +282,41 @@ export function BillingPage(props: Props) {
             </div>
           ))}
         </div>
+        {topupError ? (
+          <div style={{ marginTop: 8, fontSize: 13, color: "var(--color-error, #e53e3e)" }}>
+            {topupError}
+          </div>
+        ) : null}
         <div className="t-small" style={{ marginTop: 12 }}>
           <I.Info size={11} style={{ verticalAlign: "-1px" }} /> Top-up credits never expire.
         </div>
       </div>
 
+      {/* Section 4 — Billing details */}
+      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
+        <div className="t-eyebrow" style={{ marginBottom: 16 }}>
+          Billing details
+        </div>
+        <p style={{ fontSize: 14, color: "var(--fg-3)", margin: "0 0 16px" }}>
+          Manage your payment method, billing address, tax ID, and subscription from the Stripe
+          Customer Portal.
+        </p>
+        <button
+          type="button"
+          className="btn btn--secondary"
+          disabled={portal.pending}
+          onClick={() => void portal.openPortal()}
+        >
+          {portal.pending ? "Opening portal…" : "Manage in Stripe Customer Portal"}
+        </button>
+        {portal.error ? (
+          <div style={{ marginTop: 8, fontSize: 13, color: "var(--color-error, #e53e3e)" }}>
+            {portal.error}
+          </div>
+        ) : null}
+      </div>
+
+      {/* Section 5 — Invoices */}
       <div className="card" style={{ padding: 0, overflow: "hidden", marginBottom: 16 }}>
         <div
           style={{ padding: "16px 24px", borderBottom: "1px solid var(--cal-gray-200)" }}
@@ -292,17 +352,8 @@ export function BillingPage(props: Props) {
             </thead>
             <tbody>
               {props.invoices.map((iv) => (
-                <tr
-                  key={iv.invoiceId}
-                  style={{ borderTop: "1px solid var(--cal-gray-200)" }}
-                >
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 13,
-                    }}
-                  >
+                <tr key={iv.invoiceId} style={{ borderTop: "1px solid var(--cal-gray-200)" }}>
+                  <td style={{ padding: "12px 24px", fontFamily: "var(--font-mono)", fontSize: 13 }}>
                     {iv.invoiceId.slice(0, 12)}
                   </td>
                   <td style={{ padding: "12px 24px", fontSize: 14 }}>{iv.date ?? "—"}</td>
@@ -314,10 +365,19 @@ export function BillingPage(props: Props) {
                     </span>
                   </td>
                   <td style={{ padding: "12px 24px", textAlign: "right" }}>
-                    <button type="button" className="btn btn--ghost btn--sm">
-                      <I.Download size={12} />
-                      PDF
-                    </button>
+                    {iv.hostedInvoiceUrl ? (
+                      <a
+                        href={iv.hostedInvoiceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn--ghost btn--sm"
+                      >
+                        <I.Download size={12} />
+                        PDF
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: 12, color: "var(--fg-3)" }}>—</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -326,6 +386,7 @@ export function BillingPage(props: Props) {
         )}
       </div>
 
+      {/* Section 6 — Plan comparison (accordion) */}
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         <div
           onClick={() => setCompareOpen((o) => !o)}
@@ -340,10 +401,7 @@ export function BillingPage(props: Props) {
           <div className="t-eyebrow" style={{ margin: 0 }}>
             Plan comparison
           </div>
-          <I.ChevronDown
-            size={14}
-            style={{ transform: compareOpen ? "rotate(180deg)" : "" }}
-          />
+          <I.ChevronDown size={14} style={{ transform: compareOpen ? "rotate(180deg)" : "" }} />
         </div>
         {compareOpen ? (
           <div style={{ padding: "0 24px 24px", overflowX: "auto" }}>
@@ -359,9 +417,26 @@ export function BillingPage(props: Props) {
                         padding: "12px 16px",
                         fontFamily: "var(--font-display)",
                         fontSize: 16,
+                        position: "relative",
                       }}
                     >
                       {p.name}
+                      {p.popular ? (
+                        <span
+                          className="pill pill--accent"
+                          style={{ marginLeft: 8, fontSize: 10, verticalAlign: "middle" }}
+                        >
+                          Popular
+                        </span>
+                      ) : null}
+                      {p.code === props.planCode ? (
+                        <span
+                          className="pill pill--green"
+                          style={{ marginLeft: 8, fontSize: 10, verticalAlign: "middle" }}
+                        >
+                          Current
+                        </span>
+                      ) : null}
                     </th>
                   ))}
                 </tr>
@@ -396,6 +471,25 @@ export function BillingPage(props: Props) {
                   {props.plans.map((p) => (
                     <td key={p.code} style={{ padding: "8px 16px" }}>
                       {p.credits.toLocaleString()}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td />
+                  {props.plans.map((p) => (
+                    <td key={p.code} style={{ padding: "12px 16px" }}>
+                      {p.code === props.planCode ? (
+                        <span style={{ fontSize: 13, color: "var(--fg-3)" }}>Current plan</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn--secondary btn--sm"
+                          disabled={portal.pending}
+                          onClick={() => void portal.openPortal()}
+                        >
+                          {p.price > (currentPlan?.price ?? 0) ? "Upgrade" : "Switch"}
+                        </button>
+                      )}
                     </td>
                   ))}
                 </tr>
