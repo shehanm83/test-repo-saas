@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BrandMoodStep } from "./brand-mood-step";
 import { ProductStep } from "./product-step";
@@ -68,11 +68,14 @@ export function QuickCreate(props: {
   const [platform, setPlatform] = useState<OutputFormat>("instagram_square");
   const [promotionEnabled, setPromotionEnabled] = useState(false);
 
+  const outputsRef = useRef(props.state.outputs);
+  outputsRef.current = props.state.outputs;
+
   // Sync media/platform selection into shared outputs.formats
   useEffect(() => {
     const format: OutputFormat =
       mediaType === "social" ? platform : MEDIA_FORMAT[mediaType];
-    props.onOutputsChange({ ...props.state.outputs, formats: [format] });
+    props.onOutputsChange({ ...outputsRef.current, formats: [format] });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mediaType, platform]);
 
@@ -320,7 +323,6 @@ export function QuickCreate(props: {
         </h2>
         <p className="qc-hint">Tell us what you want to generate.</p>
         <label style={{ display: "block", marginTop: 18 }}>
-          <span className="label" style={{ display: "none" }}>Creative brief</span>
           <textarea
             aria-label="Creative brief"
             className="textarea cg-brief"
