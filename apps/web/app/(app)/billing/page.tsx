@@ -1,6 +1,6 @@
 import { Ledger, PLANS, TOPUP_PACKS } from "@vyora/billing";
-import { createDb, creditLedgerEntries } from "@vyora/db";
-import { desc, eq } from "@vyora/db/operators";
+import { createDb, creditLedgerEntries, subscriptions } from "@vyora/db";
+import { and, desc, eq, gte } from "@vyora/db/operators";
 import { loadConfig } from "@vyora/shared";
 
 import { BillingPage } from "@/components/billing/billing-page";
@@ -23,21 +23,59 @@ const BEST_PACK = "p750";
 
 export default async function BillingRoutePage() {
   const { session, workspace } = await getSessionWorkspace();
-  const db = createDb(loadConfig().db.url, "app_admin");
+  const config = loadConfig();
+  const db = createDb(config.db.url, "app_admin");
   const ledger = new Ledger(db);
+
   const balance = session.workspaceId ? await ledger.getBalance(session.workspaceId) : 0;
-  const sparklineRows = session.workspaceId
+
+  // Aggregate sparkline: sum of absolute commit amounts per day, last 30 days
+  const since = new Date();
+  since.setDate(since.getDate() - 30);
+
+  const ledgerRows = session.workspaceId
     ? await db
         .select()
         .from(creditLedgerEntries)
-        .where(eq(creditLedgerEntries.workspaceId, session.workspaceId))
+        .where(
+          and(
+            eq(creditLedgerEntries.workspaceId, session.workspaceId),
+            eq(creditLedgerEntries.kind, "commit"),
+            gte(creditLedgerEntries.createdAt, since),
+          ),
+        )
         .orderBy(desc(creditLedgerEntries.createdAt))
-        .limit(30)
     : [];
+
+  // Group by day (YYYY-MM-DD) → sum of credits used that day
+  const dayMap = new Map<string, number>();
+  for (let i = 0; i < 30; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dayMap.set(d.toISOString().slice(0, 10), 0);
+  }
+  for (const row of ledgerRows) {
+    const key = row.createdAt.toISOString().slice(0, 10);
+    if (dayMap.has(key)) {
+      dayMap.set(key, (dayMap.get(key) ?? 0) + Math.abs(row.amount));
+    }
+  }
+  const sparkline = Array.from(dayMap.values()).reverse();
+
+  // Invoices from Stripe
   const invoices = workspace?.stripeCustomerId
     ? await createServerAdapters().billing.listPaidInvoices({
         customerId: workspace.stripeCustomerId,
       })
+    : [];
+
+  // Subscription row for renewal date
+  const [sub] = session.workspaceId
+    ? await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.workspaceId, session.workspaceId))
+        .limit(1)
     : [];
 
   const planCode = workspace?.planCode ?? "free";
@@ -61,15 +99,20 @@ export default async function BillingRoutePage() {
     ...(t.code === BEST_PACK ? { best: true } : {}),
   }));
 
+  const periodEnd = sub?.currentPeriodEnd ?? null;
+
   return (
     <BillingPage
       balance={balance}
       invoices={invoices}
       planCode={planCode}
-      sparkline={sparklineRows.map((row) => Math.abs(row.amount)).reverse()}
+      sparkline={sparkline}
       topupPacks={topupPacks}
       plans={plans}
       monthlyCreditGrant={monthlyCreditGrant}
+      periodEnd={periodEnd ? periodEnd.toISOString() : null}
+      subscriptionStatus={sub?.status ?? null}
+      cancelAtPeriodEnd={sub?.cancelAtPeriodEnd ?? false}
     />
   );
 }
