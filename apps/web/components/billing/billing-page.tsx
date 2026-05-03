@@ -202,11 +202,6 @@ export function BillingPage(props: Props) {
               {portal.pending ? "Redirecting…" : "Change plan"}
             </button>
           </div>
-          {portal.error ? (
-            <div style={{ fontSize: 12, color: "var(--color-error, #e53e3e)", maxWidth: 280, textAlign: "right" }}>
-              {portal.error}
-            </div>
-          ) : null}
         </div>
       </div>
 
@@ -334,7 +329,7 @@ export function BillingPage(props: Props) {
               <tr style={{ background: "var(--cal-gray-50)" }}>
                 {["Invoice", "Date", "Amount", "Status", ""].map((h, i) => (
                   <th
-                    key={i}
+                    key={h || "action"}
                     style={{
                       textAlign: "left",
                       padding: "10px 24px",
@@ -388,7 +383,9 @@ export function BillingPage(props: Props) {
 
       {/* Section 6 — Plan comparison (accordion) */}
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        <div
+        <button
+          type="button"
+          aria-expanded={compareOpen}
           onClick={() => setCompareOpen((o) => !o)}
           style={{
             padding: "16px 24px",
@@ -396,13 +393,17 @@ export function BillingPage(props: Props) {
             justifyContent: "space-between",
             alignItems: "center",
             cursor: "pointer",
+            width: "100%",
+            background: "none",
+            border: "none",
+            textAlign: "left",
           }}
         >
           <div className="t-eyebrow" style={{ margin: 0 }}>
             Plan comparison
           </div>
           <I.ChevronDown size={14} style={{ transform: compareOpen ? "rotate(180deg)" : "" }} />
-        </div>
+        </button>
         {compareOpen ? (
           <div style={{ padding: "0 24px 24px", overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
