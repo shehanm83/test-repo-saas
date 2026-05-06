@@ -1,3 +1,7 @@
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
 import { describe, expect, it, vi } from "vitest";
 import { Gateway } from "./gateway.js";
 import { MockImageProvider, MockTextProvider, MockVisionProvider } from "./mock.js";
@@ -91,5 +95,44 @@ describe("Gateway vision-fallback", () => {
     const calledPrompt = (noI2IProvider.generate.mock.calls[0]![0] as { prompt: string }).prompt;
     expect(calledPrompt).toContain("original prompt");
     expect(calledPrompt).toContain("Style cues from reference:");
+  });
+});
+
+describe("MockImageProvider with samples", () => {
+  it("returns a PNG of the requested dimensions when samples exist", async () => {
+    const samplesDir = resolve(
+      dirname(fileURLToPath(import.meta.url)),
+      "../samples",
+    );
+    if (!existsSync(samplesDir)) {
+      return;
+    }
+
+    const provider = new MockImageProvider({ samplesDir });
+    const res = await provider.generate({
+      modelCode: "flux-1.1-pro",
+      prompt: "a test prompt",
+      aspectRatio: "1:1",
+      width: 128,
+      height: 128,
+      safetyLevel: "default",
+    });
+
+    expect(res.imageBytes.byteLength).toBeGreaterThan(1000);
+    expect(res.modelUsedCode).toBe("flux-1.1-pro");
+  });
+
+  it("falls back to colored square when samplesDir is missing", async () => {
+    const provider = new MockImageProvider({ samplesDir: "/nonexistent/path" });
+    const res = await provider.generate({
+      modelCode: "flux-1.1-pro",
+      prompt: "a test prompt",
+      aspectRatio: "1:1",
+      width: 64,
+      height: 64,
+      safetyLevel: "default",
+    });
+
+    expect(res.imageBytes.byteLength).toBeGreaterThan(0);
   });
 });

@@ -1,7 +1,16 @@
+import { existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import sharp from "sharp";
+
 import { promptFingerprint } from "./gateway.js";
 import type { ImageProvider, TextProvider, VisionProvider, ModerationProvider } from "./types.js";
 import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@vyora/shared";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DEFAULT_SAMPLES_DIR = resolve(__dirname, "../samples");
+const SAMPLE_COUNT = 4;
 
 export class MockImageProvider implements ImageProvider {
   capabilities = {
@@ -11,26 +20,53 @@ export class MockImageProvider implements ImageProvider {
     tier: "fast" as const,
   };
 
+  private readonly minDelayMs: number;
+  private readonly maxDelayMs: number;
+  private readonly samplesDir: string;
+
+  constructor(opts: { minDelayMs?: number; maxDelayMs?: number; samplesDir?: string } = {}) {
+    this.minDelayMs = opts.minDelayMs ?? 0;
+    this.maxDelayMs = opts.maxDelayMs ?? 0;
+    this.samplesDir = opts.samplesDir ?? DEFAULT_SAMPLES_DIR;
+  }
+
   async generate(req: AIImageRequest): Promise<AIImageResponse> {
+    if (this.maxDelayMs > 0) {
+      const jitter = Math.random() * (this.maxDelayMs - this.minDelayMs);
+      await new Promise<void>((r) => setTimeout(r, this.minDelayMs + jitter));
+    }
+
     const fp = promptFingerprint(req);
-    const png = await sharp({
-      create: {
-        width: req.width,
-        height: req.height,
-        channels: 3,
-        background: {
-          r: parseInt(fp.slice(0, 2), 16),
-          g: parseInt(fp.slice(2, 4), 16),
-          b: parseInt(fp.slice(4, 6), 16),
-        },
-      },
-    }).png().toBuffer();
+    const idx = parseInt(fp.slice(0, 2), 16) % SAMPLE_COUNT;
+    const samplePath = resolve(this.samplesDir, `sample-${idx}.png`);
+
+    const png = existsSync(samplePath)
+      ? await sharp(samplePath)
+          .resize(req.width, req.height, { fit: "cover" })
+          .png()
+          .toBuffer()
+      : await sharp({
+          create: {
+            width: req.width,
+            height: req.height,
+            channels: 3,
+            background: {
+              r: parseInt(fp.slice(0, 2), 16),
+              g: parseInt(fp.slice(2, 4), 16),
+              b: parseInt(fp.slice(4, 6), 16),
+            },
+          },
+        })
+          .png()
+          .toBuffer();
 
     return {
       imageBytes: png,
       modelUsedCode: req.modelCode,
       upstreamCostCents: 0,
-      latencyMs: 5,
+      latencyMs: this.maxDelayMs > 0
+        ? Math.round(this.minDelayMs + (this.maxDelayMs - this.minDelayMs) * 0.5)
+        : 5,
       safetyFlags: [],
     };
   }
