@@ -39,7 +39,7 @@ const queueConfig = {
 const adapters = {
   ...createAdapters(config),
   queue: createQueueAdapter(queueConfig),
-  ai: buildMockAI() as never,
+  ai: buildMockAI(),
 };
 
 const worker = new GenerationWorker(config, adapters);
