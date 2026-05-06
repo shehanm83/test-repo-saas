@@ -1,3 +1,10 @@
+import {
+  Gateway,
+  MockImageProvider,
+  MockTextProvider,
+  MockVisionProvider,
+  MockModerationProvider,
+} from "@vyora/gateway";
 import { createQueueAdapter } from "@vyora/queue";
 import { loadConfig, createAdapters } from "@vyora/shared";
 
@@ -7,6 +14,20 @@ import { initWorkerSentry } from "../src/instrumentation.js";
 initWorkerSentry();
 
 const config = loadConfig();
+
+function buildMockAI(): Gateway {
+  const gw = new Gateway();
+  gw.registerImage(new MockImageProvider({ minDelayMs: 4000, maxDelayMs: 10000 }));
+  gw.setText(new MockTextProvider());
+  gw.setVision(new MockVisionProvider());
+  gw.setModeration(new MockModerationProvider());
+  return gw;
+}
+
+if (config.ai.mode !== "mock") {
+  throw new Error(`Worker dev script only supports AI_MODE=mock. Got: ${config.ai.mode}`);
+}
+
 const queueConfig = {
   mode: config.queue.mode,
   region: config.queue.region,
@@ -14,13 +35,16 @@ const queueConfig = {
   ...(config.storage.accessKeyId ? { accessKeyId: config.storage.accessKeyId } : {}),
   ...(config.storage.secretAccessKey ? { secretAccessKey: config.storage.secretAccessKey } : {}),
 };
+
 const adapters = {
   ...createAdapters(config),
   queue: createQueueAdapter(queueConfig),
+  ai: buildMockAI() as never,
 };
+
 const worker = new GenerationWorker(config, adapters);
 
-console.warn("worker starting; queue:", config.queue.mode, config.queue.generationsQueue);
+console.warn("worker starting; queue:", config.queue.mode, config.queue.generationsQueue, "| ai: mock (sample images, 4–10s delay)");
 
 while (true) {
   const messages = await adapters.queue.receive<{
