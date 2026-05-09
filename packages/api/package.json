@@ -20,6 +20,7 @@
     "./stock": "./src/stock.ts",
     "./taxonomy": "./src/taxonomy.ts",
     "./template": "./src/template.ts",
+    "./use-cases": "./src/use-cases.ts",
     "./workspace": "./src/workspace.ts"
   },
   "scripts": {

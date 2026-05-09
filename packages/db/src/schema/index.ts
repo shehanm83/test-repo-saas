@@ -6,3 +6,4 @@ export * from "./billing";
 export * from "./marketing";
 export * from "./product";
 export * from "./taxonomy";
+export * from "./use-cases";

@@ -11,6 +11,7 @@ const items = [
   { href: "/admin/moods", label: "Moods", icon: <I.Library size={16} /> },
   { href: "/admin/templates", label: "Templates", icon: <I.Layout size={16} /> },
   { href: "/admin/stock", label: "Stock", icon: <I.Image size={16} /> },
+  { href: "/admin/use-cases", label: "Use cases", icon: <I.Layout size={16} /> },
   { href: "/admin/pricebook", label: "Pricebook", icon: <I.Coin size={16} /> },
   { href: "/admin/generations", label: "Inspector", icon: <I.Search size={16} /> },
   { href: "/admin/users", label: "Users", icon: <I.User size={16} /> },

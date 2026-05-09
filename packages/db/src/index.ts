@@ -12,6 +12,7 @@ export * from "./queries/project";
 export * from "./queries/stock";
 export * from "./queries/template";
 export * from "./queries/taxonomy";
+export * from "./queries/use-cases";
 export * from "./queries/workspace";
 export * from "./with-workspace";
 export { and, desc, eq, gt, inArray, isNotNull, sql } from "drizzle-orm";

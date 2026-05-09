@@ -127,6 +127,13 @@
       "when": 1778832060000,
       "tag": "0018_seed_new_image_models",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1778832120000,
+      "tag": "0019_use_cases",
+      "breakpoints": true
     }
   ]
 }
