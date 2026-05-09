@@ -105,7 +105,20 @@ function buildTelemetry(config: Config): Telemetry {
   return cachedTelemetry;
 }
 
+// Audit fix #5: createAdapters used to construct fresh S3/Stripe/email
+// clients on every API-route call. Each AWS SDK / Stripe instantiation
+// builds its own retry/signer/connection pool — duplicating them per
+// request added 10-50ms and leaked sockets under load.
+//
+// We cache by config reference: in normal operation `loadConfig()` returns
+// the same object every call (it's cached in config.ts), so this Map has
+// exactly one entry. Tests can pass a different config to force a rebuild.
+const adaptersByConfig = new WeakMap<Config, Adapters>();
+
 export function createAdapters(config: Config): Adapters {
+  const cached = adaptersByConfig.get(config);
+  if (cached) return cached;
+
   const auth: AuthProvider =
     config.auth.mode === "clerk"
       ? new ClerkAuthProvider({
@@ -142,7 +155,7 @@ export function createAdapters(config: Config): Adapters {
     }
   })();
 
-  return {
+  const adapters: Adapters = {
     auth,
     storage: new S3StorageAdapter({
       region: config.storage.region,
@@ -160,4 +173,6 @@ export function createAdapters(config: Config): Adapters {
     email,
     telemetry: buildTelemetry(config),
   };
+  adaptersByConfig.set(config, adapters);
+  return adapters;
 }

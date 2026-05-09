@@ -1,8 +1,15 @@
 import { createQueueAdapter } from "@vyora/queue";
-import { createAdapters } from "@vyora/shared/adapters";
+import { createAdapters, type Adapters } from "@vyora/shared/adapters";
 import { loadConfig } from "@vyora/shared/config";
 
-export function createServerAdapters() {
+// Audit fix #5: previously rebuilt the queue (and via createAdapters, the
+// rest of the AWS-SDK-using stack) on every API route call. Now cached at
+// module scope — loadConfig() is itself cached, so this runs once per
+// process. Saves 10-50ms per /api/* call and stops connection-pool churn.
+let cached: Adapters | null = null;
+
+export function createServerAdapters(): Adapters {
+  if (cached) return cached;
   const config = loadConfig();
   const base = createAdapters(config);
 
@@ -18,5 +25,6 @@ export function createServerAdapters() {
       : {}),
   });
 
-  return { ...base, queue };
+  cached = { ...base, queue };
+  return cached;
 }
