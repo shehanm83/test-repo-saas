@@ -5,7 +5,6 @@ import {
   workspaces,
   brands,
   templates,
-  priceBookEntries,
   generations,
   generationVariants,
   creditLedgerEntries,
@@ -193,20 +192,10 @@ describe("GenerationWorker.handle", () => {
       .returning();
     templateId = tpl!.id;
 
-    // Seed pricebook entry. After migration 0016 (sub-project A), pricebook
-    // is FK'd to models.code (internal), so the model_code here must be one
-    // of the seeded internal codes — "economy" is the standard-tier default.
-    await adminDb
-      .insert(priceBookEntries)
-      .values({
-        modelCode: "economy",
-        sizeBucket: "standard",
-        premiumFlag: false,
-        hasInspirationFlag: false,
-        credits: 10,
-        version: 1,
-      })
-      .onConflictDoNothing();
+    // Pricebook entries for "economy" are seeded by migration 0016's backfill
+    // — no need to re-seed here. Inserting a duplicate would shadow the
+    // canonical 5-credit row with a 10-credit row whenever priceBookLookup
+    // picks the test's row first (the active idx isn't unique).
 
     // Grant credits to workspace so reserve succeeds
     const ledger = new Ledger(adminDb);

@@ -84,7 +84,6 @@ export const priceBookEntries = pgTable("price_book_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
   modelCode: text("model_code").notNull(),
   sizeBucket: text("size_bucket", { enum: ["standard", "large"] }).notNull(),
-  premiumFlag: boolean("premium_flag").notNull().default(false),
   hasInspirationFlag: boolean("has_inspiration_flag").notNull().default(false),
   credits: integer("credits").notNull(),
   version: integer("version").notNull(),

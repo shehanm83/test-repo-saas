@@ -43,7 +43,6 @@ for (const [modelCode, sizeBucket, hasInspirationFlag, credits] of rows) {
   await adminInsertPricebookEntry(db, {
     modelCode,
     sizeBucket,
-    premiumFlag: false,            // legacy column; always false in new rows
     hasInspirationFlag,
     credits,
     version,

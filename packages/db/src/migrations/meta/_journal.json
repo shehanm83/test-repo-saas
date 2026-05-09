@@ -134,6 +134,13 @@
       "when": 1778832120000,
       "tag": "0019_use_cases",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1778832180000,
+      "tag": "0020_drop_premium_flag",
+      "breakpoints": true
     }
   ]
 }

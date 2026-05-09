@@ -8,7 +8,6 @@ interface PricebookRow {
   id: string;
   modelCode: string;
   sizeBucket: string;
-  premiumFlag: boolean;
   hasInspirationFlag: boolean;
   credits: number;
   version: number;
@@ -221,9 +220,6 @@ export function PricebookAdmin(props: {
                   {row.credits}
                 </td>
                 <td style={{ padding: "10px 16px" }}>v{row.version}</td>
-                <td style={{ padding: "10px 16px" }}>
-                  {row.premiumFlag ? <span className="pill">Legacy: premium</span> : null}
-                </td>
               </tr>
             ))}
           </tbody>
