@@ -13,30 +13,46 @@ vi.mock("./aup", () => ({
 }));
 
 // Mock all @vyora/db imports
-vi.mock("@vyora/db", () => ({
-  createDb: vi.fn(() => ({})),
-  listAvailableMoods: vi.fn(async () => [{ id: "mood-1", supportedAspectRatios: ["1:1", "4:5"] }]),
-  pickTemplates: vi.fn(async () => [
-    {
-      tid: "tpl-1",
-      weight: 100,
-      slug: "t1",
-      preferredModel: "flux-1.1-pro",
-      requiresBrowserRender: false,
-    },
-  ]),
-  insertGeneration: vi.fn(async () => ({ id: "gen-1" })),
-  insertVariants: vi.fn(async () => [{ id: "var-1" }]),
-  getGenerationFull: vi.fn(async () => null),
-  getProduct: vi.fn(async () => null),
-  updateGenerationInspirationKey: vi.fn(async () => undefined),
-  priceBookLookup: vi.fn(async () => ({ creditCost: 10, version: 1 })),
-  generations: {},
-  workspaces: {},
-  auditLog: {},
-  and: vi.fn(),
-  eq: vi.fn(),
-}));
+vi.mock("@vyora/db", () => {
+  class ResolveSelectionError extends Error {
+    readonly code: string;
+    constructor(code: string, message: string) {
+      super(message);
+      this.code = code;
+    }
+  }
+  return {
+    createDb: vi.fn(() => ({})),
+    listAvailableMoods: vi.fn(async () => [{ id: "mood-1", supportedAspectRatios: ["1:1", "4:5"] }]),
+    pickTemplates: vi.fn(async () => [
+      {
+        tid: "tpl-1",
+        weight: 100,
+        slug: "t1",
+        preferredModel: "flux-1.1-pro",
+        requiresBrowserRender: false,
+      },
+    ]),
+    insertGeneration: vi.fn(async () => ({ id: "gen-1" })),
+    insertVariants: vi.fn(async () => [{ id: "var-1" }]),
+    getGenerationFull: vi.fn(async () => null),
+    getProduct: vi.fn(async () => null),
+    updateGenerationInspirationKey: vi.fn(async () => undefined),
+    priceBookLookup: vi.fn(async () => ({ credits: 10, creditCost: 10, version: 1 })),
+    resolveSelection: vi.fn(async () => ({
+      models: [
+        { modelCode: "economy", llmModelId: "flux-1.1-pro", displayName: "Economy", credits: 10 },
+      ],
+      totalCredits: 10,
+    })),
+    ResolveSelectionError,
+    generations: {},
+    workspaces: {},
+    auditLog: {},
+    and: vi.fn(),
+    eq: vi.fn(),
+  };
+});
 
 // Mock @vyora/billing
 const mockReserve = vi.fn(async () => undefined);

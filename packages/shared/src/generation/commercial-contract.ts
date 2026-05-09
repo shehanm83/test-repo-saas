@@ -137,6 +137,9 @@ const LegacyInput = z.object({
       applyMoodDecorations: z.boolean().default(true),
       applyMoodAccentColors: z.boolean().default(true),
       usePremiumModel: z.boolean().default(false),
+      tier: z.enum(["standard", "premium"]).optional(),
+      strength: z.string().optional(),
+      selectedModelCodes: z.array(z.string()).max(8).optional(),
     })
     .partial()
     .default({}),
@@ -197,6 +200,9 @@ export type NormalizedCommercialGenerationInput = {
     applyMoodDecorations: boolean;
     applyMoodAccentColors: boolean;
     usePremiumModel: boolean;
+    tier?: "standard" | "premium";
+    strength?: string;
+    selectedModelCodes?: string[];
   };
 };
 
@@ -354,10 +360,14 @@ function buildCommercialBrief(parsed: z.infer<typeof CommercialInput>) {
 
 type ParsedFlags = {
   [K in keyof typeof defaultFlags]?: boolean | undefined;
+} & {
+  tier?: "standard" | "premium" | undefined;
+  strength?: string | undefined;
+  selectedModelCodes?: string[] | undefined;
 };
 
-function mergeFlags(flags: ParsedFlags | undefined): typeof defaultFlags {
-  return {
+function mergeFlags(flags: ParsedFlags | undefined): NormalizedCommercialGenerationInput["flags"] {
+  const merged: NormalizedCommercialGenerationInput["flags"] = {
     useBrandColors: flags?.useBrandColors ?? defaultFlags.useBrandColors,
     useBrandLogo: flags?.useBrandLogo ?? defaultFlags.useBrandLogo,
     useBrandFonts: flags?.useBrandFonts ?? defaultFlags.useBrandFonts,
@@ -367,4 +377,8 @@ function mergeFlags(flags: ParsedFlags | undefined): typeof defaultFlags {
     applyMoodAccentColors: flags?.applyMoodAccentColors ?? defaultFlags.applyMoodAccentColors,
     usePremiumModel: flags?.usePremiumModel ?? defaultFlags.usePremiumModel,
   };
+  if (flags?.tier !== undefined) merged.tier = flags.tier;
+  if (flags?.strength !== undefined) merged.strength = flags.strength;
+  if (flags?.selectedModelCodes !== undefined) merged.selectedModelCodes = flags.selectedModelCodes;
+  return merged;
 }

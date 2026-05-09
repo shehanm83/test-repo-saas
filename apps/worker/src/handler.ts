@@ -2,6 +2,7 @@ import { Ledger } from "@vyora/billing";
 import {
   createDb,
   getGenerationFull,
+  getModel,
   generationVariants,
   generations,
   brandAssets,
@@ -467,10 +468,28 @@ export class GenerationWorker {
       Boolean(this.config.ai.openaiKey) &&
       !this.config.ai.replicateToken &&
       !this.config.ai.recraftKey;
-    const modelCode =
-      settings.usePremiumModel || openAIOnlyRealMode
-        ? this.config.ai.openaiImageModel
-        : tpl.preferredModel;
+
+    // Dereference our internal model code (e.g. "economy") to the gateway's llm_model_id
+    // (e.g. "flux-1.1-pro"). v0.modelUsed is set by GenerationApi to the internal code.
+    let modelCode: string;
+    if (v0.modelUsed) {
+      const model = await getModel(dbAdmin, v0.modelUsed);
+      if (!model) {
+        await this.markFailed(dbAdmin, job, "unknown_model", v0.modelUsed, "failed");
+        await this.releaseCredits(job, v0.creditCost);
+        return;
+      }
+      modelCode = model.llmModelId;
+    } else {
+      // Fallback for legacy paths or when modelUsed wasn't set: keep the previous heuristic.
+      modelCode =
+        settings.usePremiumModel || openAIOnlyRealMode
+          ? this.config.ai.openaiImageModel
+          : tpl.preferredModel;
+    }
+    if (openAIOnlyRealMode) {
+      modelCode = this.config.ai.openaiImageModel;
+    }
     const negPrompt = combineNegativePrompts(quickPrompt?.negativePrompt, mood?.negativePrompts);
     const baseReq: AIImageRequest = {
       modelCode,

@@ -17,6 +17,8 @@ import {
   getProduct,
   updateGenerationInspirationKey,
   priceBookLookup,
+  resolveSelection,
+  ResolveSelectionError,
 } from "@vyora/db";
 import { tagSpan } from "@vyora/observability";
 import {
@@ -286,28 +288,65 @@ export class GenerationApi {
     const variantPlan: { templateId: string; modelCode: string; credits: number }[] = [];
     const lineItems: { label: string; credits: number }[] = [];
 
-    const openAIOnlyRealMode =
-      this.config.ai.mode === "real" &&
-      Boolean(this.config.ai.openaiKey) &&
-      !this.config.ai.replicateToken &&
-      !this.config.ai.recraftKey;
+    // Backwards-compat translation: explicit tier wins over usePremiumModel.
+    let tier: "standard" | "premium";
+    let strength: string | undefined;
+    if (v.flags.tier) {
+      tier = v.flags.tier;
+      strength = v.flags.strength;
+    } else if (v.flags.usePremiumModel) {
+      tier = "premium";
+      strength = undefined; // legacy callers don't carry a strength → use bucket default
+    } else {
+      tier = "standard";
+      strength = undefined;
+    }
 
-    for (const [index, t] of selectedTemplates.entries()) {
-      const modelCode =
-        v.flags.usePremiumModel || openAIOnlyRealMode ? this.config.ai.openaiImageModel : t.preferredModel;
-      const p = await priceBookLookup(this.db(), {
-        modelCode,
+    let resolved;
+    try {
+      const resolveInput: Parameters<typeof resolveSelection>[1] = {
+        tier,
+        sizeBucket,
+        hasInspirationFlag: hasInspiration,
+      };
+      if (strength !== undefined) resolveInput.strength = strength;
+      if (v.flags.selectedModelCodes !== undefined) {
+        resolveInput.selectedModelCodes = v.flags.selectedModelCodes;
+      }
+      resolved = await resolveSelection(this.db(), resolveInput);
+    } catch (e) {
+      if (e instanceof ResolveSelectionError) {
+        throw new AppError(CODES.VALIDATION_FAILED, e.message, 422, { reason: e.code });
+      }
+      throw e;
+    }
+
+    // Fetch the price book version once to keep the existing settings snapshot stable.
+    // resolveSelection already validates pricing, so this lookup is for version metadata only.
+    if (resolved.models.length > 0) {
+      const versionProbe = await priceBookLookup(this.db(), {
+        modelCode: resolved.models[0]!.modelCode,
         sizeBucket,
         hasInspirationFlag: hasInspiration,
       });
-      priceBookVersion = p.version;
-      const variantCredits = creditsFromPricebook(p) + extraImageCredits;
-      totalCredits += variantCredits;
-      variantPlan.push({ templateId: t.tid, modelCode, credits: variantCredits });
-      lineItems.push({
-        label: `Sample ${index + 1} · ${t.slug ?? "template"} · ${modelCode}`,
-        credits: variantCredits,
-      });
+      priceBookVersion = versionProbe.version;
+    }
+
+    for (const [index, t] of selectedTemplates.entries()) {
+      // Fan out one variant per resolved model.
+      for (const m of resolved.models) {
+        const variantCredits = m.credits + extraImageCredits;
+        totalCredits += variantCredits;
+        variantPlan.push({
+          templateId: t.tid,
+          modelCode: m.modelCode, // store our internal code, not llm_model_id
+          credits: variantCredits,
+        });
+        lineItems.push({
+          label: `Sample ${index + 1} · ${t.slug ?? "template"} · ${m.displayName}`,
+          credits: variantCredits,
+        });
+      }
     }
 
     return { target, totalCredits, priceBookVersion, variantPlan, lineItems };
