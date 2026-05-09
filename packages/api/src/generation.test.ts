@@ -39,6 +39,7 @@ vi.mock("@vyora/db", () => {
     getProduct: vi.fn(async () => null),
     updateGenerationInspirationKey: vi.fn(async () => undefined),
     priceBookLookup: vi.fn(async () => ({ credits: 10, creditCost: 10, version: 1 })),
+    getUseCase: vi.fn(async () => null),
     resolveSelection: vi.fn(async () => ({
       models: [
         { modelCode: "economy", llmModelId: "flux-1.1-pro", displayName: "Economy", credits: 10 },
@@ -207,6 +208,68 @@ describe("GenerationApi.create", () => {
 
     expect(r.variants).toHaveLength(2);
     expect(sendSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("accepts useCaseCode payload and overrides aspect_ratio from the use_case row", async () => {
+    const { getUseCase } = await import("@vyora/db");
+    vi.mocked(getUseCase).mockResolvedValueOnce({
+      code: "fb-landscape",
+      label: "Facebook Landscape",
+      platform: "facebook",
+      targetWidth: 1280,
+      targetHeight: 668,
+      aspectRatio: "1.91:1",
+      icon: "🟦",
+      sortOrder: 0,
+      status: "active",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as never);
+
+    const [adapters] = makeAdapters();
+    const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);
+    const r = await api.create({
+      workspaceId: "ws-1",
+      userId: "usr-1",
+      input: {
+        ...baseInput,
+        // Wizard-shaped target. Server should look up the use_case and use its
+        // aspectRatio while keeping the picked native W×H.
+        outputTarget: {
+          kind: "social",
+          useCaseCode: "fb-landscape",
+          width: 1024,
+          height: 1024,
+          aspectRatio: "1:1", // intentionally wrong; server should override.
+        },
+      },
+    });
+    expect(r.generationId).toBeTruthy();
+    expect(vi.mocked(getUseCase)).toHaveBeenCalledWith(expect.any(Object), "fb-landscape");
+  });
+
+  it("rejects useCaseCode payload when the use_case row doesn't exist", async () => {
+    const { getUseCase } = await import("@vyora/db");
+    vi.mocked(getUseCase).mockResolvedValueOnce(null);
+
+    const [adapters] = makeAdapters();
+    const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);
+    await expect(
+      api.create({
+        workspaceId: "ws-1",
+        userId: "usr-1",
+        input: {
+          ...baseInput,
+          outputTarget: {
+            kind: "social",
+            useCaseCode: "does-not-exist",
+            width: 1024,
+            height: 1024,
+            aspectRatio: "1:1",
+          },
+        },
+      }),
+    ).rejects.toMatchObject({ code: "validation.invalid_output_target" });
   });
 
   it("rejects when no templates found", async () => {

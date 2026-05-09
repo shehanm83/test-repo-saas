@@ -47,7 +47,18 @@ export const FREEFORM_DIMENSIONS: Record<OutputAspectRatio, { width: number; hei
   "2:3":    { width: 1024, height: 1536 },
 };
 
-export const OutputTargetInput = z.discriminatedUnion("kind", [
+export const OutputTargetInput = z.union([
+  // Sub-project C's wizard sends this shape — useCaseCode + a model-native
+  // W×H picked by the user. Listed first because z.union picks the first
+  // match: `{kind:"social", useCaseCode}` would otherwise be parsed by the
+  // platform/format variant if its required fields were optional.
+  z.object({
+    kind: z.literal("social"),
+    useCaseCode: z.string().min(1),
+    width: z.number().int().positive().max(8192),
+    height: z.number().int().positive().max(8192),
+    aspectRatio: z.string().min(1).max(16),
+  }),
   z.object({ kind: z.literal("social"), platform: z.string(), format: z.string() }),
   z.object({ kind: z.literal("image"), aspectRatio: z.enum(["1:1", "4:5", "9:16", "16:9"]) }),
 ]);
@@ -56,9 +67,11 @@ export interface ResolvedOutputTarget {
   kind: "social" | "image";
   platform: Platform | null;
   format: string | null;
-  aspectRatio: OutputAspectRatio;
+  aspectRatio: OutputAspectRatio | string;
   width: number;
   height: number;
+  /** Set when the wizard's use-case path is taken; null on legacy submits. */
+  useCaseCode?: string | null;
 }
 
 export class InvalidOutputTargetError extends Error {
@@ -80,6 +93,21 @@ export function resolveOutputTarget(input: unknown): ResolvedOutputTarget {
       aspectRatio: parsed.aspectRatio,
       width: dim.width,
       height: dim.height,
+      useCaseCode: null,
+    };
+  }
+  // Wizard path: useCaseCode + wizard-picked native W×H. Server-side aspect
+  // authoritativeness lives upstream in GenerationApi.buildPlan, which looks
+  // up the use_case row before calling resolveOutputTarget.
+  if ("useCaseCode" in parsed) {
+    return {
+      kind: "social",
+      platform: null,
+      format: null,
+      aspectRatio: parsed.aspectRatio,
+      width: parsed.width,
+      height: parsed.height,
+      useCaseCode: parsed.useCaseCode,
     };
   }
   const row = PLATFORM_FORMATS.find(
@@ -97,6 +125,7 @@ export function resolveOutputTarget(input: unknown): ResolvedOutputTarget {
     aspectRatio: row.aspectRatio,
     width: row.width,
     height: row.height,
+    useCaseCode: null,
   };
 }
 

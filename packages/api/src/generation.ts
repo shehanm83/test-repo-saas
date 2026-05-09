@@ -9,6 +9,7 @@ import {
   eq,
   generations,
   generationVariants,
+  getUseCase,
   listAvailableMoods,
   pickTemplates,
   insertGeneration,
@@ -238,11 +239,29 @@ export class GenerationApi {
   }
 
   private async buildPlan(v: ReturnType<typeof normalizeCommercialGenerationInput>) {
+    // Wizard path: substitute server-authoritative aspect_ratio from the
+    // use_cases row, but trust client-supplied W×H since they came from B's
+    // model_supported_sizes table.
+    const ot = v.outputTarget as { kind?: string; useCaseCode?: string } | null;
+    if (ot && ot.kind === "social" && typeof ot.useCaseCode === "string") {
+      const uc = await getUseCase(this.db(), ot.useCaseCode);
+      if (!uc) {
+        throw new AppError(
+          CODES.VALIDATION_INVALID_OUTPUT_TARGET,
+          `Unknown use case: ${ot.useCaseCode}`,
+          400,
+        );
+      }
+      v.outputTarget = {
+        ...(v.outputTarget as Record<string, unknown>),
+        aspectRatio: uc.aspectRatio,
+      };
+    }
     const target = resolveOutputTarget(v.outputTarget);
 
     if (v.moodId) {
       const moods = await listAvailableMoods(this.db(), {
-        aspectRatio: target.aspectRatio,
+        aspectRatio: target.aspectRatio as never,
       });
       const m = moods.find((x) => x.id === v.moodId);
       if (!m) {

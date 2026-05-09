@@ -18,4 +18,5 @@ export const CODES = {
   VALIDATION_INVALID_IMAGE: "validation.invalid_image",
   VALIDATION_MOOD_ASPECT_MISMATCH: "validation.mood_aspect_mismatch",
   VALIDATION_NO_TEMPLATE: "validation.no_template",
+  VALIDATION_INVALID_OUTPUT_TARGET: "validation.invalid_output_target",
 } as const;
