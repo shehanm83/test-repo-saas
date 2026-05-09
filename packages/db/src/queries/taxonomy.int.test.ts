@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 
 import { createDb } from "../client";
 import { getTierOptions, getModel, resolveSelection } from "./taxonomy";
+import { addRouting, updateRouting, listRouting, deleteRouting } from "./taxonomy";
 
 const url = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5433/studio";
 
@@ -63,5 +64,32 @@ describe("resolveSelection (integration)", () => {
     expect(r.models).toHaveLength(1);
     expect(r.models[0]!.modelCode).toBe("text-master");
     expect(r.totalCredits).toBe(15);
+  });
+});
+
+describe("routing default swap (integration)", () => {
+  const db = createDb(url, "app_admin");
+
+  it("setting isDefault=true clears prior default in same bucket", async () => {
+    // Arrange: add an alternate model to premium-text with isDefault=false
+    const added = await addRouting(db, {
+      tierCode: "premium",
+      strengthCode: "text",
+      modelCode: "design-studio",
+      isDefault: false,
+      sortOrder: 1,
+    });
+    // Act: promote the alternate to default
+    const promoted = await updateRouting(db, added.id, { isDefault: true });
+    expect(promoted?.isDefault).toBe(true);
+    // Assert: only one default in the bucket
+    const all = await listRouting(db);
+    const textRows = all.filter((r) => r.tierCode === "premium" && r.strengthCode === "text");
+    expect(textRows.filter((r) => r.isDefault)).toHaveLength(1);
+    // Cleanup: restore default to text-master and remove the alternate row so
+    // the test is idempotent on reruns (version unique on tier+strength+model).
+    const original = textRows.find((r) => r.modelCode === "text-master")!;
+    await updateRouting(db, original.id, { isDefault: true });
+    await deleteRouting(db, added.id);
   });
 });

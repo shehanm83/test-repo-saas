@@ -1,7 +1,15 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 
 import type { Db } from "../client";
-import { models, qualityTiers, strengths, tierStrengthRouting } from "../schema";
+import {
+  modelStrengths,
+  modelTags,
+  models,
+  qualityTiers,
+  strengths,
+  tags,
+  tierStrengthRouting,
+} from "../schema";
 import { priceBookLookup } from "./pricebook";
 
 export type ModelRow = typeof models.$inferSelect;
@@ -202,4 +210,118 @@ export async function resolveSelection(
     total += price.credits;
   }
   return { models: out, totalCredits: total };
+}
+
+// Strengths
+export async function listStrengths(db: Db) {
+  return db.select().from(strengths).orderBy(asc(strengths.sortOrder));
+}
+export async function createStrength(db: Db, row: typeof strengths.$inferInsert) {
+  const [r] = await db.insert(strengths).values(row).returning();
+  return r!;
+}
+export async function updateStrength(db: Db, code: string, patch: Partial<typeof strengths.$inferInsert>) {
+  const [r] = await db.update(strengths).set(patch).where(eq(strengths.code, code)).returning();
+  return r ?? null;
+}
+export async function deleteStrength(db: Db, code: string) {
+  await db.delete(strengths).where(eq(strengths.code, code));
+}
+
+// Models
+export async function createModel(db: Db, row: typeof models.$inferInsert) {
+  const [r] = await db.insert(models).values(row).returning();
+  return r!;
+}
+export async function updateModel(db: Db, code: string, patch: Partial<typeof models.$inferInsert>) {
+  const [r] = await db.update(models).set({ ...patch, updatedAt: new Date() }).where(eq(models.code, code)).returning();
+  return r ?? null;
+}
+export async function deleteModel(db: Db, code: string) {
+  await db.delete(models).where(eq(models.code, code));
+}
+export async function assignStrength(db: Db, modelCode: string, strengthCode: string) {
+  await db.insert(modelStrengths).values({ modelCode, strengthCode }).onConflictDoNothing();
+}
+export async function removeStrength(db: Db, modelCode: string, strengthCode: string) {
+  await db.delete(modelStrengths).where(
+    and(eq(modelStrengths.modelCode, modelCode), eq(modelStrengths.strengthCode, strengthCode)),
+  );
+}
+
+// Tags
+export async function listTags(db: Db) {
+  return db.select().from(tags).orderBy(asc(tags.code));
+}
+export async function createTag(db: Db, row: typeof tags.$inferInsert) {
+  const [r] = await db.insert(tags).values(row).returning();
+  return r!;
+}
+export async function updateTag(db: Db, code: string, patch: Partial<typeof tags.$inferInsert>) {
+  const [r] = await db.update(tags).set(patch).where(eq(tags.code, code)).returning();
+  return r ?? null;
+}
+export async function deleteTag(db: Db, code: string) {
+  await db.delete(tags).where(eq(tags.code, code));
+}
+export async function assignTag(db: Db, modelCode: string, tagCode: string) {
+  await db.insert(modelTags).values({ modelCode, tagCode }).onConflictDoNothing();
+}
+export async function removeTag(db: Db, modelCode: string, tagCode: string) {
+  await db.delete(modelTags).where(
+    and(eq(modelTags.modelCode, modelCode), eq(modelTags.tagCode, tagCode)),
+  );
+}
+
+// Routing
+export async function listRouting(db: Db) {
+  return db
+    .select()
+    .from(tierStrengthRouting)
+    .where(isNull(tierStrengthRouting.effectiveTo))
+    .orderBy(asc(tierStrengthRouting.tierCode), asc(tierStrengthRouting.strengthCode), asc(tierStrengthRouting.sortOrder));
+}
+export async function addRouting(db: Db, row: typeof tierStrengthRouting.$inferInsert) {
+  // If isDefault=true, clear existing default in same bucket inside one tx.
+  return db.transaction(async (tx) => {
+    if (row.isDefault) {
+      await tx.update(tierStrengthRouting).set({ isDefault: false }).where(
+        and(
+          eq(tierStrengthRouting.tierCode, row.tierCode),
+          row.strengthCode ? eq(tierStrengthRouting.strengthCode, row.strengthCode) : isNull(tierStrengthRouting.strengthCode),
+          isNull(tierStrengthRouting.effectiveTo),
+        ),
+      );
+    }
+    const [r] = await tx.insert(tierStrengthRouting).values(row).returning();
+    return r!;
+  });
+}
+export async function updateRouting(
+  db: Db,
+  id: string,
+  patch: { isDefault?: boolean; sortOrder?: number },
+) {
+  return db.transaction(async (tx) => {
+    const [target] = await tx.select().from(tierStrengthRouting).where(eq(tierStrengthRouting.id, id)).limit(1);
+    if (!target) return null;
+    if (patch.isDefault === true) {
+      await tx.update(tierStrengthRouting).set({ isDefault: false }).where(
+        and(
+          eq(tierStrengthRouting.tierCode, target.tierCode),
+          target.strengthCode ? eq(tierStrengthRouting.strengthCode, target.strengthCode) : isNull(tierStrengthRouting.strengthCode),
+          isNull(tierStrengthRouting.effectiveTo),
+        ),
+      );
+    }
+    const [r] = await tx
+      .update(tierStrengthRouting)
+      .set({ ...patch })
+      .where(eq(tierStrengthRouting.id, id))
+      .returning();
+    return r ?? null;
+  });
+}
+export async function deleteRouting(db: Db, id: string) {
+  await db.delete(tierStrengthRouting).where(eq(tierStrengthRouting.id, id));
 }
