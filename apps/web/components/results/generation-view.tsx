@@ -794,8 +794,22 @@ export function GenerationView(props: {
   useEffect(() => {
     if (!state || state.status === "completed" || state.status === "failed") return;
     let cancelled = false;
+    // Audit fix #3: keep the last seen ETag in a closure so each poll sends
+    // If-None-Match. Server returns 304 with no body when nothing has moved,
+    // letting us skip the JSON parse + setState entirely. Polling is still
+    // 1.5s but the per-tick cost drops from ~13 DB/storage ops to one.
+    let lastEtag: string | null = null;
     const tick = async () => {
-      const response = await fetch(`/api/generations/${props.generationId}`);
+      const response = await fetch(
+        `/api/generations/${props.generationId}`,
+        lastEtag ? { headers: { "if-none-match": lastEtag } } : {},
+      );
+      if (response.status === 304) {
+        if (!cancelled) setTimeout(() => void tick(), 1500);
+        return;
+      }
+      const etag = response.headers.get("etag");
+      if (etag) lastEtag = etag;
       const payload = (await response.json()) as GenerationState;
       if (!cancelled) setState(payload);
       if (!cancelled && payload.status !== "completed" && payload.status !== "failed") {

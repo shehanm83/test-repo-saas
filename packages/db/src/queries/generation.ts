@@ -105,6 +105,52 @@ export async function getGenerationFull(
   });
 }
 
+// Audit fix #3: cheap fingerprint for ETag support on /api/generations/[id].
+// Returns just the timestamps + counts that change as variants progress, so
+// the route can short-circuit polling traffic with a 304 when nothing has
+// moved. Skipping the full SELECT-with-variants saves ~1KB per row of
+// JSON parsing + 4×2 storage.getSignedUrl calls per response.
+export async function getGenerationFingerprint(
+  db: Db,
+  workspaceId: string,
+  generationId: string,
+): Promise<{
+  status: string;
+  updatedAt: number;
+  variantCount: number;
+  completedVariants: number;
+} | null> {
+  return withWorkspace(db, workspaceId, async (tx) => {
+    const [row] = await tx.execute<{
+      status: string;
+      gen_ts: string | null;
+      variant_count: string;
+      completed_count: string;
+      max_variant_ts: string | null;
+    }>(sql`
+      SELECT
+        g.status,
+        EXTRACT(EPOCH FROM COALESCE(g.completed_at, g.created_at))::text AS gen_ts,
+        COUNT(v.id)::text                                                AS variant_count,
+        COUNT(v.id) FILTER (WHERE v.status = 'completed')::text          AS completed_count,
+        EXTRACT(EPOCH FROM MAX(COALESCE(v.completed_at, v.created_at)))::text AS max_variant_ts
+      FROM generations g
+      LEFT JOIN generation_variants v ON v.generation_id = g.id
+      WHERE g.id = ${generationId}
+      GROUP BY g.id
+    `);
+    if (!row) return null;
+    const genTs = row.gen_ts ? parseFloat(row.gen_ts) : 0;
+    const varTs = row.max_variant_ts ? parseFloat(row.max_variant_ts) : 0;
+    return {
+      status: row.status,
+      updatedAt: Math.max(genTs, varTs),
+      variantCount: parseInt(row.variant_count, 10),
+      completedVariants: parseInt(row.completed_count, 10),
+    };
+  });
+}
+
 // Variant + its parent generation's workspace (so the recompose handler can
 // authorise against the session) and the background_s3_key needed to re-run
 // Sharp. Returns null if the generation/variant don't exist.
