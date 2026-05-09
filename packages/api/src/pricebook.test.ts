@@ -10,6 +10,11 @@ const mocks = vi.hoisted(() => ({
   })),
   priceBookLookup: vi.fn(async () => ({ credits: 5 })),
   expirePricebookVersion: vi.fn(async () => undefined),
+  getModel: vi.fn(async (_db: unknown, code: string) =>
+    code === "flux-1.1-pro"
+      ? { code, displayName: "Flux 1.1 Pro", status: "active" }
+      : null,
+  ),
 }));
 
 vi.mock("@vyora/db", () => ({
@@ -18,6 +23,7 @@ vi.mock("@vyora/db", () => ({
   adminInsertPricebookEntry: mocks.adminInsertPricebookEntry,
   priceBookLookup: mocks.priceBookLookup,
   expirePricebookVersion: mocks.expirePricebookVersion,
+  getModel: mocks.getModel,
 }));
 
 import { PricebookApi } from "./pricebook";
@@ -30,12 +36,36 @@ describe("PricebookApi", () => {
       api.insert({
         modelCode: "flux-1.1-pro",
         sizeBucket: "standard",
-        premiumFlag: false,
         hasInspirationFlag: false,
         credits: 0,
         version: 1,
         effectiveFrom: "2026-04-25T00:00:00Z",
       }),
     ).rejects.toThrow();
+  });
+
+  it("rejects unknown model with 422-style error", async () => {
+    await expect(
+      api.insert({
+        modelCode: "unknown-model",
+        sizeBucket: "standard",
+        hasInspirationFlag: false,
+        credits: 5,
+        version: 1,
+        effectiveFrom: "2026-04-25T00:00:00Z",
+      }),
+    ).rejects.toThrow(/not an active model/i);
+  });
+
+  it("inserts an entry for an active model", async () => {
+    const result = await api.insert({
+      modelCode: "flux-1.1-pro",
+      sizeBucket: "standard",
+      hasInspirationFlag: false,
+      credits: 5,
+      version: 1,
+      effectiveFrom: "2026-04-25T00:00:00Z",
+    });
+    expect(result).toMatchObject({ id: "p1", modelCode: "flux-1.1-pro" });
   });
 });

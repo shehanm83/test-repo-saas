@@ -12,7 +12,16 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const { session } = await getSessionWorkspace();
-  const payload = await new PricebookApi(loadConfig()).insert(await request.json());
+  let payload;
+  try {
+    payload = await new PricebookApi(loadConfig()).insert(await request.json());
+  } catch (err) {
+    const e = err as Error & { status?: number };
+    if (e.status === 422) {
+      return NextResponse.json({ error: e.message }, { status: 422 });
+    }
+    throw err;
+  }
   if (session.workspaceId) {
     await writeAdminAudit({
       workspaceId: session.workspaceId,

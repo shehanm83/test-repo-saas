@@ -4,33 +4,54 @@ import React, { useState } from "react";
 
 import { I } from "@/components/icons";
 
+interface PricebookRow {
+  id: string;
+  modelCode: string;
+  sizeBucket: string;
+  premiumFlag: boolean;
+  hasInspirationFlag: boolean;
+  credits: number;
+  version: number;
+}
+
+interface ModelLite {
+  code: string;
+  displayName: string;
+}
+
 export function PricebookAdmin(props: {
-  rows: Array<{
-    id: string;
-    modelCode: string;
-    sizeBucket: string;
-    premiumFlag: boolean;
-    hasInspirationFlag: boolean;
-    credits: number;
-    version: number;
-  }>;
+  rows: PricebookRow[];
+  models: ModelLite[];
 }) {
+  const firstModelCode = props.models[0]?.code ?? "";
   const [form, setForm] = useState({
-    modelCode: "flux-1.1-pro",
+    modelCode: firstModelCode,
     sizeBucket: "standard",
-    premiumFlag: false,
     hasInspirationFlag: false,
     credits: 5,
     version: 1,
   });
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
   async function submit() {
-    await fetch("/api/admin/pricebook", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...form, effectiveFrom: new Date().toISOString() }),
-    });
-    location.reload();
+    setPending(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/pricebook", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...form, effectiveFrom: new Date().toISOString() }),
+      });
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(json.error ?? `Request failed: ${res.status}`);
+        return;
+      }
+      location.reload();
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -39,8 +60,7 @@ export function PricebookAdmin(props: {
         <div>
           <h1 className="page__title">Pricebook</h1>
           <p className="page__sub">
-            Versioned credit pricing across model, size, premium mode, and inspiration
-            usage.
+            Versioned credit pricing across model, size, and inspiration usage.
           </p>
         </div>
       </div>
@@ -62,11 +82,21 @@ export function PricebookAdmin(props: {
         >
           <div>
             <label className="label">Model</label>
-            <input
-              className="input mono"
+            <select
+              className="select"
               value={form.modelCode}
               onChange={(e) => setForm((c) => ({ ...c, modelCode: e.target.value }))}
-            />
+            >
+              {props.models.length === 0 ? (
+                <option value="">No active models</option>
+              ) : (
+                props.models.map((m) => (
+                  <option key={m.code} value={m.code}>
+                    {m.displayName} ({m.code})
+                  </option>
+                ))
+              )}
+            </select>
           </div>
           <div>
             <label className="label">Size bucket</label>
@@ -116,26 +146,6 @@ export function PricebookAdmin(props: {
           >
             <input
               type="checkbox"
-              checked={form.premiumFlag}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, premiumFlag: e.target.checked }))
-              }
-            />
-            <span style={{ fontSize: 13 }}>Premium</span>
-          </label>
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 12px",
-              boxShadow: "var(--shadow-ring)",
-              borderRadius: 8,
-              cursor: "pointer",
-            }}
-          >
-            <input
-              type="checkbox"
               checked={form.hasInspirationFlag}
               onChange={(e) =>
                 setForm((c) => ({ ...c, hasInspirationFlag: e.target.checked }))
@@ -144,13 +154,21 @@ export function PricebookAdmin(props: {
             <span style={{ fontSize: 13 }}>Has inspiration</span>
           </label>
         </div>
+        {error ? (
+          <div
+            style={{ color: "var(--studio-red, #c00)", fontSize: 12, marginBottom: 12 }}
+          >
+            {error}
+          </div>
+        ) : null}
         <button
           type="button"
           className="btn btn--primary"
           onClick={() => void submit()}
+          disabled={pending || !form.modelCode}
         >
           <I.Plus size={14} />
-          Add row
+          {pending ? "Adding…" : "Add row"}
         </button>
       </div>
 
@@ -158,7 +176,7 @@ export function PricebookAdmin(props: {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ background: "var(--cal-gray-50)" }}>
-              {["Model", "Bucket", "Premium", "Inspiration", "Credits", "Version"].map(
+              {["Model", "Bucket", "Inspiration", "Credits", "Version", "Legacy"].map(
                 (h) => (
                   <th
                     key={h}
@@ -192,9 +210,6 @@ export function PricebookAdmin(props: {
                 </td>
                 <td style={{ padding: "10px 16px" }}>{row.sizeBucket}</td>
                 <td style={{ padding: "10px 16px" }}>
-                  {row.premiumFlag ? <I.Check size={14} /> : "—"}
-                </td>
-                <td style={{ padding: "10px 16px" }}>
                   {row.hasInspirationFlag ? <I.Check size={14} /> : "—"}
                 </td>
                 <td
@@ -206,6 +221,9 @@ export function PricebookAdmin(props: {
                   {row.credits}
                 </td>
                 <td style={{ padding: "10px 16px" }}>v{row.version}</td>
+                <td style={{ padding: "10px 16px" }}>
+                  {row.premiumFlag ? <span className="pill">Legacy: premium</span> : null}
+                </td>
               </tr>
             ))}
           </tbody>
