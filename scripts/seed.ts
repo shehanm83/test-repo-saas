@@ -13,46 +13,64 @@ const config = loadConfig();
 const adminDb = createDb(config.db.url, "app_admin");
 
 async function main() {
-  const [user] = await adminDb
-    .insert(users)
-    .values({
-      id: "00000000-0000-0000-0000-000000000001",
-      email: "dev@studio.example",
-      role: "admin",
-    })
-    .onConflictDoUpdate({
-      target: users.id,
-      set: { email: "dev@studio.example", role: "admin" },
-    })
-    .returning();
+  const seedDevIdentity = config.auth.mode === "dev";
 
-  const [workspace] = await adminDb
-    .insert(workspaces)
-    .values({
-      id: "00000000-0000-0000-0000-000000000001",
-      ownerUserId: user.id,
-      name: "Personal Workspace",
-      planCode: "pro",
-      brandQuota: 3,
-      seatQuota: 3,
-      monthlyCreditGrant: 1000,
-      status: "active",
-    })
-    .onConflictDoUpdate({
-      target: workspaces.id,
-      set: { name: "Personal Workspace", planCode: "pro" },
-    })
-    .returning();
+  if (seedDevIdentity) {
+    const [user] = await adminDb
+      .insert(users)
+      .values({
+        id: "00000000-0000-0000-0000-000000000001",
+        email: "dev@studio.example",
+        role: "admin",
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: { email: "dev@studio.example", role: "admin" },
+      })
+      .returning();
 
-  await adminDb
-    .insert(workspaceMembers)
-    .values({
-      workspaceId: workspace.id,
-      userId: user.id,
-      role: "owner",
-      acceptedAt: new Date(),
-    })
-    .onConflictDoNothing();
+    const [workspace] = await adminDb
+      .insert(workspaces)
+      .values({
+        id: "00000000-0000-0000-0000-000000000001",
+        ownerUserId: user.id,
+        name: "Personal Workspace",
+        planCode: "pro",
+        brandQuota: 3,
+        seatQuota: 3,
+        monthlyCreditGrant: 1000,
+        status: "active",
+      })
+      .onConflictDoUpdate({
+        target: workspaces.id,
+        set: { name: "Personal Workspace", planCode: "pro" },
+      })
+      .returning();
+
+    await adminDb
+      .insert(workspaceMembers)
+      .values({
+        workspaceId: workspace.id,
+        userId: user.id,
+        role: "owner",
+        acceptedAt: new Date(),
+      })
+      .onConflictDoNothing();
+
+    await adminDb
+      .insert(creditLedgerEntries)
+      .values({
+        workspaceId: workspace.id,
+        kind: "grant",
+        amount: 1000,
+        balanceAfter: 1000,
+        idempotencyKey: "seed-grant-dev-user-1",
+        metadata: { source: "seed" },
+      })
+      .onConflictDoNothing();
+  } else {
+    console.info("AUTH_MODE != dev — skipping dev user/workspace/credit seed");
+  }
 
   await adminDb.insert(priceBookEntries).values([
     {
@@ -135,18 +153,6 @@ function template({ background, output }) {
         requiresBrowserRender: false,
       },
     });
-
-  await adminDb
-    .insert(creditLedgerEntries)
-    .values({
-      workspaceId: workspace.id,
-      kind: "grant",
-      amount: 1000,
-      balanceAfter: 1000,
-      idempotencyKey: "seed-grant-dev-user-1",
-      metadata: { source: "seed" },
-    })
-    .onConflictDoNothing();
 
   console.info("Seed complete");
 }
