@@ -10,38 +10,40 @@ if (!databaseUrl) {
 const db = createDb(databaseUrl, "app_admin");
 const version = 1;
 const effectiveFrom = new Date("2026-04-25T00:00:00Z");
-const rows = [
-  ["flux-1.1-pro", "standard", false, false, 5],
-  ["flux-1.1-pro", "standard", false, true, 7],
-  ["flux-1.1-pro", "large", false, false, 8],
-  ["flux-1.1-pro", "large", false, true, 10],
-  ["gpt-image-1", "standard", true, false, 15],
-  ["gpt-image-1", "standard", true, true, 17],
-  ["gpt-image-1", "large", true, false, 22],
-  ["gpt-image-1", "large", true, true, 24],
-  ["gpt-image-1", "standard", false, false, 15],
-  ["gpt-image-1", "standard", false, true, 17],
-  ["gpt-image-1", "large", false, false, 22],
-  ["gpt-image-1", "large", false, true, 24],
-  ["gpt-image-2", "standard", false, false, 15],
-  ["gpt-image-2", "standard", false, true, 17],
-  ["gpt-image-2", "large", false, false, 22],
-  ["gpt-image-2", "large", false, true, 24],
-  ["gpt-image-2", "standard", true, false, 15],
-  ["gpt-image-2", "standard", true, true, 17],
-  ["gpt-image-2", "large", true, false, 22],
-  ["gpt-image-2", "large", true, true, 24],
-  ["recraft-v3", "standard", false, false, 8],
-  ["recraft-v3", "standard", false, true, 10],
-  ["bedrock-sd35", "standard", false, false, 3],
-  ["bedrock-sd35", "standard", false, true, 4],
-] as const;
+// Format: [modelCode, sizeBucket, hasInspirationFlag, credits]
+const rows: Array<[string, "standard" | "large", boolean, number]> = [
+  // Economy (standard tier default — Flux 1.1 Pro)
+  ["economy",       "standard", false, 5],
+  ["economy",       "standard", true,  7],
+  ["economy",       "large",    false, 8],
+  ["economy",       "large",    true,  10],
+  // Photoreal Pro (premium · photoreal — Flux 1.1 Pro at premium price)
+  ["photoreal-pro", "standard", false, 8],
+  ["photoreal-pro", "standard", true,  10],
+  ["photoreal-pro", "large",    false, 12],
+  ["photoreal-pro", "large",    true,  15],
+  // Text Master (premium · text — gpt-image-1)
+  ["text-master",   "standard", false, 15],
+  ["text-master",   "standard", true,  17],
+  ["text-master",   "large",    false, 22],
+  ["text-master",   "large",    true,  24],
+  // Design Studio (premium · design — Recraft V3)
+  ["design-studio", "standard", false, 8],
+  ["design-studio", "standard", true,  10],
+  ["design-studio", "large",    false, 12],
+  ["design-studio", "large",    true,  15],
+  // Speed Draft (premium · speed — Bedrock SD3.5)
+  ["speed-draft",   "standard", false, 3],
+  ["speed-draft",   "standard", true,  4],
+  ["speed-draft",   "large",    false, 5],
+  ["speed-draft",   "large",    true,  6],
+];
 
-for (const [modelCode, sizeBucket, premiumFlag, hasInspirationFlag, credits] of rows) {
+for (const [modelCode, sizeBucket, hasInspirationFlag, credits] of rows) {
   await adminInsertPricebookEntry(db, {
     modelCode,
     sizeBucket,
-    premiumFlag,
+    premiumFlag: false,            // legacy column; always false in new rows
     hasInspirationFlag,
     credits,
     version,

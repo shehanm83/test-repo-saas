@@ -23,7 +23,6 @@ export async function priceBookLookup(
   args: {
     modelCode: string;
     sizeBucket: "standard" | "large";
-    premiumFlag: boolean;
     hasInspirationFlag: boolean;
     at?: Date;
   },
@@ -36,7 +35,6 @@ export async function priceBookLookup(
       and(
         eq(priceBookEntries.modelCode, args.modelCode),
         eq(priceBookEntries.sizeBucket, args.sizeBucket),
-        eq(priceBookEntries.premiumFlag, args.premiumFlag),
         eq(priceBookEntries.hasInspirationFlag, args.hasInspirationFlag),
         lte(priceBookEntries.effectiveFrom, at),
         or(isNull(priceBookEntries.effectiveTo), gt(priceBookEntries.effectiveTo, at)),
@@ -47,7 +45,7 @@ export async function priceBookLookup(
 
   if (!entry) {
     throw new Error(
-      `pricebook-not-found:${args.modelCode}/${args.sizeBucket}/${args.premiumFlag}/${args.hasInspirationFlag}`,
+      `pricebook-not-found:${args.modelCode}/${args.sizeBucket}/${args.hasInspirationFlag}`,
     );
   }
 

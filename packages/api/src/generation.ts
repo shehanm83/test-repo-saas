@@ -298,7 +298,6 @@ export class GenerationApi {
       const p = await priceBookLookup(this.db(), {
         modelCode,
         sizeBucket,
-        premiumFlag: v.flags.usePremiumModel,
         hasInspirationFlag: hasInspiration,
       });
       priceBookVersion = p.version;
@@ -383,7 +382,6 @@ export class GenerationApi {
     const price = await priceBookLookup(this.db(), {
       modelCode,
       sizeBucket,
-      premiumFlag: !!settings.usePremiumModel,
       hasInspirationFlag: hasInspiration,
     });
 
