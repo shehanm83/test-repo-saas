@@ -1,5 +1,10 @@
 import { ClerkAuthProvider, DevAuthProvider } from "@vyora/auth";
 import { StripeBillingProvider } from "@vyora/billing";
+import {
+  ConsoleEmailProvider,
+  MailpitEmailProvider,
+  ResendEmailProvider,
+} from "@vyora/email";
 import { NoopTelemetry } from "@vyora/observability/noop";
 import { S3StorageAdapter } from "@vyora/storage";
 
@@ -118,6 +123,25 @@ export function createAdapters(config: Config): Adapters {
           topupPrices: config.billing.topupPrices,
         });
 
+  const email: EmailProvider = (() => {
+    switch (config.email.mode) {
+      case "resend":
+        return new ResendEmailProvider({
+          apiKey: config.email.resendKey!,
+          from: config.email.from,
+        });
+      case "mailpit":
+        return new MailpitEmailProvider({
+          host: config.email.smtpHost,
+          port: config.email.smtpPort,
+          from: config.email.from,
+        });
+      case "console":
+      default:
+        return new ConsoleEmailProvider({ from: config.email.from });
+    }
+  })();
+
   return {
     auth,
     storage: new S3StorageAdapter({
@@ -133,7 +157,7 @@ export function createAdapters(config: Config): Adapters {
     queue: createUnwiredAdapter<QueueAdapter>("queue"),
     billing,
     ai: createUnwiredAdapter<AIProvider>("ai"),
-    email: createUnwiredAdapter<EmailProvider>("email"),
+    email,
     telemetry: buildTelemetry(config),
   };
 }

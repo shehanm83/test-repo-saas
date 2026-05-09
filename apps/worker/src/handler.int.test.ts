@@ -116,7 +116,13 @@ const FAKE_CONFIG: Config = {
     bflKey: undefined,
     bedrockRegion: "us-east-1",
   },
-  email: { mode: "console", resendKey: undefined, from: "test@example.com" },
+  email: {
+    mode: "console" as const,
+    resendKey: undefined,
+    from: "test@example.com",
+    smtpHost: "localhost",
+    smtpPort: 1025,
+  },
   observability: { mode: "none", sentryDsn: undefined, environment: "test" },
 };
 

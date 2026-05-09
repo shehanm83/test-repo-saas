@@ -89,6 +89,8 @@ const config = {
     mode: "mailpit" as const,
     resendKey: undefined,
     from: "studio@example.com",
+    smtpHost: "localhost",
+    smtpPort: 1025,
   },
   observability: {
     mode: "none" as const,

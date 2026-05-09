@@ -28,6 +28,7 @@
   "dependencies": {
     "@vyora/auth": "workspace:*",
     "@vyora/billing": "workspace:*",
+    "@vyora/email": "workspace:*",
     "@vyora/observability": "workspace:*",
     "@vyora/storage": "workspace:*",
     "yaml": "^2.8.4",

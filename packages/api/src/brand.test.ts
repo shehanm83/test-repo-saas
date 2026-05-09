@@ -86,7 +86,13 @@ const config = {
     bflKey: undefined,
     bedrockRegion: "us-east-1",
   },
-  email: { mode: "mailpit" as const, resendKey: undefined, from: "studio@example.com" },
+  email: {
+    mode: "mailpit" as const,
+    resendKey: undefined,
+    from: "studio@example.com",
+    smtpHost: "localhost",
+    smtpPort: 1025,
+  },
   observability: { mode: "none" as const, sentryDsn: undefined, environment: "local" },
   appUrl: "http://localhost:3000",
 } satisfies Config;

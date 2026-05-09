@@ -314,6 +314,16 @@ importers:
         specifier: ^4.21.0
         version: 4.21.0
 
+  packages/email:
+    dependencies:
+      nodemailer:
+        specifier: ^7.0.5
+        version: 7.0.13
+    devDependencies:
+      '@types/nodemailer':
+        specifier: ^7.0.0
+        version: 7.0.11
+
   packages/gateway:
     dependencies:
       '@anthropic-ai/sdk':
@@ -387,6 +397,9 @@ importers:
       '@vyora/billing':
         specifier: workspace:*
         version: link:../billing
+      '@vyora/email':
+        specifier: workspace:*
+        version: link:../email
       '@vyora/observability':
         specifier: workspace:*
         version: link:../observability
@@ -2924,6 +2937,9 @@ packages:
   '@types/node@25.6.0':
     resolution: {integrity: sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==}
 
+  '@types/nodemailer@7.0.11':
+    resolution: {integrity: sha512-E+U4RzR2dKrx+u3N4DlsmLaDC6mMZOM/TPROxA0UAPiTgI0y4CEFBmZE+coGWTjakDriRsXG368lNk1u9Q0a2g==}
+
   '@types/pg-pool@2.0.7':
     resolution: {integrity: sha512-U4CwmGVQcbEuqpyju8/ptOKg6gEC+Tqsvj2xS9o1g71bUh8twxnC6ZL5rZKCsGN0iyH0CwgUyc9VR5owNQF9Ng==}
 
@@ -5027,6 +5043,10 @@ packages:
 
   node-vibrant@4.0.4:
     resolution: {integrity: sha512-hA/pUXBE9TJ41G9FlTkzeqD5JdxgvvPGYZb/HNpdkaxxXUEnP36imSolZ644JuPun+lTd+FpWWtBpTYdp2noQA==}
+
+  nodemailer@7.0.13:
+    resolution: {integrity: sha512-PNDFSJdP+KFgdsG3ZzMXCgquO7I6McjY2vlqILjtJd0hy8wEvtugS9xKRF2NWlPNGxvLCXlTNIae4serI7dinw==}
+    engines: {node: '>=6.0.0'}
 
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
@@ -9219,6 +9239,10 @@ snapshots:
     dependencies:
       undici-types: 7.19.2
 
+  '@types/nodemailer@7.0.11':
+    dependencies:
+      '@types/node': 25.6.0
+
   '@types/pg-pool@2.0.7':
     dependencies:
       '@types/pg': 8.20.0
@@ -11566,6 +11590,8 @@ snapshots:
       '@vibrant/quantizer-mmcq': 4.0.4
     transitivePeerDependencies:
       - encoding
+
+  nodemailer@7.0.13: {}
 
   nth-check@2.1.1:
     dependencies:

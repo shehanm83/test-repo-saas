@@ -115,16 +115,10 @@ export interface AIProvider {
   embedImage(s3Key: string): Promise<{ vector: number[] }>;
 }
 
-export interface EmailMessage {
-  to: string | string[];
-  subject: string;
-  template: string;
-  data: Record<string, unknown>;
-}
-
-export interface EmailProvider {
-  send(msg: EmailMessage): Promise<{ id: string }>;
-}
+// Email types live in @vyora/email so the email package owns its own surface
+// area. Re-exported here for backwards compatibility with existing imports
+// from @vyora/shared/adapters/types.
+export type { EmailMessage, EmailProvider } from "@vyora/email";
 
 export interface Telemetry {
   captureException(err: unknown, ctx?: Record<string, unknown>): void;

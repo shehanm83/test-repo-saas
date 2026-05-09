@@ -8,6 +8,7 @@
   "references": [
     { "path": "../auth" },
     { "path": "../billing" },
+    { "path": "../email" },
     { "path": "../observability" },
     { "path": "../storage" }
   ],
