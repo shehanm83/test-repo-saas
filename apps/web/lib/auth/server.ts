@@ -35,6 +35,24 @@ export async function getServerSession(): Promise<
   | null
 > {
   const config = loadConfig();
+  const requestHeaders = new Headers(await headers());
+
+  // Staff super-admin path — injected by middleware after a successful HTTP
+  // Basic check against staff_users. Independent of Clerk; staff aren't in
+  // the customer `users` table, hence the synthesised session.
+  const staffId = requestHeaders.get("x-staff-id");
+  const staffUsername = requestHeaders.get("x-staff-username");
+  if (staffId && staffUsername) {
+    return {
+      authUserId: staffId,
+      userId: staffId,
+      email: `${staffUsername}@staff.local`,
+      role: "admin",
+      workspaceId: null,
+      workspaces: [],
+    };
+  }
+
   const auth =
     config.auth.mode === "clerk"
       ? new ClerkAuthProvider({
@@ -42,7 +60,6 @@ export async function getServerSession(): Promise<
           secretKey: config.auth.secretKey,
         })
       : new DevAuthProvider(config.auth.devUserId);
-  const requestHeaders = new Headers(await headers());
   const identity = await auth.verifyRequest(requestHeaders);
 
   if (!identity) {

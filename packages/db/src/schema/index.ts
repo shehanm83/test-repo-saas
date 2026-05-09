@@ -5,5 +5,6 @@ export * from "./generation";
 export * from "./billing";
 export * from "./marketing";
 export * from "./product";
+export * from "./staff";
 export * from "./taxonomy";
 export * from "./use-cases";

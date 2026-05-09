@@ -18,7 +18,11 @@
   "dependencies": {
     "@clerk/backend": "^3.4.1",
     "@vyora/db": "workspace:*",
+    "bcryptjs": "^3.0.3",
     "jose": "^6.2.2",
     "svix": "^1.92.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0"
   }
 }

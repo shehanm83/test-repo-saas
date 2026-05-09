@@ -27,10 +27,12 @@
     "db:seed:pricebook": "pnpm --filter @vyora/db exec tsx scripts/seed-pricebook.ts",
     "minio:bootstrap": "./scripts/minio-bootstrap.sh",
     "queue:bootstrap": "./scripts/queue-bootstrap.sh",
+    "staff:add": "tsx scripts/staff-add.ts",
     "worker:dev": "pnpm --filter @vyora/worker dev"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1037.0",
+    "@vyora/auth": "workspace:*",
     "@vyora/db": "workspace:*",
     "@vyora/shared": "workspace:*"
   },

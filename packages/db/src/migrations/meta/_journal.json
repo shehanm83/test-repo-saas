@@ -148,6 +148,13 @@
       "when": 1778832240000,
       "tag": "0021_variant_recompose",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1778918400000,
+      "tag": "0022_staff_users",
+      "breakpoints": true
     }
   ]
 }
