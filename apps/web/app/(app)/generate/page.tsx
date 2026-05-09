@@ -1,25 +1,10 @@
 import { Ledger } from "@vyora/billing";
-import { createDb, listAvailableMoods, listBrands } from "@vyora/db";
-import { loadConfig } from "@vyora/shared";
+import { createDb, listAvailableMoods, listBrandAssets, listBrands, listProducts } from "@vyora/db";
+import { loadConfig } from "@vyora/shared/config";
+import { S3StorageAdapter } from "@vyora/storage";
 
 import { Generate } from "@/components/generate/generate";
 import { getSessionWorkspace } from "@/lib/auth/server";
-
-const SEASONAL_NOW = new Set(["christmas", "midsummer", "diwali", "lunar-newyear"]);
-const SEASONAL_SOON = new Set(["halloween"]);
-
-const MOOD_IMG: Record<string, string> = {
-  christmas: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=400&q=80",
-  midsummer: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=400&q=80",
-  "minimalist-tech":
-    "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80",
-  editorial: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&q=80",
-  "sunset-warm": "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400&q=80",
-  "bold-bauhaus": "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=400&q=80",
-  halloween: "https://images.unsplash.com/photo-1509557965875-b88c97052f0e?w=400&q=80",
-  "lunar-newyear":
-    "https://images.unsplash.com/photo-1517242810446-cc8951b2be40?w=400&q=80",
-};
 
 export default async function GeneratePage() {
   const { session, workspace } = await getSessionWorkspace();
@@ -30,31 +15,86 @@ export default async function GeneratePage() {
     ? await new Ledger(adminDb).getBalance(session.workspaceId)
     : 0;
   const brands = session.workspaceId ? await listBrands(userDb, session.workspaceId) : [];
+  const products = session.workspaceId ? await listProducts(userDb, session.workspaceId) : [];
   const moods = await listAvailableMoods(userDb);
+  const moodPreviewStorage = createStorage(config, config.storage.bucketGlobal);
+  const appStorage = createStorage(config, config.storage.bucketApp);
 
-  const moodPayload = moods.map((m) => ({
+  const moodPayload = await Promise.all(moods.map(async (m) => ({
     id: m.id,
     name: m.name,
     kind: m.kind ?? "Evergreen",
-    group: SEASONAL_NOW.has(m.slug)
-      ? ("now" as const)
-      : SEASONAL_SOON.has(m.slug)
-        ? ("soon" as const)
-        : ("always" as const),
-    img: MOOD_IMG[m.slug] ?? null,
+    group: moodGroup(m),
+    img: await signedPreviewUrl(moodPreviewStorage, m.previewS3Key),
     colors: m.accentPalette ?? undefined,
-  }));
+  })));
 
-  const brandPayload = brands.map((b) => ({
-    id: b.id,
-    name: b.name,
-    palette: Array.isArray((b.palette as { colors?: string[] } | null)?.colors)
-      ? (b.palette as { colors?: string[] }).colors!
-      : Object.values((b.palette as Record<string, string> | null) ?? {}).filter(
-          (v): v is string => typeof v === "string",
+  const brandPayload = await Promise.all(
+    brands.map(async (b) => {
+      const assets = await listBrandAssets(userDb, session.workspaceId!, b.id);
+      const logos = assets.filter((asset) => asset.kind === "logo");
+      return {
+        id: b.id,
+        name: b.name,
+        palette: Array.isArray((b.palette as { colors?: string[] } | null)?.colors)
+          ? (b.palette as { colors?: string[] }).colors!
+          : Object.values((b.palette as Record<string, string> | null) ?? {}).filter(
+              (v): v is string => typeof v === "string",
+            ),
+        logoAssets: await Promise.all(
+          logos.map(async (asset) => ({
+            id: asset.id,
+            mimeType: asset.mimeType,
+            width: asset.width,
+            height: asset.height,
+            url: await signedPreviewUrl(appStorage, asset.s3Key),
+          })),
         ),
+      };
+    }),
+  );
+
+  const productPayload = products.map((product) => ({
+    id: product.id,
+    brandId: product.brandId,
+    name: product.name,
+    title: product.title,
+    subtitle: product.subtitle,
+    description: product.description,
+    brandLabel: product.brandLabel,
+    model: product.model,
+    sku: product.sku,
+    category: product.category,
+    priceMinor: product.priceMinor,
+    compareAtPriceMinor: product.compareAtPriceMinor,
+    currency: product.currency,
+    discountText: product.discountText,
+    keyFeatures: product.keyFeatures,
+    benefits: product.benefits,
+    targetAudience: product.targetAudience,
   }));
 
   void workspace;
-  return <Generate brands={brandPayload} moods={moodPayload} credits={credits} />;
+  return <Generate brands={brandPayload} moods={moodPayload} products={productPayload} credits={credits} />;
+}
+
+function createStorage(config: ReturnType<typeof loadConfig>, bucket: string) {
+  return new S3StorageAdapter({
+    region: config.storage.region,
+    bucket,
+    forcePathStyle: config.storage.mode === "minio",
+    ...(config.storage.endpoint ? { endpoint: config.storage.endpoint } : {}),
+    ...(config.storage.accessKeyId ? { accessKeyId: config.storage.accessKeyId } : {}),
+    ...(config.storage.secretAccessKey ? { secretAccessKey: config.storage.secretAccessKey } : {}),
+  });
+}
+
+async function signedPreviewUrl(storage: S3StorageAdapter, key: string | null) {
+  if (!key) return null;
+  return storage.getSignedUrl(key, 60 * 60).catch(() => null);
+}
+
+function moodGroup(mood: { kind: string; validFrom: Date | string | null }) {
+  if (mood.validFrom && new Date(mood.validFrom) > new Date()) return "soon" as const;
+  return mood.kind === "seasonal" ? ("now" as const) : ("always" as const);
 }

@@ -108,6 +108,8 @@ const FAKE_CONFIG: Config = {
   ai: {
     mode: "mock",
     openaiKey: undefined,
+    openaiImageModel: "gpt-image-2",
+    openaiTextModel: "gpt-5.4-mini",
     anthropicKey: undefined,
     replicateToken: undefined,
     recraftKey: undefined,
@@ -130,6 +132,12 @@ function buildMockGateway(): Gateway {
   gw.setModeration(mod);
   return gw;
 }
+
+const noopTelemetry = {
+  captureException: vi.fn(),
+  metric: vi.fn(),
+  startSpan: async <T,>(_name: string, fn: () => Promise<T> | T) => fn(),
+};
 
 describe("GenerationWorker.handle", () => {
   let adminDb: ReturnType<typeof createDb>;
@@ -236,6 +244,7 @@ describe("GenerationWorker.handle", () => {
     const worker = new GenerationWorker(FAKE_CONFIG, {
       ai: buildMockGateway() as never,
       storage: new MemStorageAdapter(),
+      telemetry: noopTelemetry,
     } as never);
 
     await worker.handle({
@@ -297,6 +306,7 @@ describe("GenerationWorker.handle", () => {
     const worker = new GenerationWorker(FAKE_CONFIG, {
       ai: buildMockGateway() as never,
       storage: new MemStorageAdapter(),
+      telemetry: noopTelemetry,
     } as never);
 
     // Should not throw — simply returns early

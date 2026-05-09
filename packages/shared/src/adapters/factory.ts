@@ -80,8 +80,15 @@ function buildTelemetry(config: Config): Telemetry {
   if (cachedTelemetry) return cachedTelemetry;
   if (config.observability.mode === "sentry" && config.observability.sentryDsn) {
     // Lazy require so @sentry/node + OpenTelemetry only load when actually configured.
+    const sentryModule = "@vyora/observability/sentry";
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { SentryTelemetry } = require("@vyora/observability/sentry") as typeof import("@vyora/observability/sentry");
+    const { SentryTelemetry } = require(sentryModule) as {
+      SentryTelemetry: new (opts: {
+        dsn: string;
+        environment: string;
+        cloudwatchRegion: string;
+      }) => Telemetry;
+    };
     cachedTelemetry = new SentryTelemetry({
       dsn: config.observability.sentryDsn,
       environment: config.observability.environment,

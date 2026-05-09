@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { ClerkCard } from "@/components/auth/clerk-card";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 export default async function SignInPage() {
   const config = loadConfig();
@@ -20,8 +20,13 @@ export default async function SignInPage() {
       <SignIn
         appearance={{
           elements: {
-            card: "shadow-none border-0 bg-transparent",
-            rootBox: "w-full",
+            rootBox: { width: "100%" },
+            card: {
+              boxShadow: "0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+              border: "1px solid rgba(0,0,0,0.06)",
+              borderRadius: 16,
+              width: "100%",
+            },
           },
         }}
       />

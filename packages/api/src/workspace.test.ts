@@ -77,6 +77,8 @@ const config = {
   ai: {
     mode: "mock" as const,
     openaiKey: undefined,
+    openaiImageModel: "gpt-image-2",
+    openaiTextModel: "gpt-5.4-mini",
     anthropicKey: undefined,
     replicateToken: undefined,
     recraftKey: undefined,

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { createDb, users, workspaces, workspaceMembers } from "@vyora/db";
 import { eq, ilike, or } from "drizzle-orm";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { I } from "@/components/icons";
 

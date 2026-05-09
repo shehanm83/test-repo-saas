@@ -1,0 +1,36 @@
+id: modifier.brand_basic
+name: Brand Basics Modifier
+category: modifier
+version: 1
+compatible_models:
+  - gpt-image-1
+  - flux-1.1-pro
+  - recraft-v3
+temperature: null
+tags:
+  - quick_create
+  - brand
+variables:
+  required:
+    - brand_summary
+  optional:
+    - brand.name
+    - brand.palette
+    - brand.fonts
+safety_rules:
+  - Use brand colors and typography only as visual guidance unless exact overlay assets are provided.
+overlay_contract:
+  renderer_owns:
+    - logo
+    - exact_brand_text
+  model_owns:
+    - brand_inspired_color_mood
+    - brand_inspired_visual_style
+prompt: |
+  Brand guidance:
+  {{brand_summary}}
+
+  Use the selected brand colors and typography direction as visual inspiration when enabled.
+  Do not invent new brand marks, readable brand text, or exact typography inside the generated image.
+negative_prompt: |
+  fake brand mark, invented brand text, distorted typography, copied logo

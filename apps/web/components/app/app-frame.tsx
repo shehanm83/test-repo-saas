@@ -2,7 +2,7 @@ import React from "react";
 
 import { Ledger } from "@vyora/billing";
 import { createDb, listBrands } from "@vyora/db";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";

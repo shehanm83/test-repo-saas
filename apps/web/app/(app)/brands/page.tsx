@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { createDb, listBrands } from "@vyora/db";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { I } from "@/components/icons";
 import { getSessionWorkspace } from "@/lib/auth/server";
@@ -33,7 +33,7 @@ export default async function BrandsPage() {
         </div>
         <Link
           className="btn btn--accent"
-          href="/onboarding/brand/identify"
+          href="/brands/new/identify?new=1"
           style={{ textDecoration: "none" }}
         >
           <I.Plus size={14} />
@@ -67,7 +67,7 @@ export default async function BrandsPage() {
               do the rest.
             </div>
             <Link
-              href="/onboarding/brand/identify"
+              href="/brands/new/identify?new=1"
               className="btn btn--accent btn--lg"
               style={{ textDecoration: "none", marginTop: 8 }}
             >

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { BillingApi } from "@vyora/api/billing";
 import { createDb, workspaces } from "@vyora/db";
 import { eq } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";

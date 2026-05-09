@@ -1,5 +1,5 @@
 import { TemplateApi } from "@vyora/api/template";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { TemplateStudio } from "@/components/admin/template-studio";
 

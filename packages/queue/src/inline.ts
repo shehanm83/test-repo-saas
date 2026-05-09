@@ -12,7 +12,9 @@ export class InlineQueueAdapter implements QueueAdapter {
   async send<T>(queueUrl: string, body: T): Promise<void> {
     const h = this.handlers.get(queueUrl);
     if (!h) throw new Error(`no inline handler registered for ${queueUrl}`);
-    await h(body);
+    // Fire-and-forget: return immediately so the HTTP response isn't blocked.
+    // The handler runs in the background; errors are logged to stderr.
+    void h(body).catch((e: unknown) => console.error("[inline-queue] handler error:", e));
   }
 
   async receive<T>(_queueUrl: string, _max?: number): Promise<QueueMessage<T>[]> {

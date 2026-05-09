@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { captionJobs, createDb } from "@vyora/db";
 import { eq } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 export async function GET(
   _request: Request,

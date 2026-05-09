@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 
+import { ClerkAuthProvider, DevAuthProvider } from "@vyora/auth";
 import {
   createDb,
   listWorkspacesForUser,
@@ -9,7 +10,7 @@ import {
 } from "@vyora/db";
 import { bootstrapNewUser } from "@vyora/db/queries/identity";
 import { and, eq, isNotNull } from "@vyora/db/operators";
-import { loadConfig, createAdapters } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 export interface ServerSession {
   authUserId: string;
@@ -34,9 +35,15 @@ export async function getServerSession(): Promise<
   | null
 > {
   const config = loadConfig();
-  const adapters = createAdapters(config);
+  const auth =
+    config.auth.mode === "clerk"
+      ? new ClerkAuthProvider({
+          publishableKey: config.auth.publishableKey,
+          secretKey: config.auth.secretKey,
+        })
+      : new DevAuthProvider(config.auth.devUserId);
   const requestHeaders = new Headers(await headers());
-  const identity = await adapters.auth.verifyRequest(requestHeaders);
+  const identity = await auth.verifyRequest(requestHeaders);
 
   if (!identity) {
     return null;

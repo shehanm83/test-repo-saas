@@ -10,6 +10,8 @@
     "build": "pnpm -r build",
     "dev": "pnpm --filter @vyora/web dev",
     "dev:all": "concurrently \"pnpm dev\" \"pnpm --filter @vyora/worker dev\"",
+    "dev:offline-ai": "export QUEUE_MODE=elasticmq AI_MODE=mock; pnpm minio:bootstrap && pnpm queue:bootstrap && concurrently \"pnpm --filter @vyora/web dev\" \"pnpm --filter @vyora/worker dev\"",
+    "dev:real-ai": "export QUEUE_MODE=elasticmq AI_MODE=real; pnpm minio:bootstrap && pnpm queue:bootstrap && concurrently \"pnpm --filter @vyora/web dev\" \"pnpm --filter @vyora/worker dev\"",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:int": "vitest run --config vitest.integration.config.ts",
@@ -24,6 +26,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:seed:pricebook": "pnpm --filter @vyora/db exec tsx scripts/seed-pricebook.ts",
     "minio:bootstrap": "./scripts/minio-bootstrap.sh",
+    "queue:bootstrap": "./scripts/queue-bootstrap.sh",
     "worker:dev": "pnpm --filter @vyora/worker dev"
   },
   "dependencies": {

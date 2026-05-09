@@ -19,7 +19,7 @@ export default function HelpPage() {
     {
       icon: <I.Library size={22} />,
       title: "Moods",
-      body: "Curated style packs that blend with your brand. Christmas, Midsummer, Minimalist Tech. Combine seasonal flavor without abandoning your palette.",
+      body: "Curated style packs that blend with your brand. Publish only the moods you want available in your production catalog.",
       bg: "linear-gradient(135deg, #D7E5C7, #B8D4A0)",
       iconBg: "#1F7A5A",
     },

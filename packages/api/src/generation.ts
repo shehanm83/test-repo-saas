@@ -3,14 +3,18 @@ import { randomUUID } from "node:crypto";
 import { Ledger, InsufficientCredits } from "@vyora/billing";
 import {
   and,
+  captionJobs,
   createDb,
+  desc,
   eq,
   generations,
+  generationVariants,
   listAvailableMoods,
   pickTemplates,
   insertGeneration,
   insertVariants,
   getGenerationFull,
+  getProduct,
   updateGenerationInspirationKey,
   priceBookLookup,
 } from "@vyora/db";
@@ -18,47 +22,19 @@ import { tagSpan } from "@vyora/observability";
 import {
   AppError,
   CODES,
+  commercialSettingsSnapshot,
+  normalizeCommercialGenerationInput,
   resolveOutputTarget,
   assertMoodSupportsOutputAspectRatio,
 } from "@vyora/shared";
 import type { Adapters, Config } from "@vyora/shared";
 import { keys } from "@vyora/storage";
-import { z } from "zod";
 
 import { assertBriefAllowed } from "./aup";
 import { assertWorkspaceCanGenerate } from "./workspace-status";
 
 const VARIANT_COUNT = 4;
-
-const Input = z.object({
-  brandId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
-  moodId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional().nullable(),
-  brief: z.string().min(1).max(500),
-  outputTarget: z.unknown(),
-  inspirationUploadId: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional(),
-  inspirationInfluence: z.enum(["subtle", "balanced", "strong"]).optional(),
-  flags: z
-    .object({
-      useBrandColors: z.boolean().default(true),
-      useBrandLogo: z.boolean().default(true),
-      useBrandFonts: z.boolean().default(true),
-      brandStrict: z.boolean().default(false),
-      applyMoodModifiers: z.boolean().default(true),
-      applyMoodDecorations: z.boolean().default(true),
-      applyMoodAccentColors: z.boolean().default(true),
-      usePremiumModel: z.boolean().default(false),
-    })
-    .default({
-      useBrandColors: true,
-      useBrandLogo: true,
-      useBrandFonts: true,
-      brandStrict: false,
-      applyMoodModifiers: true,
-      applyMoodDecorations: true,
-      applyMoodAccentColors: true,
-      usePremiumModel: false,
-    }),
-});
+const EXTRA_IMAGE_CREDITS = 2;
 
 export class GenerationApi {
   constructor(
@@ -70,9 +46,22 @@ export class GenerationApi {
     return createDb(this.config.db.url, role);
   }
 
+  async estimate(args: { workspaceId: string; input: unknown }) {
+    const v = normalizeCommercialGenerationInput(args.input);
+    const plan = await this.buildPlan(v);
+    return {
+      credits: plan.totalCredits,
+      priceBookVersion: plan.priceBookVersion,
+      target: plan.target,
+      variants: plan.variantPlan.length,
+      lineItems: plan.lineItems,
+    };
+  }
+
   async create(args: { workspaceId: string; userId: string; input: unknown }) {
-    const v = Input.parse(args.input);
-    const target = resolveOutputTarget(v.outputTarget);
+    const v = normalizeCommercialGenerationInput(args.input);
+    const plan = await this.buildPlan(v);
+    v.productRefs = await this.snapshotProductRefs(args.workspaceId, v.productRefs);
 
     const adminDb = this.db("app_admin");
     await assertWorkspaceCanGenerate(adminDb, args.workspaceId);
@@ -82,64 +71,13 @@ export class GenerationApi {
       userId: args.userId,
     });
 
-    // Mood compatibility
-    if (v.moodId) {
-      const moods = await listAvailableMoods(this.db(), {
-        aspectRatio: target.aspectRatio,
-      });
-      const m = moods.find((x) => x.id === v.moodId);
-      if (!m) {
-        throw new AppError(
-          CODES.VALIDATION_MOOD_ASPECT_MISMATCH,
-          "This mood doesn't support that output size. Pick another mood or change the output.",
-          400,
-        );
-      }
-      assertMoodSupportsOutputAspectRatio(m.supportedAspectRatios, target.aspectRatio);
-    }
-
-    // Pick templates
-    const tpls = await pickTemplates(this.db(), {
-      moodId: v.moodId ?? null,
-      aspectRatio: target.aspectRatio,
-      n: VARIANT_COUNT,
-    });
-    if (tpls.length === 0) {
-      throw new AppError(
-        CODES.VALIDATION_NO_TEMPLATE,
-        "No matching template was found for your settings.",
-        404,
-      );
-    }
-
-    // Cost estimation
-    const sizeBucket: "standard" | "large" =
-      target.width * target.height > 1280 * 1280 ? "large" : "standard";
-    const hasInspiration = !!v.inspirationUploadId;
-    let pricebookVersion = 0;
-    let totalCredits = 0;
-    const variantPlan: { templateId: string; modelCode: string; credits: number }[] = [];
-
-    for (const t of tpls) {
-      const modelCode = v.flags.usePremiumModel ? "gpt-image-1" : t.preferredModel;
-      const p = await priceBookLookup(this.db(), {
-        modelCode,
-        sizeBucket,
-        premiumFlag: v.flags.usePremiumModel,
-        hasInspirationFlag: hasInspiration,
-      });
-      pricebookVersion = p.version;
-      totalCredits += p.credits;
-      variantPlan.push({ templateId: t.tid, modelCode, credits: p.credits });
-    }
-
     // Reserve credits
     const ledger = new Ledger(adminDb, this.adapters.telemetry);
     const reservationKey = `gen-reserve-${args.workspaceId}-${Date.now()}-${randomUUID().slice(0, 8)}`;
     try {
       await ledger.reserve({
         workspaceId: args.workspaceId,
-        amount: totalCredits,
+        amount: plan.totalCredits,
         idempotencyKey: reservationKey,
       });
     } catch (e) {
@@ -159,31 +97,44 @@ export class GenerationApi {
     await insertGeneration(this.db(), args.workspaceId, {
       id: genId,
       workspaceId: args.workspaceId,
-      brandId: v.brandId,
+      brandId: v.brandId ?? null,
+      projectId: v.projectId,
       moodId: v.moodId ?? null,
       brief: v.brief,
       settings: {
         ...v.flags,
-        output_target: target,
-        variant_count: VARIANT_COUNT,
+        flags: v.flags,
+        output_target: plan.target,
+        variant_count: plan.variantPlan.length,
+        commercial: commercialSettingsSnapshot(v, plan.target),
       },
       inspirationImageS3Key: null,
       inspirationInfluence: v.inspirationInfluence ?? null,
-      priceBookVersion: pricebookVersion,
+      priceBookVersion: plan.priceBookVersion,
       requestedByUserId: args.userId,
     });
 
-    // Claim inspiration upload if present
-    if (v.inspirationUploadId) {
-      const staging = keys.inspirationUploadStaging(args.workspaceId, v.inspirationUploadId, "png");
-      const final = keys.inspirationClaimed(args.workspaceId, genId, "png");
-      await this.adapters.storage.copy(staging, final);
-      await this.adapters.storage.delete(staging);
-      await updateGenerationInspirationKey(this.db("app_admin"), genId, final);
+    // Claim inspiration uploads if present
+    if (v.inspirationUploadIds.length > 0) {
+      const finalKeys: string[] = [];
+      for (let i = 0; i < v.inspirationUploadIds.length; i++) {
+        const uploadId = v.inspirationUploadIds[i]!;
+        const staging = keys.inspirationUploadStaging(args.workspaceId, uploadId, "png");
+        const final = keys.inspirationClaimedIdx(args.workspaceId, genId, i, "png");
+        await this.adapters.storage.copy(staging, final);
+        await this.adapters.storage.delete(staging);
+        finalKeys.push(final);
+      }
+      // Store as JSON array (single image stored as array too, for uniform parsing)
+      await updateGenerationInspirationKey(
+        this.db("app_admin"),
+        genId,
+        JSON.stringify(finalKeys),
+      );
     }
 
     // Insert variants
-    const variantRows = variantPlan.map((vp) => ({
+    const variantRows = plan.variantPlan.map((vp) => ({
       id: randomUUID(),
       generationId: genId,
       templateId: vp.templateId,
@@ -193,12 +144,27 @@ export class GenerationApi {
     await insertVariants(this.db(), args.workspaceId, variantRows);
 
     // Enqueue SQS messages
-    for (const row of variantRows) {
-      await this.adapters.queue.send(
-        this.config.queue.generationsQueue,
-        { generationId: genId, variantId: row.id, workspaceId: args.workspaceId },
-        { idempotencyKey: row.id },
-      );
+    try {
+      for (const row of variantRows) {
+        await this.adapters.queue.send(
+          this.config.queue.generationsQueue,
+          { generationId: genId, variantId: row.id, workspaceId: args.workspaceId },
+          { idempotencyKey: row.id },
+        );
+      }
+    } catch (e) {
+      await this.markGenerationFailedAfterEnqueueError({
+        generationId: genId,
+        variantIds: variantRows.map((row) => row.id),
+        error: e,
+      });
+      await ledger.release({
+        workspaceId: args.workspaceId,
+        amount: plan.totalCredits,
+        idempotencyKey: `gen-release-enqueue-${genId}`,
+        generationId: genId,
+      });
+      throw e;
     }
 
     tagSpan("generation.create", {
@@ -207,10 +173,10 @@ export class GenerationApi {
       variants: variantRows.length,
     });
     this.adapters.telemetry.metric("generation.created", 1, {
-      hasInspiration: hasInspiration ? "true" : "false",
+      hasInspiration: v.inspirationUploadIds.length > 0 ? "true" : "false",
     });
     this.adapters.telemetry.metric("generation.variants", variantRows.length);
-    this.adapters.telemetry.metric("generation.credits_reserved", totalCredits);
+    this.adapters.telemetry.metric("generation.credits_reserved", plan.totalCredits);
 
     return {
       generationId: genId,
@@ -220,7 +186,7 @@ export class GenerationApi {
         templateId: r.templateId,
         status: "queued" as const,
       })),
-      reservedCredits: totalCredits,
+      reservedCredits: plan.totalCredits,
     };
   }
 
@@ -233,7 +199,155 @@ export class GenerationApi {
         url: v.outputS3Key ? await this.adapters.storage.getSignedUrl(v.outputS3Key) : null,
       })),
     );
-    return { ...gen, variants };
+    const captions = await this.db("app_admin")
+      .select()
+      .from(captionJobs)
+      .where(
+        and(
+          eq(captionJobs.workspaceId, args.workspaceId),
+          eq(captionJobs.generationId, args.generationId),
+        ),
+      )
+      .orderBy(desc(captionJobs.createdAt));
+    return { ...gen, variants, captions };
+  }
+
+  private async markGenerationFailedAfterEnqueueError(args: {
+    generationId: string;
+    variantIds: string[];
+    error: unknown;
+  }) {
+    const errorPayload = {
+      reason: "queue_enqueue_failed",
+      message: args.error instanceof Error ? args.error.message : String(args.error),
+    };
+    const adminDb = this.db("app_admin");
+    await adminDb
+      .update(generations)
+      .set({ status: "failed", completedAt: new Date(), errorPayload })
+      .where(eq(generations.id, args.generationId));
+
+    for (const variantId of args.variantIds) {
+      await adminDb
+        .update(generationVariants)
+        .set({ status: "failed", completedAt: new Date(), errorPayload })
+        .where(eq(generationVariants.id, variantId));
+    }
+  }
+
+  private async buildPlan(v: ReturnType<typeof normalizeCommercialGenerationInput>) {
+    const target = resolveOutputTarget(v.outputTarget);
+
+    if (v.moodId) {
+      const moods = await listAvailableMoods(this.db(), {
+        aspectRatio: target.aspectRatio,
+      });
+      const m = moods.find((x) => x.id === v.moodId);
+      if (!m) {
+        throw new AppError(
+          CODES.VALIDATION_MOOD_ASPECT_MISMATCH,
+          "This mood doesn't support that output size. Pick another mood or change the output.",
+          400,
+        );
+      }
+      assertMoodSupportsOutputAspectRatio(m.supportedAspectRatios, target.aspectRatio);
+    }
+
+    const requestedVariants = Math.min(v.outputs.variants || VARIANT_COUNT, VARIANT_COUNT);
+    const useImageOnlyTemplate =
+      v.mode === "quick" &&
+      !v.moodId &&
+      v.productRefs.length === 0 &&
+      !hasCommercialCampaignDetails(v.campaign);
+    const tpls = await pickTemplates(this.db(), {
+      moodId: v.moodId ?? null,
+      aspectRatio: target.aspectRatio,
+      n: requestedVariants,
+      ...(useImageOnlyTemplate ? { preferredSlug: "quick-create-image-only" } : {}),
+    });
+    if (tpls.length === 0) {
+      throw new AppError(
+        CODES.VALIDATION_NO_TEMPLATE,
+        "No matching template was found for your settings.",
+        404,
+      );
+    }
+    const selectedTemplates = Array.from(
+      { length: requestedVariants },
+      (_, index) => tpls[index % tpls.length]!,
+    );
+
+    const sizeBucket: "standard" | "large" =
+      target.width * target.height > 1280 * 1280 ? "large" : "standard";
+    const hasInspiration = v.inspirationUploadIds.length > 0;
+    const extraImageCredits = Math.max(0, v.inspirationUploadIds.length - 1) * EXTRA_IMAGE_CREDITS;
+    let priceBookVersion = 0;
+    let totalCredits = 0;
+    const variantPlan: { templateId: string; modelCode: string; credits: number }[] = [];
+    const lineItems: { label: string; credits: number }[] = [];
+
+    const openAIOnlyRealMode =
+      this.config.ai.mode === "real" &&
+      Boolean(this.config.ai.openaiKey) &&
+      !this.config.ai.replicateToken &&
+      !this.config.ai.recraftKey;
+
+    for (const [index, t] of selectedTemplates.entries()) {
+      const modelCode =
+        v.flags.usePremiumModel || openAIOnlyRealMode ? this.config.ai.openaiImageModel : t.preferredModel;
+      const p = await priceBookLookup(this.db(), {
+        modelCode,
+        sizeBucket,
+        premiumFlag: v.flags.usePremiumModel,
+        hasInspirationFlag: hasInspiration,
+      });
+      priceBookVersion = p.version;
+      const variantCredits = creditsFromPricebook(p) + extraImageCredits;
+      totalCredits += variantCredits;
+      variantPlan.push({ templateId: t.tid, modelCode, credits: variantCredits });
+      lineItems.push({
+        label: `Sample ${index + 1} · ${t.slug ?? "template"} · ${modelCode}`,
+        credits: variantCredits,
+      });
+    }
+
+    return { target, totalCredits, priceBookVersion, variantPlan, lineItems };
+  }
+
+  private async snapshotProductRefs(
+    workspaceId: string,
+    refs: ReturnType<typeof normalizeCommercialGenerationInput>["productRefs"],
+  ) {
+    return Promise.all(
+      refs.map(async (ref) => {
+        if (!ref.productId) return ref;
+        const product = await getProduct(this.db(), workspaceId, ref.productId);
+        if (!product) return ref;
+        return {
+          ...ref,
+          commercialFields: {
+            name: product.name,
+            ...(product.title ? { title: product.title } : {}),
+            ...(product.subtitle ? { subtitle: product.subtitle } : {}),
+            ...(product.description ? { description: product.description } : {}),
+            ...(product.brandLabel ? { brandLabel: product.brandLabel } : {}),
+            ...(product.model ? { model: product.model } : {}),
+            ...(product.sku ? { sku: product.sku } : {}),
+            ...(product.category ? { category: product.category } : {}),
+            ...(product.priceMinor !== null ? { priceMinor: product.priceMinor } : {}),
+            ...(product.compareAtPriceMinor !== null
+              ? { compareAtPriceMinor: product.compareAtPriceMinor }
+              : {}),
+            currency: product.currency,
+            ...(product.discountText ? { discountText: product.discountText } : {}),
+            keyFeatures: product.keyFeatures,
+            benefits: product.benefits,
+            ...(product.targetAudience ? { targetAudience: product.targetAudience } : {}),
+            ...ref.commercialFields,
+          },
+        };
+      }),
+    );
   }
 
   async regenerateVariant(args: {
@@ -341,4 +455,15 @@ export class GenerationApi {
       reservedCredits: price.credits,
     };
   }
+}
+
+function creditsFromPricebook(price: { credits?: number; creditCost?: number }) {
+  return price.credits ?? price.creditCost ?? 0;
+}
+
+function hasCommercialCampaignDetails(campaign: Record<string, unknown>) {
+  return Object.values(campaign).some((value) => {
+    if (Array.isArray(value)) return value.length > 0;
+    return typeof value === "string" ? value.trim().length > 0 : Boolean(value);
+  });
 }

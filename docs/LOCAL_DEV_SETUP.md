@@ -22,14 +22,10 @@ cp .env.example .env.local        # if you don't have one yet
 pnpm install
 docker compose up -d              # postgres + minio + elasticmq + mailpit
 ./scripts/minio-bootstrap.sh      # creates studio-app + studio-global buckets
+./scripts/queue-bootstrap.sh      # creates local ElasticMQ queues
 pnpm db:migrate
 pnpm db:seed
 pnpm db:seed:pricebook
-
-# create the SQS queues (one-shot)
-for q in studio-generations studio-captions studio-generations-dlq; do
-  curl -s -X POST "http://localhost:9324/?Action=CreateQueue&QueueName=$q" >/dev/null
-done
 
 # in two terminals:
 pnpm --filter @vyora/web dev          # http://localhost:3000
@@ -37,6 +33,14 @@ pnpm --filter @vyora/worker dev       # processes SQS messages
 ```
 
 You'll have a working app at `http://localhost:3000` running entirely on local infra. Auth is bypassed (`AUTH_MODE=dev`), AI is mocked (`AI_MODE=mock`), billing is stubbed (`BILLING_MODE=stub`), email goes to Mailpit. Skip to the sections you want to wire up.
+
+For full offline AI generation, run:
+
+```bash
+pnpm dev:offline-ai
+```
+
+This starts the web app and the worker. The worker consumes ElasticMQ jobs, uses mock AI, writes generated images to MinIO, and lets the UI exercise the same polling/results flow as production without OpenAI.
 
 | Service | Console |
 |---|---|

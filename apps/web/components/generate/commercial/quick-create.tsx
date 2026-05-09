@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type React from "react";
 
-import { BrandMoodStep } from "./brand-mood-step";
 import { ProductStep } from "./product-step";
 import type {
+  BrandFlags,
   BrandLite,
   CampaignDetails,
   GenerateState,
@@ -18,22 +19,31 @@ import type {
 
 type MediaType = "social" | "image" | "story" | "portrait" | "custom";
 
-const MEDIA_OPTIONS: Array<{ id: MediaType; icon: string; label: string; sub: string }> = [
-  { id: "social", icon: "◎", label: "For social", sub: "Perfect for posts" },
-  { id: "image", icon: "▧", label: "Just an image", sub: "General purpose" },
-  { id: "story", icon: "▯", label: "Story / Reel", sub: "9:16 vertical" },
-  { id: "portrait", icon: "◫", label: "Portrait", sub: "4:5 portrait" },
-  { id: "custom", icon: "⌗", label: "Custom size", sub: "Set your size" },
+const MEDIA_OPTIONS: Array<{ id: MediaType; icon: string; label: string; sub: string; color: string }> = [
+  { id: "social", icon: "◎", label: "For social", sub: "Perfect for posts", color: "#E4405F" },
+  { id: "image", icon: "▧", label: "Just an image", sub: "General purpose", color: "#1F7A5A" },
+  { id: "story", icon: "▯", label: "Story / Reel", sub: "9:16 vertical", color: "#0E0E10" },
+  { id: "portrait", icon: "◫", label: "Portrait", sub: "4:5 portrait", color: "#B5651D" },
+  { id: "custom", icon: "⌗", label: "Custom size", sub: "Set your size", color: "#5E5CE6" },
 ];
 
-const PLATFORMS: Array<{ id: OutputFormat; label: string }> = [
-  { id: "instagram_square", label: "Instagram" },
-  { id: "facebook_feed", label: "Facebook" },
-  { id: "linkedin_feed", label: "LinkedIn" },
-  { id: "instagram_story", label: "TikTok" },
-  { id: "instagram_portrait", label: "Pinterest" },
-  { id: "website_banner", label: "YouTube" },
-  { id: "ad_creative", label: "X / Twitter" },
+const SOCIAL_FORMATS: Array<{ id: OutputFormat; label: string; icon: string; color: string; sub: string }> = [
+  { id: "instagram_square", label: "Instagram - Square", icon: "IG", color: "#E4405F", sub: "Post image: 1080 × 1080" },
+  { id: "instagram_portrait", label: "Instagram - Portrait", icon: "IG", color: "#E4405F", sub: "Post image: 1080 × 1350" },
+  { id: "instagram_landscape", label: "Instagram - Landscape", icon: "IG", color: "#E4405F", sub: "Post image: 1080 × 566" },
+  { id: "instagram_story", label: "Instagram - Story", icon: "IG", color: "#E4405F", sub: "Story: 1080 × 1920 (9:16)" },
+  { id: "instagram_reel", label: "Instagram - Reel", icon: "IG", color: "#E4405F", sub: "Reel: 1080 × 1920 (9:16)" },
+  { id: "instagram_feed_video_portrait", label: "Instagram - Feed video", icon: "IG", color: "#E4405F", sub: "Portrait: 1080 × 1350" },
+  { id: "instagram_feed_video_square", label: "Instagram - Feed video", icon: "IG", color: "#E4405F", sub: "Square: 1080 × 1080" },
+  { id: "facebook_square", label: "Facebook - Square", icon: "f", color: "#1877F2", sub: "Post image: 1080 × 1080" },
+  { id: "facebook_portrait", label: "Facebook - Portrait", icon: "f", color: "#1877F2", sub: "Post image: 1080 × 1350" },
+  { id: "facebook_landscape", label: "Facebook - Landscape", icon: "f", color: "#1877F2", sub: "Post image: 1080 × 566" },
+  { id: "facebook_link_preview", label: "Facebook - Link preview", icon: "f", color: "#1877F2", sub: "Link image: 1200 × 630" },
+  { id: "facebook_profile_photo", label: "Facebook - Profile", icon: "f", color: "#1877F2", sub: "Profile photo: 320 × 320" },
+  { id: "facebook_cover_photo", label: "Facebook - Cover", icon: "f", color: "#1877F2", sub: "Cover photo: 820 × 360" },
+  { id: "facebook_story", label: "Facebook - Story", icon: "f", color: "#1877F2", sub: "Story: 1080 × 1920" },
+  { id: "linkedin_feed", label: "LinkedIn - Standard post", icon: "in", color: "#0A66C2", sub: "1200 × 627" },
+  { id: "tiktok_vertical", label: "TikTok - Vertical", icon: "TT", color: "#0E0E10", sub: "Video/image: 1080 × 1920 (9:16)" },
 ];
 
 const MEDIA_FORMAT: Record<Exclude<MediaType, "social">, OutputFormat> = {
@@ -62,6 +72,7 @@ export function QuickCreate(props: {
   onBrandChange: (brandId: string) => void;
   onMoodChange: (moodId: string | null) => void;
   onFlagsChange: (flags: GenerateState["flags"]) => void;
+  onBrandLogoAssetIdsChange: (ids: string[]) => void;
   onOutputsChange: (outputs: OutputSettings) => void;
 }) {
   const [mediaType, setMediaType] = useState<MediaType>("social");
@@ -123,7 +134,7 @@ export function QuickCreate(props: {
               className={`qc-option ${mediaType === opt.id ? "is-active" : ""}`}
               onClick={() => handleMediaType(opt.id)}
             >
-              <div className="qc-option-icon">{opt.icon}</div>
+              <div className="qc-option-icon" style={{ background: opt.color }}>{opt.icon}</div>
               <strong>{opt.label}</strong>
               <span>{opt.sub}</span>
             </button>
@@ -131,64 +142,44 @@ export function QuickCreate(props: {
         </div>
 
         {mediaType === "social" && (
-          <div className="qc-platform-row">
-            {PLATFORMS.map((p) => (
+          <div className="qc-platform-grid">
+            {SOCIAL_FORMATS.map((p) => (
               <button
                 key={p.id}
                 type="button"
-                className={`qc-pill ${platform === p.id ? "is-active" : ""}`}
+                className={`qc-platform-card ${platform === p.id ? "is-active" : ""}`}
                 onClick={() => handlePlatform(p.id)}
               >
-                {p.label}
+                <span className="qc-platform-icon" style={{ background: p.color }}>{p.icon}</span>
+                <span>
+                  <strong>{p.label}</strong>
+                  <small>{p.sub}</small>
+                </span>
               </button>
             ))}
           </div>
         )}
       </section>
 
-      {/* Section 2 — Product / promotion image */}
+      {/* Section 2 — Campaign details */}
       <section className="qc-section">
         <h2 className="qc-step-title">
           <span className="qc-num">2</span>
-          Product / promotion image
+          Campaign details
           <span style={{ color: "var(--fg-3)", fontSize: 14, fontWeight: 600 }}>optional</span>
         </h2>
-        <p className="qc-hint">Upload your product, packshot, or promotion item.</p>
+        <p className="qc-hint">Add promotion copy, offer details, and calls to action when this image is for a campaign.</p>
 
-        <div className="qc-product-cols">
-          <ProductStep
-            products={props.products}
-            selected={props.state.selectedProducts}
-            brandId={props.state.brandId}
-            role="hero"
-            onAdd={props.onAddProduct}
-            onRemove={props.onRemoveProduct}
-            onUpdateRole={props.onProductRoleChange}
-          />
-
-          <div className="qc-preview-box">
-            <small style={{ fontWeight: 800, color: "var(--fg-3)", alignSelf: "flex-start" }}>
-              Preview
-            </small>
-            {previewUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={previewUrl} alt="Product preview" />
-            ) : preview ? (
-              <div className="qc-preview-placeholder">{previewInitial}</div>
-            ) : (
-              <div className="qc-preview-placeholder">PRODUCT</div>
-            )}
-          </div>
-        </div>
-
-        {/* Promotion toggle */}
-        <label className="qc-promotion-row">
+        <label className="qc-promotion-row qc-promotion-row--top">
           <input
             type="checkbox"
             checked={promotionEnabled}
             onChange={handlePromotionToggle}
           />
-          <strong>Enable promotion / campaign</strong>
+          <span>
+            <strong>Enable promotion / campaign</strong>
+            <small>Add offer text, price, call to action, audience, and campaign details.</small>
+          </span>
         </label>
 
         {promotionEnabled && (
@@ -315,10 +306,46 @@ export function QuickCreate(props: {
         )}
       </section>
 
-      {/* Section 3 — Describe your image */}
+      {/* Section 3 — Product / promotion image */}
       <section className="qc-section">
         <h2 className="qc-step-title">
           <span className="qc-num">3</span>
+          Product / promotion image
+          <span style={{ color: "var(--fg-3)", fontSize: 14, fontWeight: 600 }}>optional</span>
+        </h2>
+        <p className="qc-hint">Upload your product, packshot, or promotion item.</p>
+
+        <div className="qc-product-cols">
+          <ProductStep
+            products={props.products}
+            selected={props.state.selectedProducts}
+            brandId={props.state.brandId}
+            role="hero"
+            onAdd={props.onAddProduct}
+            onRemove={props.onRemoveProduct}
+            onUpdateRole={props.onProductRoleChange}
+          />
+
+          <div className="qc-preview-box">
+            <small style={{ fontWeight: 800, color: "var(--fg-3)", alignSelf: "flex-start" }}>
+              Preview
+            </small>
+            {previewUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={previewUrl} alt="Product preview" />
+            ) : preview ? (
+              <div className="qc-preview-placeholder">{previewInitial}</div>
+            ) : (
+              <div className="qc-preview-placeholder">PRODUCT</div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Section 4 — Describe your image */}
+      <section className="qc-section">
+        <h2 className="qc-step-title">
+          <span className="qc-num">4</span>
           Describe your image
         </h2>
         <p className="qc-hint">Tell us what you want to generate.</p>
@@ -337,29 +364,42 @@ export function QuickCreate(props: {
         </div>
       </section>
 
-      {/* Section 4 — Brand & mood */}
-      <section className="qc-section">
-        <h2 className="qc-step-title">
-          <span className="qc-num">4</span>
-          Brand &amp; mood
-        </h2>
-        <p className="qc-hint" style={{ marginBottom: 18 }}>Apply identity and pick the overall style.</p>
-        <BrandMoodStep
-          brands={props.brands}
-          moods={props.moods}
-          brandId={props.state.brandId}
-          moodId={props.state.moodId}
-          flags={props.state.flags}
-          onBrandChange={props.onBrandChange}
-          onMoodChange={props.onMoodChange}
-          onFlagsChange={props.onFlagsChange}
-        />
-      </section>
-
-      {/* Section 5 — Generation settings */}
+      {/* Section 5 — Brand */}
       <section className="qc-section">
         <h2 className="qc-step-title">
           <span className="qc-num">5</span>
+          Brand
+        </h2>
+        <p className="qc-hint" style={{ marginBottom: 18 }}>Select a brand and choose which identity assets to apply.</p>
+        <QuickBrandSection
+          brands={props.brands}
+          brandId={props.state.brandId}
+          flags={props.state.flags}
+          selectedLogoAssetIds={props.state.brandLogoAssetIds}
+          onBrandChange={props.onBrandChange}
+          onFlagsChange={props.onFlagsChange}
+          onLogoAssetIdsChange={props.onBrandLogoAssetIdsChange}
+        />
+      </section>
+
+      {/* Section 6 — Mood */}
+      <section className="qc-section">
+        <h2 className="qc-step-title">
+          <span className="qc-num">6</span>
+          Mood
+        </h2>
+        <p className="qc-hint" style={{ marginBottom: 18 }}>Pick the visual direction and review related references.</p>
+        <QuickMoodSection
+          moods={props.moods}
+          moodId={props.state.moodId}
+          onMoodChange={props.onMoodChange}
+        />
+      </section>
+
+      {/* Section 7 — Generation settings */}
+      <section className="qc-section">
+        <h2 className="qc-step-title">
+          <span className="qc-num">7</span>
           Generation settings
         </h2>
 
@@ -411,4 +451,207 @@ export function QuickCreate(props: {
       </section>
     </div>
   );
+}
+
+function QuickBrandSection(props: {
+  brands: BrandLite[];
+  brandId: string;
+  flags: BrandFlags;
+  selectedLogoAssetIds: string[];
+  onBrandChange: (brandId: string) => void;
+  onFlagsChange: (flags: BrandFlags) => void;
+  onLogoAssetIdsChange: (ids: string[]) => void;
+}) {
+  const activeBrand = props.brands.find((brand) => brand.id === props.brandId);
+  const hasBrand = Boolean(activeBrand);
+  const logoAssets = activeBrand?.logoAssets ?? [];
+  const colors = (activeBrand?.palette ?? []).slice(0, 4);
+  const initials = (activeBrand?.name ?? "Brand").slice(0, 2).toUpperCase();
+  const selectedLogoIds = props.selectedLogoAssetIds.filter((id) =>
+    logoAssets.some((asset) => asset.id === id),
+  );
+
+  function toggleBrandLogo() {
+    const next = !props.flags.useBrandLogo;
+    props.onFlagsChange({ ...props.flags, useBrandLogo: next });
+    if (!next) props.onLogoAssetIdsChange([]);
+  }
+
+  function toggleLogoAsset(assetId: string) {
+    const selected = selectedLogoIds.includes(assetId);
+    props.onLogoAssetIdsChange(
+      selected ? selectedLogoIds.filter((id) => id !== assetId) : [...selectedLogoIds, assetId],
+    );
+  }
+
+  return (
+    <div className="qc-brand-stack">
+      <label>
+        <span className="label">Select brand</span>
+        <select className="select" value={props.brandId} onChange={(event) => props.onBrandChange(event.target.value)}>
+          <option value="">Select a brand</option>
+          {props.brands.map((brand) => (
+            <option key={brand.id} value={brand.id}>{brand.name}</option>
+          ))}
+        </select>
+      </label>
+
+      <div className="qc-brand-control-grid">
+        <BrandAssetToggle
+          label="Use brand colors"
+          checked={hasBrand && props.flags.useBrandColors}
+          disabled={!hasBrand}
+          onChange={() => props.onFlagsChange({ ...props.flags, useBrandColors: !props.flags.useBrandColors })}
+        >
+          <div className="qc-color-strips">
+            {colors.map((color, index) => (
+              <span key={`${color}-${index}`} style={{ background: color }} />
+            ))}
+          </div>
+        </BrandAssetToggle>
+
+        <BrandAssetToggle
+          label="Use brand logo"
+          checked={hasBrand && props.flags.useBrandLogo}
+          disabled={!hasBrand}
+          onChange={toggleBrandLogo}
+        >
+          <div className="qc-logo-preview">
+            <span>{initials}</span>
+            <strong>{activeBrand?.name ?? "Selected brand"}</strong>
+          </div>
+        </BrandAssetToggle>
+
+        <BrandAssetToggle
+          label="Use brand fonts"
+          checked={hasBrand && props.flags.useBrandFonts}
+          disabled={!hasBrand}
+          onChange={() => props.onFlagsChange({ ...props.flags, useBrandFonts: !props.flags.useBrandFonts })}
+        >
+          <div className="qc-font-preview">
+            <strong>Campaign Headline</strong>
+            <span>Body copy and CTA preview</span>
+          </div>
+        </BrandAssetToggle>
+      </div>
+
+      {hasBrand && props.flags.useBrandLogo ? (
+        <div className="qc-logo-picker">
+          <span className="label">Select logos to use</span>
+          {logoAssets.length > 0 ? (
+            <div className="qc-logo-grid">
+              {logoAssets.map((asset, index) => {
+                const selected = selectedLogoIds.includes(asset.id);
+                return (
+                  <button
+                    key={asset.id}
+                    type="button"
+                    aria-pressed={selected}
+                    aria-label={`Select logo ${index + 1}`}
+                    className={`qc-logo-card ${selected ? "is-selected" : ""}`}
+                    onClick={() => toggleLogoAsset(asset.id)}
+                  >
+                    <span className="qc-logo-check">{selected ? "Selected" : "Select"}</span>
+                    <span className="qc-logo-thumb">
+                      {asset.url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={asset.url} alt="" />
+                      ) : (
+                        initials
+                      )}
+                    </span>
+                    <small>
+                      {asset.width && asset.height ? `${asset.width} × ${asset.height}` : "Logo asset"}
+                    </small>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="qc-empty-note">No logos are saved for this brand yet.</p>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function BrandAssetToggle(props: {
+  label: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`qc-brand-toggle ${props.disabled ? "is-disabled" : ""}`}>
+      <button type="button" className="qc-brand-toggle-head" onClick={props.onChange} disabled={props.disabled}>
+        <span>{props.label}</span>
+        <span className={`switch ${props.checked ? "is-on" : ""}`} />
+      </button>
+      <div className={props.checked && !props.disabled ? "" : "is-muted"}>{props.children}</div>
+    </div>
+  );
+}
+
+function QuickMoodSection(props: {
+  moods: MoodLite[];
+  moodId: string | null;
+  onMoodChange: (moodId: string | null) => void;
+}) {
+  const selectedMood = props.moods.find((mood) => mood.id === props.moodId) ?? null;
+  const previewImages = getMoodPreviewImages(selectedMood);
+
+  return (
+    <div className="qc-mood-stack">
+      <div className="qc-mood-choice-grid">
+        <button
+          type="button"
+          className={`cg-mood-card ${props.moodId === null ? "is-selected" : ""}`}
+          onClick={() => props.onMoodChange(null)}
+        >
+          <span className="cg-mood-swatch" />
+          <strong>Just my brand</strong>
+          <small>Default</small>
+        </button>
+        {props.moods.slice(0, 7).map((mood) => (
+          <button
+            type="button"
+            key={mood.id}
+            className={`cg-mood-card ${props.moodId === mood.id ? "is-selected" : ""}`}
+            onClick={() => props.onMoodChange(mood.id)}
+          >
+            {mood.img ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={mood.img} alt="" />
+            ) : (
+              <span className="cg-mood-swatch" style={{ background: mood.colors?.[0] ?? "#E4E3FC" }} />
+            )}
+            <strong>{mood.name}</strong>
+            <small>{mood.kind}</small>
+          </button>
+        ))}
+      </div>
+
+      {previewImages.length > 0 ? (
+        <div className="qc-mood-preview">
+          <div>
+            <span className="label">{selectedMood ? `${selectedMood.name} references` : "Mood references"}</span>
+            <div className="qc-mood-preview-grid">
+              {previewImages.map((src, index) => (
+                <figure key={`${src}-${index}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" />
+                </figure>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function getMoodPreviewImages(mood: MoodLite | null) {
+  return mood?.img ? [mood.img] : [];
 }

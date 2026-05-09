@@ -1,6 +1,4 @@
-import { notFound } from "next/navigation";
-
-import { BrandWizard } from "@/components/onboarding/brand-wizard";
+import { notFound, redirect } from "next/navigation";
 
 const allowedSteps = new Set(["identify", "logo", "palette", "fonts", "voice", "references"]);
 
@@ -13,10 +11,5 @@ export default async function BrandOnboardingPage(props: {
     notFound();
   }
 
-  return (
-    <BrandWizard
-      step={step as "identify" | "logo" | "palette" | "fonts" | "voice" | "references"}
-    />
-  );
+  redirect(`/brands/new/${step}`);
 }
-

@@ -12,6 +12,7 @@
     "./schema": "./src/schema/index.ts",
     "./queries/mood": "./src/queries/mood.ts",
     "./queries/pricebook": "./src/queries/pricebook.ts",
+    "./queries/product": "./src/queries/product.ts",
     "./queries/stock": "./src/queries/stock.ts",
     "./queries/template": "./src/queries/template.ts",
     "./with-workspace": "./src/with-workspace.ts",

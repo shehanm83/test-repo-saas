@@ -1,0 +1,1 @@
+ALTER TABLE projects ALTER COLUMN brand_id DROP NOT NULL;

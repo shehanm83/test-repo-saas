@@ -1,0 +1,32 @@
+id: modifier.brand_logo_overlay
+name: Brand Logo Overlay Modifier
+category: modifier
+version: 1
+compatible_models:
+  - gpt-image-1
+  - flux-1.1-pro
+  - recraft-v3
+temperature: null
+tags:
+  - quick_create
+  - brand
+  - logo_overlay
+variables:
+  required:
+    - brand.selected_logo_asset_ids
+  optional:
+    - overlay_summary
+safety_rules:
+  - The image model must not recreate selected logos; selected logos are renderer overlay assets.
+overlay_contract:
+  renderer_owns:
+    - logo
+  model_owns:
+    - clean_logo_safe_area
+  safe_zone_instruction: Reserve clean, low-detail space where a logo can be overlaid later.
+prompt: |
+  Selected brand logos are exact overlay assets controlled by the renderer.
+  Do not draw, imitate, mutate, or replace the logo in the generated background.
+  Leave clean, low-detail space for the selected logo overlay.
+negative_prompt: |
+  generated logo, fake logo, distorted logo, logo-like mark, unreadable brand mark

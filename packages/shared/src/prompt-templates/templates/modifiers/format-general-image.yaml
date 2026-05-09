@@ -1,0 +1,33 @@
+id: modifier.format_general_image
+name: General Image Format Modifier
+category: modifier
+version: 1
+compatible_models:
+  - gpt-image-1
+  - flux-1.1-pro
+  - recraft-v3
+temperature: null
+tags:
+  - quick_create
+  - image
+variables:
+  required:
+    - output.width
+    - output.height
+    - output.aspect_ratio
+  optional:
+    - output.platform_label
+safety_rules:
+  - Keep the selected aspect ratio intact.
+overlay_contract:
+  renderer_owns:
+    - exact_text
+    - logo
+  model_owns:
+    - composition
+prompt: |
+  Output guidance:
+  Build for {{output.width}} x {{output.height}} ({{output.aspect_ratio}}).
+  Use the selected frame intentionally and keep the image clean enough for downstream overlays.
+negative_prompt: |
+  bad crop, crowded frame, fake text, fake logo

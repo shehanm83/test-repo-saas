@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 
 import { createDb, generations, generationVariants } from "@vyora/db";
 import { eq, inArray } from "drizzle-orm";
-import { loadConfig, createAdapters } from "@vyora/shared";
+import { createAdapters } from "@vyora/shared/adapters";
+import { loadConfig } from "@vyora/shared/config";
 
 import { getServerSession } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";

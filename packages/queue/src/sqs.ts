@@ -25,13 +25,19 @@ export class SqsQueueAdapter implements QueueAdapter {
   }
 
   async send<T>(queueUrl: string, body: T, opts?: { idempotencyKey?: string }): Promise<void> {
+    const fifoParams =
+      opts?.idempotencyKey && isFifoQueue(queueUrl)
+        ? {
+            MessageDeduplicationId: opts.idempotencyKey,
+            MessageGroupId: "default",
+          }
+        : {};
+
     await this.client.send(
       new SendMessageCommand({
         QueueUrl: queueUrl,
         MessageBody: JSON.stringify(body),
-        ...(opts?.idempotencyKey
-          ? { MessageDeduplicationId: opts.idempotencyKey }
-          : {}),
+        ...fifoParams,
       }),
     );
   }
@@ -60,4 +66,8 @@ export class SqsQueueAdapter implements QueueAdapter {
       new DeleteMessageCommand({ QueueUrl: queueUrl, ReceiptHandle: receiptHandle }),
     );
   }
+}
+
+function isFifoQueue(queueUrl: string): boolean {
+  return queueUrl.endsWith(".fifo");
 }

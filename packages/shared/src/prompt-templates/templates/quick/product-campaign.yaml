@@ -1,0 +1,75 @@
+id: quick.product_campaign
+name: Quick Create Product Campaign
+category: image_generation
+version: 1
+compatible_models:
+  - gpt-image-1
+  - flux-1.1-pro
+  - recraft-v3
+temperature: null
+tags:
+  - quick_create
+  - product
+  - campaign
+variables:
+  required:
+    - brief
+    - product_summary
+    - campaign_summary
+    - output.format
+    - output.aspect_ratio
+  optional:
+    - brand_summary
+    - mood_summary
+    - composition_summary
+    - overlay_summary
+safety_rules:
+  - Do not alter protected product identity, packaging shape, or visible label structure.
+  - Do not generate exact readable campaign text; renderer overlays exact copy.
+  - Do not invent prices, discounts, legal text, URLs, phone numbers, QR codes, or logos.
+overlay_contract:
+  renderer_owns:
+    - logo
+    - headline
+    - subtitle
+    - price
+    - discount
+    - badge
+    - cta
+    - legal_text
+    - website
+    - phone
+    - qr_code
+  model_owns:
+    - product_context
+    - background_scene
+    - lighting
+    - visual_mood
+    - decorative_non_text_elements
+  safe_zone_instruction: Leave intentional clean space for campaign overlays without covering the product.
+expected_output:
+  type: image
+prompt: |
+  Create a polished product campaign image for {{output.platform_label}}.
+
+  User direction:
+  {{brief}}
+
+  Product context:
+  {{product_summary}}
+
+  Campaign context:
+  {{campaign_summary}}
+
+  Visual direction:
+  {{composition_summary}}
+
+  {{brand_summary}}
+  {{mood_summary}}
+  {{overlay_summary}}
+
+  Present the product clearly and reserve clean overlay space for headline, offer, CTA, logo, and legal details.
+  Do not render readable campaign text, prices, QR codes, URLs, phone numbers, or logos inside the image.
+negative_prompt: |
+  distorted product, warped packaging, unreadable label text, fake CTA, fake price,
+  fake QR code, fake URL, fake phone number, fake logo, watermark, cluttered layout

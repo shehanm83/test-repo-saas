@@ -27,7 +27,7 @@ export function chooseProvider(
   }
 
   // Promotion: pick a same-or-higher-tier i2i-capable model
-  const promotionOrder = ["gpt-image-1", "flux-1.1-pro", "recraft-v3"];
+  const promotionOrder = ["gpt-image-2", "gpt-image-1", "flux-1.1-pro", "recraft-v3"];
   for (const candidate of promotionOrder) {
     const p = registry.get(candidate);
     if (p?.capabilities.supportsImageToImage) {

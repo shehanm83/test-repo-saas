@@ -23,6 +23,7 @@ export const TextSafeZonesSchema = z.array(Rect).default([]);
 export const ASPECT_RATIOS = z.enum(["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"]);
 export const MODEL_CODES = z.enum([
   "flux-1.1-pro",
+  "gpt-image-2",
   "gpt-image-1",
   "recraft-v3",
   "bedrock-sd35",

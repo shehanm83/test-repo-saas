@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vyora - Image Generation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #f8f9ff;
+      --card: rgba(255,255,255,0.88);
+      --text: #101828;
+      --muted: #667085;
+      --line: #e6e8f0;
+      --primary: #635bff;
+      --primary-2: #2667ff;
+      --soft: #f0efff;
+      --green: #12b76a;
+      --shadow: 0 18px 45px rgba(31, 41, 55, 0.08);
+      --radius: 24px;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 4%, rgba(114, 255, 189, 0.18), transparent 28%),
+        radial-gradient(circle at 88% 5%, rgba(99, 91, 255, 0.18), transparent 25%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 55%, #ffffff 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 34px 24px 70px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 42px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 26px;
+      letter-spacing: -0.04em;
+    }
+
+    .logo-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #7c3cff, #178bff);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 900;
+      font-size: 24px;
+      box-shadow: 0 14px 28px rgba(99, 91, 255, .28);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .credits {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.76);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      color: #4f46e5;
+      box-shadow: 0 8px 20px rgba(17,24,39,.04);
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #15161a;
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+    }
+
+    .hero {
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 5vw, 60px);
+      line-height: .95;
+      letter-spacing: -0.07em;
+      margin: 0 0 14px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #635bff, #1d7cff);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 650px;
+    }
+
+    .section {
+      background: var(--card);
+      border: 1px solid rgba(230, 232, 240, .92);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 26px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(16px);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .step-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.03em;
+    }
+
+    .num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #111827;
+      color: white;
+      display: inline-grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .hint {
+      color: var(--muted);
+      margin: 8px 0 0 40px;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .media-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .platform-grid {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      margin-top: 14px;
+    }
+
+    .option {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 78px;
+      cursor: pointer;
+      transition: .2s ease;
+      position: relative;
+    }
+
+    .option:hover,
+    .option.active {
+      border-color: var(--primary);
+      background: linear-gradient(180deg, #ffffff, #f7f6ff);
+      box-shadow: 0 14px 28px rgba(99, 91, 255, .12);
+      transform: translateY(-1px);
+    }
+
+    .option strong { display: block; font-size: 14px; margin-top: 8px; }
+    .option span { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .icon { font-size: 20px; }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 999px;
+      padding: 11px 14px;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .pill.active {
+      background: #fff1f5;
+      border-color: #ff4f8b;
+      color: #e83e73;
+      box-shadow: 0 10px 22px rgba(232, 62, 115, .12);
+    }
+
+    .two-col {
+      grid-template-columns: 1.4fr .9fr;
+    }
+
+    .upload {
+      border: 1.5px dashed #cfd4df;
+      border-radius: 18px;
+      min-height: 170px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background: #fcfcff;
+      color: var(--muted);
+    }
+
+    .upload b { color: var(--text); display: block; margin-top: 10px; }
+
+    .example {
+      background: #f6f7fb;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .product-img {
+      height: 130px;
+      border-radius: 14px;
+      background:
+        linear-gradient(90deg, #ded6ca 0%, #f6efe8 55%, #d8c8b7 100%);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 18px;
+      color: #8b6f56;
+      font-weight: 800;
+    }
+
+    .controls {
+      background: linear-gradient(180deg, #fbfaff, #f5f3ff);
+      border: 1px solid #e5e1ff;
+      border-radius: 18px;
+      padding: 22px;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 220px 1fr 56px;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .range {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--primary), var(--primary) 60%, #e2e4ec 60%);
+      position: relative;
+    }
+
+    .range::after {
+      content: '';
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      position: absolute;
+      left: 60%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 5px rgba(99,91,255,.14);
+    }
+
+    .range.blend {
+      background: linear-gradient(90deg, var(--primary), var(--primary) 40%, #e2e4ec 40%);
+    }
+
+    .range.blend::after { left: 40%; }
+
+    .value {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px 10px;
+      text-align: center;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      padding: 18px;
+      font: inherit;
+      color: var(--text);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    .brand-mood-grid {
+      grid-template-columns: .8fr 1.2fr;
+    }
+
+    .moods {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .mood {
+      overflow: hidden;
+      padding: 0;
+      min-height: unset;
+    }
+
+    .mood-img {
+      height: 78px;
+      background: linear-gradient(135deg, #e6defc, #f8dcc2);
+    }
+
+    .mood:nth-child(2) .mood-img { background: linear-gradient(135deg, #c89f75, #fff1df); }
+    .mood:nth-child(3) .mood-img { background: linear-gradient(135deg, #171717, #b8864b); }
+    .mood:nth-child(4) .mood-img { background: linear-gradient(135deg, #ff89c2, #9a7cff); }
+    .mood:nth-child(5) .mood-img { background: linear-gradient(135deg, #1f2937, #6b7280); }
+    .mood:nth-child(6) .mood-img { background: linear-gradient(135deg, #567c4d, #d6f3c4); }
+
+    .mood strong { padding: 12px 12px 2px; }
+    .mood span { padding: 0 12px 12px; }
+
+    .toggle-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .toggle-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      padding: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .switch {
+      width: 44px;
+      height: 26px;
+      border-radius: 999px;
+      background: #d0d5dd;
+      padding: 3px;
+      flex: 0 0 auto;
+    }
+
+    .switch.on { background: var(--primary); }
+    .switch::after {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: white;
+      transition: .2s;
+    }
+
+    .switch.on::after { transform: translateX(18px); }
+
+    .generation-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .quality-grid,
+    .samples-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .samples-grid { grid-template-columns: repeat(4, 1fr); }
+
+    .review {
+      background: linear-gradient(135deg, #ffffff, #f6f5ff);
+      border-color: #dedbff;
+    }
+
+    .review-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 18px 0;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .stat span { color: var(--muted); font-size: 13px; }
+    .stat strong { display: block; margin-top: 6px; font-size: 22px; }
+
+    .generate {
+      width: 100%;
+      border: 0;
+      border-radius: 16px;
+      padding: 19px 24px;
+      font: inherit;
+      font-weight: 900;
+      font-size: 18px;
+      color: white;
+      background: linear-gradient(90deg, #6d4dff, #1769ff);
+      box-shadow: 0 18px 35px rgba(38, 103, 255, .25);
+      cursor: pointer;
+    }
+
+    .terms {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .media-grid, .platform-grid, .two-col, .brand-mood-grid, .toggle-grid, .generation-grid, .review-row {
+        grid-template-columns: 1fr;
+      }
+      .moods, .samples-grid { grid-template-columns: repeat(2, 1fr); }
+      .control-row { grid-template-columns: 1fr; }
+      header { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div class="brand">
+        <div class="logo-mark">V</div>
+        Vyora
+      </div>
+      <div class="top-actions">
+        <div class="credits">◆ 120 credits</div>
+        <div class="avatar">N</div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">✦ New generation</div>
+      <h1>Create your <span class="gradient-text">perfect image</span></h1>
+      <p>Choose the media type, add an optional product image, define your brand mood, and generate polished marketing images in seconds.</p>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2 class="step-title"><span class="num">1</span>Choose media</h2>
+          <p class="hint">Pick where this image will be used.</p>
+        </div>
+      </div>
+
+      <div class="grid media-grid">
+        <div class="option active"><div class="icon">◎</div><strong>For social</strong><span>Perfect for posts</span></div>
+        <div class="option"><div class="icon">▧</div><strong>Just an image</strong><span>General purpose</span></div>
+        <div class="option"><div class="icon">▯</div><strong>Story / Reel</strong><span>9:16 vertical</span></div>
+        <div class="option"><div class="icon">◫</div><strong>Portrait</strong><span>4:5 portrait</span></div>
+        <div class="option"><div class="icon">⌗</div><strong>Custom size</strong><span>Set your size</span></div>
+      </div>
+
+      <div class="grid platform-grid">
+        <div class="pill active">Instagram</div>
+        <div class="pill">Facebook</div>
+        <div class="pill">LinkedIn</div>
+        <div class="pill">TikTok</div>
+        <div class="pill">Pinterest</div>
+        <div class="pill">YouTube</div>
+        <div class="pill">X / Twitter</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="step-title"><span class="num">2</span>Product / promotion image <span style="color:var(--muted);font-size:14px;font-weight:600;">optional</span></h2>
+      <p class="hint">Upload your selling item, offer banner, product packshot, or promotion item.</p>
+
+      <div class="grid two-col" style="margin-top:18px;">
+        <div class="upload">
+          <div>
+            <div style="font-size:32px;color:var(--primary);">⇧</div>
+            <b>Upload image</b>
+            <small>JPG, PNG, WebP · max 10 MB</small>
+          </div>
+        </div>
+        <div class="example">
+          <small style="font-weight:800;color:var(--muted);">Example</small>
+          <div class="product-img">PRODUCT</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="step-title"><span class="num">3</span>Image prominence</h2>
+      <p class="hint">These controls appear only after a product or promotion image is uploaded.</p>
+
+      <div class="controls" style="margin-top:18px;">
+        <div class="control-row">
+          <strong>How prominent should the product be?</strong>
+          <div class="range"></div>
+          <div class="value">60%</div>
+        </div>
+        <div class="control-row" style="margin-bottom:0;">
+          <strong>How much should it blend with your brand?</strong>
+          <div class="range blend"></div>
+          <div class="value">40%</div>
+        </div>
+        <p style="margin:18px 0 0;color:var(--primary);font-size:13px;font-weight:700;">✦ AI will place your product naturally inside your brand world.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="step-title"><span class="num">4</span>Describe your image</h2>
+      <p class="hint">Tell Vyora what you want to generate.</p>
+      <textarea style="margin-top:18px;" placeholder="Describe what you want to generate...&#10;Example: Christmas sale, cozy living room with a glowing tree, 30% off"></textarea>
+      <div style="text-align:right;color:var(--muted);font-size:12px;margin-top:8px;">0 / 500</div>
+    </section>
+
+    <section class="section">
+      <div class="grid brand-mood-grid">
+        <div>
+          <h2 class="step-title"><span class="num">5</span>Select brand <span style="color:var(--muted);font-size:14px;font-weight:600;">optional</span></h2>
+          <p class="hint">Apply identity from a saved brand.</p>
+          <select style="margin-top:18px;">
+            <option>Select a brand</option>
+            <option>Vyora Essentials</option>
+            <option>Vyora Cosmetics</option>
+            <option>Vyora Home</option>
+          </select>
+        </div>
+
+        <div>
+          <div class="section-head" style="margin-bottom:12px;">
+            <div>
+              <h2 class="step-title"><span class="num">6</span>Choose mood</h2>
+              <p class="hint">Pick the overall style and vibe.</p>
+            </div>
+            <a href="#" style="color:var(--primary);font-weight:800;text-decoration:none;font-size:14px;">Browse all</a>
+          </div>
+          <div class="grid moods">
+            <div class="option mood active"><div class="mood-img"></div><strong>Minimal</strong><span>Clean</span></div>
+            <div class="option mood"><div class="mood-img"></div><strong>Warm</strong><span>Cozy</span></div>
+            <div class="option mood"><div class="mood-img"></div><strong>Luxury</strong><span>Premium</span></div>
+            <div class="option mood"><div class="mood-img"></div><strong>Playful</strong><span>Fun</span></div>
+            <div class="option mood"><div class="mood-img"></div><strong>Moody</strong><span>Dark</span></div>
+            <div class="option mood"><div class="mood-img"></div><strong>Natural</strong><span>Fresh</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="step-title"><span class="num">7</span>Brand settings</h2>
+      <p class="hint">Enable or disable how brand identity should be used.</p>
+
+      <div class="grid toggle-grid" style="margin-top:18px;">
+        <div class="toggle-card"><div><strong>Brand colors</strong><br><small>Apply brand palette</small></div><div class="switch on"></div></div>
+        <div class="toggle-card"><div><strong>Brand logo</strong><br><small>Include brand logo</small></div><div class="switch"></div></div>
+        <div class="toggle-card"><div><strong>Brand fonts</strong><br><small>Use brand typography</small></div><div class="switch on"></div></div>
+        <div class="toggle-card"><div><strong>Brand strict mode</strong><br><small>Follow guidelines strictly</small></div><div class="switch"></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="step-title"><span class="num">8</span>Generation settings</h2>
+      <div class="grid generation-grid" style="margin-top:18px;">
+        <div>
+          <strong>Quality tier</strong>
+          <div class="grid quality-grid" style="margin-top:12px;">
+            <div class="option active"><strong>Standard</strong><span>10 credits / image</span></div>
+            <div class="option"><strong>Premium</strong><span>20 credits / image</span></div>
+          </div>
+        </div>
+        <div>
+          <strong>Number of samples</strong>
+          <div class="grid samples-grid" style="margin-top:12px;">
+            <div class="option"><strong>1</strong><span>10 credits</span></div>
+            <div class="option active"><strong>2</strong><span>20 credits</span></div>
+            <div class="option"><strong>3</strong><span>30 credits</span></div>
+            <div class="option"><strong>4</strong><span>40 credits</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section review">
+      <h2 class="step-title"><span class="num">9</span>Review & generate</h2>
+      <div class="review-row">
+        <div class="stat"><span>Quality</span><strong>Standard</strong></div>
+        <div class="stat"><span>Samples</span><strong>2</strong></div>
+        <div class="stat"><span>Credits / image</span><strong>10</strong></div>
+        <div class="stat"><span>Estimated cost</span><strong>20 credits</strong></div>
+      </div>
+      <button class="generate">✦ Generate Images</button>
+      <div class="terms">By generating, you agree to our Terms & Conditions and AI Usage Policy.</div>
+    </section>
+  </main>
+</body>
+</html>

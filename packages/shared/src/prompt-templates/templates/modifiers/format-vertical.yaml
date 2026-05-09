@@ -1,0 +1,33 @@
+id: modifier.format_vertical
+name: Vertical Format Modifier
+category: modifier
+version: 1
+compatible_models:
+  - gpt-image-1
+  - flux-1.1-pro
+  - recraft-v3
+temperature: null
+tags:
+  - quick_create
+  - vertical
+variables:
+  required:
+    - output.platform_label
+    - output.width
+    - output.height
+  optional: []
+safety_rules:
+  - Keep important content away from top and bottom UI-safe zones.
+overlay_contract:
+  renderer_owns:
+    - exact_text
+    - logo
+  model_owns:
+    - vertical_safe_composition
+prompt: |
+  Vertical format guidance:
+  Build for {{output.platform_label}} at {{output.width}} x {{output.height}}.
+  Use a strong vertical composition with the main subject centered enough for story or reel viewing.
+  Keep top and bottom areas visually quiet for platform UI and renderer overlays.
+negative_prompt: |
+  subject cut off, busy top bar area, busy bottom caption area, horizontal-only composition

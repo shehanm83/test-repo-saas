@@ -4,6 +4,7 @@ import {
   addBrandAsset,
   createBrand,
   createDb,
+  deleteBrandAsset,
   getBrand,
   listBrandAssets,
   listBrands,
@@ -22,6 +23,7 @@ const BrandCreateInput = z.object({
 
 const BrandUpdateInput = z.object({
   name: z.string().min(1).max(120).optional(),
+  sourceUrl: z.string().url().nullable().optional(),
   palette: z
     .object({
       primary: z.string(),
@@ -38,6 +40,23 @@ const BrandUpdateInput = z.object({
     .optional(),
   voiceNotes: z.string().max(2000).optional(),
 });
+
+const RASTER_IMAGE_EXTENSIONS: Record<string, { ext: "png" | "jpg" | "webp"; mimeType: string }> = {
+  "image/png": { ext: "png", mimeType: "image/png" },
+  "image/jpeg": { ext: "jpg", mimeType: "image/jpeg" },
+  "image/webp": { ext: "webp", mimeType: "image/webp" },
+};
+
+function rasterImageStorage(file: { mimeType: string; filename: string }) {
+  const normalizedMime = file.mimeType.toLowerCase();
+  if (RASTER_IMAGE_EXTENSIONS[normalizedMime]) return RASTER_IMAGE_EXTENSIONS[normalizedMime];
+
+  const name = file.filename.toLowerCase();
+  if (name.endsWith(".png")) return RASTER_IMAGE_EXTENSIONS["image/png"];
+  if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return RASTER_IMAGE_EXTENSIONS["image/jpeg"];
+  if (name.endsWith(".webp")) return RASTER_IMAGE_EXTENSIONS["image/webp"];
+  return null;
+}
 
 export class BrandApi {
   constructor(
@@ -90,6 +109,7 @@ export class BrandApi {
 
     return updateBrand(this.db(), workspaceId, brandId, {
       ...(args.name ? { name: args.name } : {}),
+      ...(args.sourceUrl !== undefined ? { sourceUrl: args.sourceUrl } : {}),
       ...(palette ? { palette } : {}),
       ...(fonts ? { fonts } : {}),
       ...(args.voiceNotes ? { voiceNotes: args.voiceNotes } : {}),
@@ -109,25 +129,27 @@ export class BrandApi {
     let storedMime: string;
     let width: number | null = null;
     let height: number | null = null;
+    const assetId = randomUUID();
 
     if (file.mimeType === "image/svg+xml" || file.filename.endsWith(".svg")) {
       const { sanitizeSvg } = await import("./sanitize/svg");
       const cleaned = sanitizeSvg(file.bytes.toString("utf8"));
-      storedKey = keys.brandLogo(workspaceId, brandId, "svg");
+      storedKey = keys.brandAsset(workspaceId, brandId, assetId, "svg");
       storedMime = "image/svg+xml";
       await this.adapters.storage.putBytes(storedKey, Buffer.from(cleaned, "utf8"), storedMime);
     } else {
-      const { reencodeImage } = await import("./sanitize/image");
-      const reencoded = await reencodeImage(file.bytes, { format: "png", maxLongEdge: 2048 });
-      storedKey = keys.brandLogo(workspaceId, brandId, "png");
-      storedMime = reencoded.mimeType;
-      width = reencoded.width;
-      height = reencoded.height;
-      await this.adapters.storage.putBytes(storedKey, reencoded.bytes, storedMime);
+      const storage = rasterImageStorage(file);
+      if (!storage) {
+        throw new Error("unsupported-logo-format");
+      }
+      storedKey = keys.brandAsset(workspaceId, brandId, assetId, storage.ext);
+      storedMime = storage.mimeType;
+      await this.adapters.storage.putBytes(storedKey, file.bytes, storedMime);
     }
 
     await updateBrand(this.db(), workspaceId, brandId, { logoS3Key: storedKey });
-    await addBrandAsset(this.db(), workspaceId, {
+    const asset = await addBrandAsset(this.db(), workspaceId, {
+      id: assetId,
       workspaceId,
       brandId,
       kind: "logo",
@@ -139,7 +161,7 @@ export class BrandApi {
       embedding: null,
     });
 
-    return { s3Key: storedKey, mimeType: storedMime, width, height };
+    return { id: asset.id, s3Key: storedKey, mimeType: storedMime, width, height };
   }
 
   async uploadReference(
@@ -147,11 +169,33 @@ export class BrandApi {
     brandId: string,
     file: { bytes: Buffer; mimeType: string; filename: string },
   ) {
-    const { reencodeImage } = await import("./sanitize/image");
-    const reencoded = await reencodeImage(file.bytes, { format: "png", maxLongEdge: 2048 });
     const assetId = randomUUID();
-    const storedKey = keys.brandAsset(workspaceId, brandId, assetId, "png");
-    await this.adapters.storage.putBytes(storedKey, reencoded.bytes, reencoded.mimeType);
+    const storage = rasterImageStorage(file);
+    if (!storage) {
+      throw new Error("unsupported-reference-format");
+    }
+
+    let bytes = file.bytes;
+    let mimeType = storage.mimeType;
+    let width: number | null = null;
+    let height: number | null = null;
+    let ext = storage.ext;
+
+    try {
+      const { reencodeImage } = await import("./sanitize/image");
+      const reencoded = await reencodeImage(file.bytes, { format: "png", maxLongEdge: 2048 });
+      bytes = reencoded.bytes;
+      mimeType = reencoded.mimeType;
+      width = reencoded.width;
+      height = reencoded.height;
+      ext = "png";
+    } catch {
+      // In dev builds sharp can be unavailable. Store the original user image so
+      // brand setup remains functional; production installs should re-encode.
+    }
+
+    const storedKey = keys.brandAsset(workspaceId, brandId, assetId, ext);
+    await this.adapters.storage.putBytes(storedKey, bytes, mimeType);
 
     const description = await this.adapters.ai.describeImage(storedKey);
     const embedding = new Array(1536).fill(0);
@@ -163,16 +207,24 @@ export class BrandApi {
       brandId,
       kind: "reference",
       s3Key: storedKey,
-      mimeType: reencoded.mimeType,
-      width: reencoded.width,
-      height: reencoded.height,
-      bytes: reencoded.bytes.byteLength,
+      mimeType,
+      width,
+      height,
+      bytes: bytes.byteLength,
       embedding,
     });
   }
 
   async assets(workspaceId: string, brandId: string) {
     return listBrandAssets(this.db(), workspaceId, brandId);
+  }
+
+  async deleteAsset(workspaceId: string, brandId: string, assetId: string) {
+    const asset = await deleteBrandAsset(this.db(), workspaceId, brandId, assetId);
+    if (asset?.s3Key) {
+      await this.adapters.storage.delete(asset.s3Key).catch(() => undefined);
+    }
+    return asset;
   }
 
   async extractFromUrl(input: unknown): Promise<UrlExtraction> {

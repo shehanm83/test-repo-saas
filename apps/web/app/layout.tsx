@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import React, { Suspense } from "react";
 
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { NavProgress } from "@/components/nav-progress";
 

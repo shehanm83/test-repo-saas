@@ -1,0 +1,33 @@
+id: modifier.format_social_post
+name: Social Post Format Modifier
+category: modifier
+version: 1
+compatible_models:
+  - gpt-image-1
+  - flux-1.1-pro
+  - recraft-v3
+temperature: null
+tags:
+  - quick_create
+  - social
+variables:
+  required:
+    - output.platform_label
+    - output.width
+    - output.height
+    - output.aspect_ratio
+  optional: []
+safety_rules:
+  - Keep the composition readable at feed size.
+overlay_contract:
+  renderer_owns:
+    - exact_text
+    - logo
+  model_owns:
+    - feed_safe_composition
+prompt: |
+  Format guidance:
+  Build for {{output.platform_label}} at {{output.width}} x {{output.height}} ({{output.aspect_ratio}}).
+  Keep the main subject clear at social feed preview size and avoid placing important details at the outer edge.
+negative_prompt: |
+  cropped subject, edge clutter, unreadable small details

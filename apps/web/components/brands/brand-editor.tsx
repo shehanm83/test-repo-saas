@@ -46,7 +46,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 
 export function BrandEditor(props: BrandEditorProps) {
   const router = useRouter();
-  const [tab, setTab] = useState<"colors" | "fonts" | "voice" | "references" | "danger">(
+  const [tab, setTab] = useState<"logos" | "colors" | "fonts" | "voice" | "references" | "danger">(
     "colors",
   );
   const [confirmText, setConfirmText] = useState("");
@@ -78,6 +78,9 @@ export function BrandEditor(props: BrandEditorProps) {
       })
     : "—";
   const initials = props.brand.name.slice(0, 2).toUpperCase();
+  const logoAssets = props.assets.filter((asset) => asset.kind === "logo");
+  const referenceAssets = props.assets.filter((asset) => asset.kind === "reference");
+  const heroLogo = logoAssets.find((asset) => asset.url);
   const labelFor = (i: number): string =>
     ["Primary", "Secondary", "Accent", "Extra 1", "Extra 2", "Extra 3", "Extra 4"][i] ??
     `Color ${i + 1}`;
@@ -121,21 +124,34 @@ export function BrandEditor(props: BrandEditorProps) {
             boxShadow: "var(--shadow-ring)",
           }}
         >
-          <div
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: 14,
-              background: palette.primary || dot(props.brand.id),
-              color: palette.accent || "white",
-              display: "grid",
-              placeItems: "center",
-              fontFamily: "var(--font-display)",
-              fontSize: 28,
-            }}
-          >
-            {initials}
-          </div>
+          {heroLogo?.url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={heroLogo.url}
+              alt=""
+              style={{
+                maxWidth: 86,
+                maxHeight: 86,
+                objectFit: "contain",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 14,
+                background: palette.primary || dot(props.brand.id),
+                color: palette.accent || "white",
+                display: "grid",
+                placeItems: "center",
+                fontFamily: "var(--font-display)",
+                fontSize: 28,
+              }}
+            >
+              {initials}
+            </div>
+          )}
         </div>
         <div>
           {editingName ? (
@@ -166,7 +182,8 @@ export function BrandEditor(props: BrandEditorProps) {
           </div>
           <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
             <Stat label="Generations" value={props.brand.generationCount ?? 0} />
-            <Stat label="References" value={props.assets.length} />
+            <Stat label="Logos" value={logoAssets.length} />
+            <Stat label="References" value={referenceAssets.length} />
             <Stat label="Colors" value={colors.length} />
           </div>
         </div>
@@ -191,7 +208,7 @@ export function BrandEditor(props: BrandEditorProps) {
       </div>
 
       <div className="tabs" style={{ marginBottom: 24 }}>
-        {(["colors", "fonts", "voice", "references"] as const).map((t) => (
+        {(["logos", "colors", "fonts", "voice", "references"] as const).map((t) => (
           <div
             key={t}
             className={`tab ${tab === t ? "is-active" : ""}`}
@@ -199,12 +216,20 @@ export function BrandEditor(props: BrandEditorProps) {
             style={{ textTransform: "capitalize" }}
           >
             {t}
+            {t === "logos" ? (
+              <span
+                className="pill"
+                style={{ height: 18, fontSize: 10, marginLeft: 4, padding: "0 6px" }}
+              >
+                {logoAssets.length}
+              </span>
+            ) : null}
             {t === "references" ? (
               <span
                 className="pill"
                 style={{ height: 18, fontSize: 10, marginLeft: 4, padding: "0 6px" }}
               >
-                {props.assets.length}
+                {referenceAssets.length}
               </span>
             ) : null}
           </div>
@@ -218,6 +243,76 @@ export function BrandEditor(props: BrandEditorProps) {
           Danger zone
         </div>
       </div>
+
+      {tab === "logos" ? (
+        <div>
+          {logoAssets.length === 0 ? (
+            <div className="empty card">
+              <div className="empty__art">
+                <I.Image size={28} />
+              </div>
+              <div className="empty__title">No logos yet</div>
+              <div className="empty__sub">
+                Add logos from brand creation so generation can use your identity assets.
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                gap: 12,
+              }}
+            >
+              {logoAssets.map((a) => (
+                <div
+                  key={a.id}
+                  className="card"
+                  style={{
+                    minHeight: 160,
+                    padding: 16,
+                    display: "grid",
+                    gap: 12,
+                    alignContent: "center",
+                    position: "relative",
+                    background: "var(--cal-white)",
+                  }}
+                >
+                  <div
+                    className="checker"
+                    style={{
+                      height: 104,
+                      borderRadius: 10,
+                      display: "grid",
+                      placeItems: "center",
+                      boxShadow: "var(--shadow-ring)",
+                    }}
+                  >
+                    {a.url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={a.url}
+                        alt=""
+                        style={{
+                          maxWidth: "86%",
+                          maxHeight: 82,
+                          objectFit: "contain",
+                        }}
+                      />
+                    ) : (
+                      <span className="t-small">Logo asset</span>
+                    )}
+                  </div>
+                  <div className="t-small" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <I.Image size={12} />
+                    Logo asset
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null}
 
       {tab === "colors" ? (
         <div>
@@ -380,7 +475,7 @@ export function BrandEditor(props: BrandEditorProps) {
             <I.Plus size={14} />
             Add reference images
           </button>
-          {props.assets.length === 0 ? (
+          {referenceAssets.length === 0 ? (
             <div className="empty card">
               <div className="empty__art">
                 <I.Image size={28} />
@@ -398,7 +493,7 @@ export function BrandEditor(props: BrandEditorProps) {
                 gap: 12,
               }}
             >
-              {props.assets.map((a) => (
+              {referenceAssets.map((a) => (
                 <div
                   key={a.id}
                   style={{

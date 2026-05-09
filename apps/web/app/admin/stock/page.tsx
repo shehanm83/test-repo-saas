@@ -1,5 +1,5 @@
 import { StockApi } from "@vyora/api/stock";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { StockAdmin } from "@/components/admin/stock-admin";
 import { createServerAdapters } from "@/lib/server/adapters";

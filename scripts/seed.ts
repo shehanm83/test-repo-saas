@@ -1,8 +1,6 @@
 import { createDb } from "@vyora/db/client";
 import {
-  brands,
   creditLedgerEntries,
-  moods,
   priceBookEntries,
   templates,
   users,
@@ -33,7 +31,7 @@ async function main() {
     .values({
       id: "00000000-0000-0000-0000-000000000001",
       ownerUserId: user.id,
-      name: "Northwind Creative",
+      name: "Personal Workspace",
       planCode: "pro",
       brandQuota: 3,
       seatQuota: 3,
@@ -42,7 +40,7 @@ async function main() {
     })
     .onConflictDoUpdate({
       target: workspaces.id,
-      set: { name: "Northwind Creative", planCode: "pro" },
+      set: { name: "Personal Workspace", planCode: "pro" },
     })
     .returning();
 
@@ -53,48 +51,6 @@ async function main() {
       userId: user.id,
       role: "owner",
       acceptedAt: new Date(),
-    })
-    .onConflictDoNothing();
-
-  await adminDb.insert(brands).values({
-    workspaceId: workspace.id,
-    name: "Northwind Creative",
-    palette: { primary: "#1D3B2A", secondary: "#DCC9A0", accent: "#C64F20" },
-    fonts: {
-      heading: { family: "Cal Sans" },
-      body: { family: "Inter" },
-    },
-    voiceNotes: "Quiet confidence. Editorial, tactile, warm.",
-    sourceUrl: "https://example.com",
-  });
-
-  await adminDb
-    .insert(moods)
-    .values({
-      slug: "minimalist-tech",
-      name: "Minimalist Tech",
-      kind: "evergreen",
-      promptModifiers: "clean editorial surfaces, controlled geometric highlights",
-      negativePrompts: "busy collage, cluttered frame",
-      accentPalette: ["#6F7FF7", "#BAC4FF"],
-      decorationTags: ["halo", "grid", "fine-line"],
-      supportedAspectRatios: ["1:1", "4:5", "9:16", "16:9"],
-      status: "published",
-    })
-    .onConflictDoNothing();
-
-  await adminDb
-    .insert(templates)
-    .values({
-      slug: "editorial-portrait-a",
-      name: "Editorial Portrait A",
-      jsxSource: "export default function Template() { return null; }",
-      slots: { headline: true, subhead: true, cta: true, logo: true },
-      textSafeZones: [{ x: 0.08, y: 0.1, w: 0.42, h: 0.22 }],
-      preferredModel: "flux-1.1-pro",
-      supportedAspectRatios: ["4:5", "1:1"],
-      status: "published",
-      description: "Seed template",
     })
     .onConflictDoNothing();
 
@@ -124,6 +80,61 @@ async function main() {
       version: 1,
     },
   ]);
+
+  await adminDb
+    .insert(templates)
+    .values({
+      slug: "quick-create-image-only",
+      name: "Quick Create image only",
+      description: "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
+      jsxSource: `
+function template({ background, output }) {
+  return h("div", {
+    style: {
+      display: "flex",
+      width: output.width,
+      height: output.height,
+      backgroundImage: "url(" + background.dataUrl + ")",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    },
+  });
+}
+`,
+      slots: {},
+      textSafeZones: [],
+      preferredModel: "flux-1.1-pro",
+      supportedAspectRatios: ["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"],
+      status: "published",
+      requiresBrowserRender: false,
+    })
+    .onConflictDoUpdate({
+      target: templates.slug,
+      set: {
+        name: "Quick Create image only",
+        description: "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
+        jsxSource: `
+function template({ background, output }) {
+  return h("div", {
+    style: {
+      display: "flex",
+      width: output.width,
+      height: output.height,
+      backgroundImage: "url(" + background.dataUrl + ")",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    },
+  });
+}
+`,
+        slots: {},
+        textSafeZones: [],
+        preferredModel: "flux-1.1-pro",
+        supportedAspectRatios: ["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"],
+        status: "published",
+        requiresBrowserRender: false,
+      },
+    });
 
   await adminDb
     .insert(creditLedgerEntries)

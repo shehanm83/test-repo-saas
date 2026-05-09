@@ -76,7 +76,7 @@ export function Sidebar(props: {
             {props.brands.length}
           </span>
           <Link
-            href="/onboarding/brand/identify"
+            href="/brands/new/identify?new=1"
             className="nav-item__plus"
             onClick={(e) => e.stopPropagation()}
             style={{ textDecoration: "none" }}

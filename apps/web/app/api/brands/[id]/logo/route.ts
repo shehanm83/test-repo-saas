@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { BrandApi } from "@vyora/api/brand";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
@@ -22,11 +22,16 @@ export async function POST(
     return NextResponse.json({ error: "missing-file" }, { status: 400 });
   }
 
-  const api = new BrandApi(loadConfig(), createServerAdapters() as never);
+  const adapters = createServerAdapters();
+  const api = new BrandApi(loadConfig(), adapters as never);
   const payload = await api.uploadLogo(session.workspaceId, id, {
     bytes: Buffer.from(await file.arrayBuffer()),
     mimeType: file.type,
     filename: file.name,
   });
-  return NextResponse.json(payload);
+  return NextResponse.json({
+    ...payload,
+    kind: "logo",
+    url: await adapters.storage.getSignedUrl(payload.s3Key, 60 * 60).catch(() => null),
+  });
 }

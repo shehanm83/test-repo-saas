@@ -22,7 +22,11 @@ test-results/
 
 # Local scratch artifacts
 .playwright-mcp/
+/.superpowers/
 /Screenshot*.jpg
 /Screenshot*.png
 /hero-attempt-*.png
 /images/
+/openapi.txt
+/docs/clerk.txt
+/docs/strip.txt

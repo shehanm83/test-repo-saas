@@ -48,7 +48,6 @@ export const projects = pgTable("projects", {
     .notNull()
     .references(() => workspaces.id, { onDelete: "cascade" }),
   brandId: uuid("brand_id")
-    .notNull()
     .references(() => brands.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),

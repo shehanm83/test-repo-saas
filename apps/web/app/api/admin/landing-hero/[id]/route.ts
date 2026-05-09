@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { LandingHeroApi } from "@vyora/api/landing-hero";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";

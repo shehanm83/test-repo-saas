@@ -7,7 +7,7 @@ import {
   listAvailableMoods,
   setBindings,
 } from "@vyora/db";
-import { ASPECT_RATIOS } from "@vyora/shared";
+import { ASPECT_RATIOS } from "@vyora/shared/templates/schema";
 import type { Config } from "@vyora/shared/config";
 import { z } from "zod";
 

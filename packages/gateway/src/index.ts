@@ -4,6 +4,7 @@ export { preFlightModerate, postFlightModerate } from "./safety.js";
 export { FluxImageProvider } from "./providers/flux.js";
 export { BedrockImageProvider } from "./providers/bedrock.js";
 export { OpenAIImageProvider } from "./providers/openai-image.js";
+export { OpenAITextProvider } from "./providers/openai-text.js";
 export { RecraftImageProvider } from "./providers/recraft.js";
 export { AnthropicTextProvider } from "./providers/anthropic-text.js";
 export { AnthropicVisionProvider } from "./providers/anthropic-vision.js";

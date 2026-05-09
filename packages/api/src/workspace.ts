@@ -7,7 +7,7 @@ import {
   switchActiveWorkspace,
   revokeMember,
 } from "@vyora/db";
-import { createAdapters } from "@vyora/shared";
+import { createAdapters } from "@vyora/shared/adapters";
 import type { Config } from "@vyora/shared/config";
 import { z } from "zod";
 

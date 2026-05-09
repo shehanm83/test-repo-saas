@@ -10,10 +10,13 @@
     "./brand": "./src/brand.ts",
     "./caption": "./src/caption.ts",
     "./generation": "./src/generation.ts",
+    "./generation-estimate": "./src/generation-estimate.ts",
+    "./generation-preflight": "./src/generation-preflight.ts",
     "./inspiration": "./src/inspiration.ts",
     "./landing-hero": "./src/landing-hero.ts",
     "./mood": "./src/mood.ts",
     "./pricebook": "./src/pricebook.ts",
+    "./product": "./src/product.ts",
     "./stock": "./src/stock.ts",
     "./template": "./src/template.ts",
     "./workspace": "./src/workspace.ts"

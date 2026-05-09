@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createDb, workspaces } from "@vyora/db";
 import { eq } from "drizzle-orm";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 import { Ledger } from "@vyora/billing";
 
 import { getServerSession } from "@/lib/auth/server";

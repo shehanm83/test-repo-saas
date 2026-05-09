@@ -78,6 +78,8 @@ const config = {
   ai: {
     mode: "mock" as const,
     openaiKey: undefined,
+    openaiImageModel: "gpt-image-2",
+    openaiTextModel: "gpt-5.4-mini",
     anthropicKey: undefined,
     replicateToken: undefined,
     recraftKey: undefined,
@@ -118,6 +120,22 @@ describe("BrandApi", () => {
 
     expect(result.mimeType).toBe("image/svg+xml");
     expect(mocks.putBytes).toHaveBeenCalled();
+    expect(mocks.addBrandAsset).toHaveBeenCalled();
+  });
+
+  it("uploads raster logos without image re-encoding", async () => {
+    const result = await api.uploadLogo("w1", "b1", {
+      bytes: Buffer.from([0xff, 0xd8, 0xff, 0xd9]),
+      mimeType: "image/jpeg",
+      filename: "logo.jpg",
+    });
+
+    expect(result.mimeType).toBe("image/jpeg");
+    expect(mocks.putBytes).toHaveBeenCalledWith(
+      expect.stringContaining(".jpg"),
+      expect.any(Buffer),
+      "image/jpeg",
+    );
     expect(mocks.addBrandAsset).toHaveBeenCalled();
   });
 

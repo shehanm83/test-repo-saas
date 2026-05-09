@@ -5,7 +5,7 @@ import {
   createDb,
   listPublishedTemplatesForRouting,
 } from "@vyora/db";
-import { ASPECT_RATIOS, MODEL_CODES, SlotSchema, TextSafeZonesSchema } from "@vyora/shared";
+import { ASPECT_RATIOS, MODEL_CODES, SlotSchema, TextSafeZonesSchema } from "@vyora/shared/templates/schema";
 import type { Config } from "@vyora/shared/config";
 import { z } from "zod";
 

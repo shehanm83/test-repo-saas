@@ -20,9 +20,10 @@ export class FluxImageProvider implements ImageProvider {
 
   async generate(req: AIImageRequest): Promise<AIImageResponse> {
     const start = Date.now();
-    const inspiration = req.references?.find((r) => r.role === "inspiration");
-    const imagePromptUrl = inspiration
-      ? await this.opts.storage.getSignedUrl(inspiration.s3Key)
+    const imagePrompt = req.references?.find((r) => r.role === "inspiration")
+      ?? req.references?.find((r) => r.role === "brand_reference");
+    const imagePromptUrl = imagePrompt
+      ? await this.opts.storage.getSignedUrl(imagePrompt.s3Key)
       : undefined;
 
     const body = {
@@ -34,7 +35,7 @@ export class FluxImageProvider implements ImageProvider {
         output_format: "png",
         safety_tolerance: req.safetyLevel === "strict" ? 1 : 3,
         image_prompt: imagePromptUrl,
-        image_prompt_strength: inspiration?.weight ?? 0.6,
+        image_prompt_strength: imagePrompt?.weight ?? 0.6,
         seed: req.seed,
       },
     };

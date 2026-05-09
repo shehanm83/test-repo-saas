@@ -10,7 +10,6 @@ export const generations = pgTable("generations", {
     .notNull()
     .references(() => workspaces.id, { onDelete: "cascade" }),
   brandId: uuid("brand_id")
-    .notNull()
     .references(() => brands.id, { onDelete: "cascade" }),
   projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
   moodId: uuid("mood_id").references(() => moods.id, { onDelete: "set null" }),

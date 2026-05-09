@@ -1,0 +1,66 @@
+id: quick.image_only
+name: Quick Create Image Only
+category: image_generation
+version: 1
+compatible_models:
+  - gpt-image-1
+  - flux-1.1-pro
+  - recraft-v3
+temperature: null
+tags:
+  - quick_create
+  - image_only
+variables:
+  required:
+    - brief
+    - output.format
+    - output.aspect_ratio
+  optional:
+    - brand_summary
+    - mood_summary
+    - composition_summary
+    - overlay_summary
+safety_rules:
+  - Do not generate misleading medical, legal, or financial claims.
+  - Do not invent certifications, awards, guarantees, prices, or claims.
+  - Do not generate readable text, QR codes, URLs, phone numbers, or logos inside the image.
+  - Use original characters and scenes; do not recreate named copyrighted characters.
+overlay_contract:
+  renderer_owns:
+    - logo
+    - headline
+    - cta
+    - legal_text
+  model_owns:
+    - background_scene
+    - lighting
+    - visual_mood
+    - composition
+  safe_zone_instruction: Leave clean, low-detail space if overlay slots are requested.
+expected_output:
+  type: image
+  schema:
+    prompt: string
+    negative_prompt: string
+    overlay_slots: object
+prompt: |
+  Create a polished image for {{output.platform_label}}.
+
+  User direction:
+  {{brief}}
+
+  Visual direction:
+  {{composition_summary}}
+
+  {{brand_summary}}
+  {{mood_summary}}
+  {{overlay_summary}}
+
+  Make the composition clean, production-ready, and suitable for the selected output size.
+  Do not render readable text, prices, QR codes, URLs, phone numbers, or logos inside the image.
+  If the user requested banner or sign text, leave a clean blank area for renderer-owned text overlay instead.
+  Use original character designs rather than named copyrighted characters.
+negative_prompt: |
+  misspelled text, unreadable text, fake logo, fake QR code, random pricing,
+  watermark, UI screenshot, distorted objects, cluttered composition,
+  copyrighted character, named superhero, movie character likeness

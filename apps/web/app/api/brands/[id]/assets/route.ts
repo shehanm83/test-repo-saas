@@ -1,10 +1,37 @@
 import { NextResponse } from "next/server";
 
 import { BrandApi } from "@vyora/api/brand";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
+
+export async function GET(
+  _request: Request,
+  props: { params: Promise<{ id: string }> },
+) {
+  const { id } = await props.params;
+  const { session } = await getSessionWorkspace();
+  if (!session.workspaceId) {
+    return NextResponse.json({ error: "no-workspace" }, { status: 400 });
+  }
+
+  const adapters = createServerAdapters();
+  const api = new BrandApi(loadConfig(), adapters as never);
+  const assets = await api.assets(session.workspaceId, id);
+  const payload = await Promise.all(
+    assets.map(async (asset) => ({
+      id: asset.id,
+      kind: asset.kind,
+      s3Key: asset.s3Key,
+      mimeType: asset.mimeType,
+      width: asset.width,
+      height: asset.height,
+      url: await adapters.storage.getSignedUrl(asset.s3Key, 60 * 60).catch(() => null),
+    })),
+  );
+  return NextResponse.json(payload);
+}
 
 export async function POST(
   request: Request,
@@ -22,11 +49,16 @@ export async function POST(
     return NextResponse.json({ error: "missing-file" }, { status: 400 });
   }
 
-  const api = new BrandApi(loadConfig(), createServerAdapters() as never);
+  const adapters = createServerAdapters();
+  const api = new BrandApi(loadConfig(), adapters as never);
   const payload = await api.uploadReference(session.workspaceId, id, {
     bytes: Buffer.from(await file.arrayBuffer()),
     mimeType: file.type,
     filename: file.name,
   });
-  return NextResponse.json(payload);
+  const s3Key = (payload as { s3Key?: string }).s3Key;
+  return NextResponse.json({
+    ...payload,
+    url: s3Key ? await adapters.storage.getSignedUrl(s3Key, 60 * 60).catch(() => null) : null,
+  });
 }

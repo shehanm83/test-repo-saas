@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { BrandApi } from "@vyora/api/brand";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { createServerAdapters } from "@/lib/server/adapters";
 

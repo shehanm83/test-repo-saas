@@ -28,6 +28,7 @@ vi.mock("@vyora/db", () => ({
   insertGeneration: vi.fn(async () => ({ id: "gen-1" })),
   insertVariants: vi.fn(async () => [{ id: "var-1" }]),
   getGenerationFull: vi.fn(async () => null),
+  getProduct: vi.fn(async () => null),
   updateGenerationInspirationKey: vi.fn(async () => undefined),
   priceBookLookup: vi.fn(async () => ({ creditCost: 10, version: 1 })),
   generations: {},
@@ -64,6 +65,7 @@ vi.mock("@vyora/storage", () => ({
   keys: {
     inspirationUploadStaging: vi.fn((ws: string, uid: string) => `staging/${ws}/${uid}.png`),
     inspirationClaimed: vi.fn((ws: string, gid: string) => `claimed/${ws}/${gid}.png`),
+    inspirationClaimedIdx: vi.fn((ws: string, gid: string, idx: number) => `claimed/${ws}/${gid}-${idx}.png`),
   },
 }));
 
@@ -112,7 +114,7 @@ function makeAdapters(
   ];
 }
 
-function makeConfig(): Pick<Config, "db" | "queue"> {
+function makeConfig(): Pick<Config, "db" | "queue" | "ai"> {
   return {
     db: { url: "postgres://app_user:dev@localhost/studio" },
     queue: {
@@ -122,6 +124,17 @@ function makeConfig(): Pick<Config, "db" | "queue"> {
       generationsQueue: "http://sqs/generations",
       captionsQueue: "http://sqs/captions",
       dlq: "http://sqs/generations-dlq",
+    },
+    ai: {
+      mode: "mock",
+      openaiKey: undefined,
+      openaiImageModel: "gpt-image-2",
+      openaiTextModel: "gpt-5.4-mini",
+      anthropicKey: undefined,
+      replicateToken: undefined,
+      recraftKey: undefined,
+      bflKey: undefined,
+      bedrockRegion: "us-east-1",
     },
   };
 }
@@ -148,8 +161,35 @@ describe("GenerationApi.create", () => {
 
     expect(r.generationId).toBeTruthy();
     expect(r.status).toBe("pending");
-    expect(r.variants.length).toBe(1);
-    expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(r.variants.length).toBe(4);
+    expect(sendSpy).toHaveBeenCalledTimes(4);
+  });
+
+  it("creates the requested number of commercial samples even when one template matches", async () => {
+    const [adapters, sendSpy] = makeAdapters();
+    const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);
+
+    const r = await api.create({
+      workspaceId: "ws-1",
+      userId: "usr-1",
+      input: {
+        mode: "quick",
+        creationType: "single_product",
+        brief: "Clean product image on a simple background",
+        productRefs: [],
+        campaign: {},
+        template: { family: "product_hero", layout: "centered_product_hero" },
+        outputs: {
+          variants: 2,
+          quality: "standard",
+          consistency: "off",
+          formats: ["instagram_square"],
+        },
+      },
+    });
+
+    expect(r.variants).toHaveLength(2);
+    expect(sendSpy).toHaveBeenCalledTimes(2);
   });
 
   it("rejects when no templates found", async () => {
@@ -188,5 +228,50 @@ describe("GenerationApi.create", () => {
     });
     expect(copySpy).toHaveBeenCalledTimes(1);
     expect(deleteSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("accepts commercial campaign input and stores a commercial snapshot", async () => {
+    const { insertGeneration } = await import("@vyora/db");
+    const [adapters] = makeAdapters();
+    const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);
+
+    await api.create({
+      workspaceId: "ws-1",
+      userId: "usr-1",
+      input: {
+        mode: "campaign_builder",
+        creationType: "social_ad_pack",
+        brandId: "00000000-0000-0000-0000-000000000001",
+        productRefs: [
+          {
+            uploadId: "00000000-0000-0000-0000-000000000099",
+            role: "hero",
+            commercialFields: { name: "Serum" },
+          },
+        ],
+        campaign: { title: "Glow launch", cta: "Shop now" },
+        template: { family: "social_ad", layout: "split" },
+        outputs: {
+          variants: 2,
+          quality: "standard",
+          consistency: "same_mood",
+          formats: ["instagram_square"],
+        },
+      },
+    });
+
+    expect(insertGeneration).toHaveBeenCalledWith(
+      expect.anything(),
+      "ws-1",
+      expect.objectContaining({
+        brief: expect.stringContaining("Glow launch"),
+        settings: expect.objectContaining({
+          commercial: expect.objectContaining({
+            creation_type: "social_ad_pack",
+            campaign: expect.objectContaining({ cta: "Shop now" }),
+          }),
+        }),
+      }),
+    );
   });
 });

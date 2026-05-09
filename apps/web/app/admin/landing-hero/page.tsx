@@ -1,5 +1,5 @@
 import { LandingHeroApi } from "@vyora/api/landing-hero";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { LandingHeroAdmin } from "@/components/admin/landing-hero-admin";
 import { createServerAdapters } from "@/lib/server/adapters";

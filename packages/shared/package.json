@@ -9,7 +9,12 @@
     "./config": "./src/config.ts",
     "./adapters": "./src/adapters/index.ts",
     "./adapters/types": "./src/adapters/types.ts",
+    "./errors/app-error": "./src/errors/app-error.ts",
+    "./errors/codes": "./src/errors/codes.ts",
+    "./generation/commercial-contract": "./src/generation/commercial-contract.ts",
+    "./generation/preflight": "./src/generation/preflight.ts",
     "./output-targets": "./src/output-targets/index.ts",
+    "./prompt-templates": "./src/prompt-templates/index.ts",
     "./templates/schema": "./src/templates/schema.ts"
   },
   "scripts": {
@@ -25,6 +30,7 @@
     "@vyora/billing": "workspace:*",
     "@vyora/observability": "workspace:*",
     "@vyora/storage": "workspace:*",
+    "yaml": "^2.8.4",
     "zod": "^4.3.6"
   }
 }

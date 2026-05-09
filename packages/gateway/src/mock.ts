@@ -14,7 +14,7 @@ const SAMPLE_COUNT = 4;
 
 export class MockImageProvider implements ImageProvider {
   capabilities = {
-    modelCodes: ["flux-1.1-pro", "gpt-image-1", "recraft-v3", "bedrock-sd35", "nova-canvas"],
+    modelCodes: ["flux-1.1-pro", "gpt-image-2", "gpt-image-1", "recraft-v3", "bedrock-sd35", "nova-canvas"],
     supportsImageToImage: true,
     supportsMultiReference: true,
     tier: "fast" as const,
@@ -73,7 +73,7 @@ export class MockImageProvider implements ImageProvider {
 }
 
 export class MockTextProvider implements TextProvider {
-  modelCodes = ["claude-haiku-4-5"];
+  modelCodes = ["claude-haiku-4-5", "gpt-5.4-mini"];
 
   async generate(req: AITextRequest): Promise<AITextResponse> {
     return {

@@ -1,0 +1,63 @@
+id: quick.product_only
+name: Quick Create Product Only
+category: image_generation
+version: 1
+compatible_models:
+  - gpt-image-1
+  - flux-1.1-pro
+  - recraft-v3
+temperature: null
+tags:
+  - quick_create
+  - product
+variables:
+  required:
+    - brief
+    - product_summary
+    - output.format
+    - output.aspect_ratio
+  optional:
+    - brand_summary
+    - mood_summary
+    - composition_summary
+    - overlay_summary
+safety_rules:
+  - Do not alter protected product identity, packaging shape, or visible label structure.
+  - Do not invent readable label text or claims.
+  - Do not generate readable promotional text, QR codes, URLs, phone numbers, or logos inside the image.
+overlay_contract:
+  renderer_owns:
+    - logo
+    - price
+    - discount
+    - cta
+  model_owns:
+    - product_context
+    - background_scene
+    - lighting
+    - reflections
+    - shadows
+  safe_zone_instruction: Leave clean space for any renderer overlays without covering the product.
+expected_output:
+  type: image
+prompt: |
+  Create a commercial product image for {{output.platform_label}}.
+
+  User direction:
+  {{brief}}
+
+  Product context:
+  {{product_summary}}
+
+  Visual direction:
+  {{composition_summary}}
+
+  {{brand_summary}}
+  {{mood_summary}}
+  {{overlay_summary}}
+
+  Present the product clearly and attractively. Keep original product shape and label structure believable.
+  Do not invent readable label text, prices, QR codes, URLs, phone numbers, or logos inside the image.
+negative_prompt: |
+  distorted product, warped packaging, unreadable label text, fake label claims,
+  random price text, fake logo, fake QR code, watermark, cluttered background

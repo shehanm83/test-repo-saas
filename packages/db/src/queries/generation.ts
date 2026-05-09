@@ -11,7 +11,7 @@ import { withWorkspace } from "../with-workspace";
 
 export async function pickTemplates(
   db: Db,
-  args: { moodId: string | null; aspectRatio: string; n: number },
+  args: { moodId: string | null; aspectRatio: string; n: number; preferredSlug?: string },
 ) {
   if (args.moodId) {
     return db
@@ -51,6 +51,9 @@ export async function pickTemplates(
         sql`${args.aspectRatio} = ANY(${templates.supportedAspectRatios})`,
       ),
     )
+    .orderBy(args.preferredSlug
+      ? sql`CASE WHEN ${templates.slug} = ${args.preferredSlug} THEN 0 ELSE 1 END`
+      : sql`${templates.createdAt} ASC`)
     .limit(args.n);
 }
 

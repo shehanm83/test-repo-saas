@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 
 import { GenerationApi, assertGenerationCapacity, rateLimit } from "@vyora/api";
 import { createDb } from "@vyora/db";
-import { AppError, loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
+import { AppError } from "@vyora/shared/errors/app-error";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";

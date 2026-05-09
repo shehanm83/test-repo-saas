@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { brands, createDb } from "@vyora/db";
 import { and, eq } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 

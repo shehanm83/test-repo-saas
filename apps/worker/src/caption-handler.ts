@@ -26,10 +26,23 @@ export class CaptionWorker {
     try {
       const maxTokens = TARGET_TOKENS[j.lengthTier] ?? 200;
       const r = await this.adapters.ai.generateText({
-        modelCode: "claude-haiku-4-5",
+        modelCode: this.config.ai.openaiTextModel,
         systemPrompt:
-          "You write social-media captions in markdown. Keep voice consistent, follow the brand voice notes if provided. Avoid hashtags unless the brief says otherwise.",
-        prompt: `Brand voice: ${j.voice ?? "neutral, professional"}\n\nBrief: ${j.brief}\n\nWrite a ${j.lengthTier} caption.`,
+          [
+            "You write social-media captions for generated Quick Create images.",
+            "Use the image brief and caption instructions together.",
+            "Do not invent facts, prices, guarantees, certifications, or claims.",
+            "Avoid hashtags unless the user explicitly asks for them.",
+            "Return only the finished caption text in markdown.",
+          ].join(" "),
+        prompt: [
+          `Generated image brief: ${j.brief}`,
+          "",
+          "Caption instructions:",
+          j.voice ?? "Tone: professional\nLength preference: standard social caption\nMust include: no extra user instructions\nBrand voice notes: neutral",
+          "",
+          `Write a ${j.lengthTier === "short" ? "short" : "standard"} caption that is relevant to the generated image.`,
+        ].join("\n"),
         maxTokens,
       });
 

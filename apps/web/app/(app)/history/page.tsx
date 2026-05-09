@@ -8,7 +8,7 @@ import {
   withWorkspace,
 } from "@vyora/db";
 import { desc, eq, inArray } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 import { S3StorageAdapter } from "@vyora/storage";
 
 import { HistoryList } from "@/components/history/history-list";
@@ -38,10 +38,12 @@ export default async function HistoryPage() {
       return { rows, brandRows: [], moodRows: [], variantRows: [] };
     }
 
-    const brandRows = await tx
-      .select()
-      .from(brands)
-      .where(inArray(brands.id, rows.map((r) => r.brandId)));
+    const brandIds = rows
+      .map((r) => r.brandId)
+      .filter((v): v is string => Boolean(v));
+    const brandRows = brandIds.length > 0
+      ? await tx.select().from(brands).where(inArray(brands.id, brandIds))
+      : [];
 
     const moodIds = rows
       .map((r) => r.moodId)
@@ -112,8 +114,8 @@ export default async function HistoryPage() {
       return {
         id: row.id,
         brief: row.brief,
-        brandId: row.brandId,
-        brandName: brandMap.get(row.brandId) ?? "Brand",
+        brandId: row.brandId ?? undefined,
+        brandName: row.brandId ? brandMap.get(row.brandId) ?? "Brand" : "Unbranded",
         moodName: row.moodId ? moodMap.get(row.moodId) ?? null : null,
         status: row.status,
         ar,

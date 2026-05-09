@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { GenerationApi } from "@vyora/api/generation";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";

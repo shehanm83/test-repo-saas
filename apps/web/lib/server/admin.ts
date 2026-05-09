@@ -1,5 +1,5 @@
 import { createDb, auditLog } from "@vyora/db";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 export async function writeAdminAudit(args: {
   workspaceId: string;

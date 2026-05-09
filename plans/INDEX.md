@@ -174,6 +174,25 @@ If a slice depends on multiple prior slices, all must be complete before startin
 | 49 | [slice-49-marketing-landing.md](slice-49-marketing-landing.md) | Public landing page (hero, how-it-works, differentiator, pricing, footer) | 35 | Marketing site live |
 | 50 | [slice-50-deployment-and-e2e.md](slice-50-deployment-and-e2e.md) | OpenNext deployment config; AWS resources (CloudFront, Lambda, RDS/Neon link, S3 buckets, SQS queues, Parameter Store); Playwright E2E suite (signup → brand → generate → download → top-up); CI deploy gate | 03, all prior | Production deploy + E2E green |
 
+## Phase 18 — Auth hardening (slice 51)
+
+| # | File | Goal | Depends on | Produces |
+|---|---|---|---|---|
+| 51 | [slice-51-clerk-auth-wiring.md](slice-51-clerk-auth-wiring.md) | Wire Clerk auth end-to-end for local and production | 10, 37 | Working Clerk cookie session bridge, webhook setup, redirect checklist |
+
+## Phase 19 — Commercial generation upgrade (slices 52-55)
+
+**Strategy/spec:** [Generation Page Commercial Builder Spec](2026-05-03-generation-page-commercial-builder-spec.md)
+
+| # | File | Goal | Depends on | Produces |
+|---|---|---|---|---|
+| 52 | [slice-52-product-workspace-schema-and-api.md](slice-52-product-workspace-schema-and-api.md) | Product lines, products, variants, product assets, and API | 07, 13, 14 | Reusable product workspace for commercial generation |
+| 53 | [slice-53-commercial-generation-contract.md](slice-53-commercial-generation-contract.md) | Structured commercial generation input, estimate, and preflight | 52, 29, 30 | Backend can validate, price, and store commercial campaign requests |
+| 54 | [slice-54-generation-page-commercial-redesign.md](slice-54-generation-page-commercial-redesign.md) | `/generate` Quick Create + Campaign Builder redesign | 52, 53, 35, 36, 39 | Commercial-grade generation UI with live warnings and estimates |
+| 55 | [slice-55-output-packages-and-quality-checks.md](slice-55-output-packages-and-quality-checks.md) | Multi-format packages, consistency, grouped results, quality checks | 53, 54, 40 | Campaign packages and resize/ad packs instead of one-off images |
+| 56 | [slice-56-executable-prompt-template-system.md](slice-56-executable-prompt-template-system.md) | YAML prompt templates, Quick Create path routing, variable validation, and overlay-aware prompt building | 53, 54, 55 | Maintainable prompt system for Quick Create |
+| 57 | [slice-57-campaign-builder-prompt-templates.md](slice-57-campaign-builder-prompt-templates.md) | Campaign Builder-specific prompt routes and templates | 56 | Maintainable prompt system for Campaign Builder |
+
 ---
 
 ## Slice ordering rules

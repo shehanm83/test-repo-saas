@@ -12,7 +12,7 @@ import {
   workspaces,
 } from "@vyora/db";
 import { eq, desc } from "drizzle-orm";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 import { S3StorageAdapter } from "@vyora/storage";
 
 import { GenerationInspector } from "@/components/admin/generation-inspector";

@@ -20,17 +20,6 @@ interface MoodLite {
   validTo: string | null;
 }
 
-const MOOD_IMG: Record<string, string> = {
-  christmas: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=200&q=80",
-  midsummer: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=200&q=80",
-  "minimalist-tech":
-    "https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&q=80",
-  editorial: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=200&q=80",
-  "sunset-warm": "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200&q=80",
-  "bold-bauhaus": "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=200&q=80",
-  halloween: "https://images.unsplash.com/photo-1509557965875-b88c97052f0e?w=200&q=80",
-};
-
 function Section({
   letter,
   title,
@@ -223,14 +212,14 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                     background: "var(--cal-gray-200)",
                   }}
                 >
-                  {MOOD_IMG[m.slug] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={MOOD_IMG[m.slug]}
-                      alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  ) : null}
+                  <span
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      height: "100%",
+                      background: m.accentPalette?.[0] ?? "var(--cal-gray-200)",
+                    }}
+                  />
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 500 }}>{m.name}</div>

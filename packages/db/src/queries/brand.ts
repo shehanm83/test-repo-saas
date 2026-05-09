@@ -63,3 +63,24 @@ export async function listBrandAssets(db: Db, workspaceId: string, brandId: stri
       .orderBy(desc(brandAssets.createdAt)),
   );
 }
+
+export async function deleteBrandAsset(
+  db: Db,
+  workspaceId: string,
+  brandId: string,
+  assetId: string,
+) {
+  return withWorkspace(db, workspaceId, async (tx) => {
+    const [asset] = await tx
+      .delete(brandAssets)
+      .where(
+        and(
+          eq(brandAssets.id, assetId),
+          eq(brandAssets.brandId, brandId),
+          eq(brandAssets.workspaceId, workspaceId),
+        ),
+      )
+      .returning();
+    return asset ?? null;
+  });
+}

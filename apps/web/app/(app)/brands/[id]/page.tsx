@@ -2,7 +2,7 @@ import React from "react";
 
 import { createDb, generations, getBrand, listBrandAssets } from "@vyora/db";
 import { count, eq } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 import { S3StorageAdapter } from "@vyora/storage";
 
 import { I } from "@/components/icons";

@@ -1,0 +1,38 @@
+id: modifier.mood_selected
+name: Selected Mood Modifier
+category: modifier
+version: 1
+compatible_models:
+  - gpt-image-1
+  - flux-1.1-pro
+  - recraft-v3
+temperature: null
+tags:
+  - quick_create
+  - mood
+variables:
+  required:
+    - mood_summary
+  optional:
+    - mood.name
+    - mood.prompt_modifiers
+    - mood.accent_palette
+    - mood.decoration_tags
+safety_rules:
+  - Mood styling must not override factual product or campaign constraints.
+overlay_contract:
+  renderer_owns:
+    - exact_text
+    - logo
+  model_owns:
+    - lighting
+    - atmosphere
+    - color_grading
+    - decorative_non_text_elements
+prompt: |
+  Mood guidance:
+  {{mood_summary}}
+
+  Apply the mood through lighting, surface treatment, camera feel, background, and non-text decorative elements.
+negative_prompt: |
+  overstyled product, unreadable product, distracting decoration, conflicting visual style

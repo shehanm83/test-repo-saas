@@ -11,6 +11,11 @@ export default defineProject({
       "@": dirname,
     },
   },
+  esbuild: {
+    jsx: "automatic",
+    jsxImportSource: "react",
+  },
+  oxc: false,
   test: {
     name: "web",
     globals: true,

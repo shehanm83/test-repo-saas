@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { createDb, generations, workspaces } from "@vyora/db";
 import { eq, desc } from "drizzle-orm";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { I } from "@/components/icons";
 

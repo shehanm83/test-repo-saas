@@ -1,5 +1,5 @@
 import { PricebookApi } from "@vyora/api/pricebook";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { PricebookAdmin } from "@/components/admin/pricebook-admin";
 

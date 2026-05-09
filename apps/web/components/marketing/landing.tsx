@@ -36,8 +36,8 @@ const MOODS = [
     colors: ["#F4D35E", "#7BAE7F", "#E8DCC4"],
   },
   {
-    id: "minimalist-tech",
-    name: "Minimalist Tech",
+    id: "clean-editorial",
+    name: "Clean Editorial",
     kind: "Evergreen",
     img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80",
     colors: ["#0E0E10", "#5E5CE6", "#F4F4FB"],
@@ -72,18 +72,64 @@ export function Landing({
   const primaryLabel = isAuthed ? "Open Vyora" : "Start free";
   return (
     <div style={{ background: "var(--cal-white)", minHeight: "100vh", overflow: "hidden" }}>
-      {/* Compact top-right utility (sign-in only when signed out) */}
-      {isAuthed ? null : (
-        <div
-          style={{
-            position: "absolute",
-            top: 24,
-            right: 32,
-            zIndex: 50,
-            display: "flex",
-            gap: 8,
-          }}
-        >
+      {/* Top-right nav */}
+      <div
+        style={{
+          position: "absolute",
+          top: 24,
+          right: 32,
+          zIndex: 50,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        {isAuthed ? (
+          <>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 13,
+                color: "var(--fg-3)",
+                fontFamily: "var(--font-body)",
+              }}
+            >
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  background: "#22c55e",
+                  display: "inline-block",
+                  boxShadow: "0 0 0 2px rgba(34,197,94,0.25)",
+                }}
+              />
+              Logged in
+            </span>
+            <Link
+              href="/generate"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 16px",
+                borderRadius: 8,
+                background: "linear-gradient(180deg, #7A65EA 0%, #5743D6 100%)",
+                color: "white",
+                fontFamily: "var(--font-display)",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                boxShadow: "0 2px 8px rgba(94,76,222,0.3)",
+              }}
+            >
+              Open Vyora
+              <I.ArrowRight size={13} />
+            </Link>
+          </>
+        ) : (
           <Link
             href="/sign-in"
             style={{
@@ -97,8 +143,8 @@ export function Landing({
           >
             Sign in
           </Link>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* HERO */}
       <section
@@ -124,7 +170,7 @@ export function Landing({
           {/* LEFT */}
           <div style={{ position: "relative", zIndex: 2 }}>
             <div style={{ marginBottom: 16, marginLeft: 0 }}>
-              <VyoraWordmark width={480} />
+              <VyoraWordmark width={160} />
             </div>
             <h1
               style={{
@@ -320,7 +366,7 @@ export function Landing({
                   NW
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-1)" }}>
-                  Northwind Coffee
+                  Your Brand
                 </div>
                 <div style={{ display: "flex", gap: 3, marginLeft: "auto" }}>
                   {["#2A1F18", "#7C5232", "#E8DCC4", "#C9A86A"].map((c) => (
@@ -385,16 +431,16 @@ export function Landing({
             style={{
               position: "relative",
               width: 620,
-              height: 720,
+              height: 800,
               marginLeft: "auto",
             }}
           >
             {heroCards.slice(0, 4).map((card, i) => {
               const slots = [
-                { top: 30, left: 0, rotate: -4, z: 2 },
-                { top: 0, left: 300, rotate: 5, z: 3 },
-                { top: 380, left: 30, rotate: -5, z: 1 },
-                { top: 380, left: 320, rotate: 3, z: 2 },
+                { top: 90, left: 0, rotate: -4, z: 2 },
+                { top: 60, left: 300, rotate: 5, z: 3 },
+                { top: 440, left: 30, rotate: -5, z: 1 },
+                { top: 440, left: 320, rotate: 3, z: 2 },
               ];
               const slot = slots[i]!;
               return (
@@ -618,7 +664,7 @@ export function Landing({
                   n: "02",
                   t: "Describe what you want",
                   d:
-                    "One or two sentences. Optionally pick a Mood — a curated style pack like Christmas or Minimalist Tech.",
+                    "One or two sentences. Optionally pick a published Mood from your production catalog.",
                   icon: <I.Wand size={22} />,
                   bg: "linear-gradient(135deg, #E8E7FA, #D4D2F5)",
                   iconBg: "#5E5CE6",
@@ -720,7 +766,7 @@ export function Landing({
               />
               <div style={{ position: "absolute", left: 24, top: 24, display: "flex", gap: 8 }}>
                 <span className="pill" style={{ background: "rgba(255,255,255,0.95)", height: 24 }}>
-                  Northwind
+                  Brand
                 </span>
                 <span className="pill" style={{ background: "rgba(255,255,255,0.95)", height: 24 }}>
                   Christmas
@@ -759,7 +805,7 @@ export function Landing({
                       fontSize: 10,
                     }}
                   >
-                    {["Lumen", "Atlas", "Northwind", "Atlas"][i]}
+                    {["Brand", "Brand", "Brand", "Brand"][i]}
                   </span>
                 </div>
               </div>

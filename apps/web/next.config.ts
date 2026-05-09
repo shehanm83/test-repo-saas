@@ -37,6 +37,7 @@ const nextConfig: NextConfig = {
     "@vyora/renderer",
     "@vyora/shared",
     "@vyora/storage",
+    "@vyora/worker",
   ],
 };
 

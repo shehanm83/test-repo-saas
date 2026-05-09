@@ -1,6 +1,6 @@
 import { Ledger, PLANS } from "@vyora/billing";
 import { createDb } from "@vyora/db";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@vyora/shared/config";
 
 import { I } from "@/components/icons";
 import { listWorkspaceMembers, getSessionWorkspace } from "@/lib/auth/server";

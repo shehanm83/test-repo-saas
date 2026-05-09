@@ -6,3 +6,5 @@ CREATE TABLE rate_limit_counters (
 );
 
 CREATE INDEX rate_limit_window_idx ON rate_limit_counters (window_start);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON rate_limit_counters TO app_user, app_admin;

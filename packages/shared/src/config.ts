@@ -40,6 +40,8 @@ const baseSchema = z.object({
 
   AI_MODE: z.enum(["real", "mock", "record"]).default("mock"),
   OPENAI_API_KEY: z.string().optional(),
+  OPENAI_IMAGE_MODEL: z.string().default("gpt-image-2"),
+  OPENAI_TEXT_MODEL: z.string().default("gpt-5.4-mini"),
   ANTHROPIC_API_KEY: z.string().optional(),
   REPLICATE_API_TOKEN: z.string().optional(),
   RECRAFT_API_KEY: z.string().optional(),
@@ -177,6 +179,8 @@ function shape(env: z.output<typeof baseSchema>) {
     ai: {
       mode: env.AI_MODE,
       openaiKey: env.OPENAI_API_KEY,
+      openaiImageModel: env.OPENAI_IMAGE_MODEL,
+      openaiTextModel: env.OPENAI_TEXT_MODEL,
       anthropicKey: env.ANTHROPIC_API_KEY,
       replicateToken: env.REPLICATE_API_TOKEN,
       recraftKey: env.RECRAFT_API_KEY,
