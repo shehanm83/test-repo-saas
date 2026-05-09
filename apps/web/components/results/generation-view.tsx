@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { I } from "@/components/icons";
+import { CropEditor } from "@/components/generations/crop-editor";
 
 interface VariantState {
   id: string;
@@ -12,6 +13,9 @@ interface VariantState {
   modelUsed: string | null;
   templateId?: string;
   url?: string | null;
+  // Sub-project D additions — null on legacy rows.
+  backgroundUrl?: string | null;
+  cropRegion?: { x: number; y: number; w: number; h: number; targetWidth: number; targetHeight: number } | null;
 }
 
 interface CaptionState {
@@ -74,6 +78,11 @@ function VariantCard({
   onEdit,
   onDownload,
   onZoom,
+  generationId,
+  cropOpen,
+  onOpenCrop,
+  onCloseCrop,
+  onCropApplied,
 }: {
   variant: VariantState;
   target: {
@@ -87,6 +96,11 @@ function VariantCard({
   onEdit: () => void;
   onDownload: () => void;
   onZoom: () => void;
+  generationId: string;
+  cropOpen: boolean;
+  onOpenCrop: () => void;
+  onCloseCrop: () => void;
+  onCropApplied: (variantId: string, signedUrl: string, cropRegion: NonNullable<VariantState["cropRegion"]>) => void;
 }) {
   const width = target.width && target.width > 0 ? target.width : FALLBACK_TARGET.width;
   const height = target.height && target.height > 0 ? target.height : FALLBACK_TARGET.height;
@@ -246,9 +260,42 @@ function VariantCard({
             >
               <I.Copy size={14} />
             </button>
+            {variant.backgroundUrl ? (
+              <button
+                type="button"
+                className="btn btn--icon"
+                style={{ color: "white" }}
+                onClick={onOpenCrop}
+                aria-label="Crop & resize"
+                title="Crop & resize"
+              >
+                <I.Layers size={14} />
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>
+
+      {cropOpen && variant.backgroundUrl ? (
+        <CropEditor
+          generationId={generationId}
+          variantId={variant.id}
+          backgroundUrl={variant.backgroundUrl}
+          targetWidth={target.width ?? FALLBACK_TARGET.width}
+          targetHeight={target.height ?? FALLBACK_TARGET.height}
+          targetLabel={
+            target.aspectRatio
+              ? `${target.aspectRatio} (${target.width ?? "?"}×${target.height ?? "?"})`
+              : undefined
+          }
+          initialCrop={variant.cropRegion}
+          onApplied={(result) => {
+            onCropApplied(variant.id, result.signedUrl, result.cropRegion);
+            onCloseCrop();
+          }}
+          onCancel={onCloseCrop}
+        />
+      ) : null}
       <div
         style={{
           padding: "10px 14px",
@@ -720,8 +767,26 @@ export function GenerationView(props: {
   const [editing, setEditing] = useState<number | null>(null);
   const [captionOpen, setCaptionOpen] = useState(false);
   const [zoomVariant, setZoomVariant] = useState<VariantState | null>(null);
+  const [activeCrop, setActiveCrop] = useState<string | null>(null);
   const [projectPending, setProjectPending] = useState(false);
   const [projectError, setProjectError] = useState<string | null>(null);
+
+  const onCropApplied = (
+    variantId: string,
+    signedUrl: string,
+    cropRegion: NonNullable<VariantState["cropRegion"]>,
+  ) => {
+    setState((prev) =>
+      prev
+        ? {
+            ...prev,
+            variants: prev.variants.map((v) =>
+              v.id === variantId ? { ...v, url: signedUrl, cropRegion } : v,
+            ),
+          }
+        : prev,
+    );
+  };
 
   useEffect(() => {
     if (!state || state.status === "completed" || state.status === "failed") return;
@@ -900,6 +965,11 @@ export function GenerationView(props: {
             onEdit={() => setEditing(i)}
             onDownload={() => void downloadVariant(v)}
             onZoom={() => setZoomVariant(v)}
+            generationId={props.generationId}
+            cropOpen={activeCrop === v.id}
+            onOpenCrop={() => setActiveCrop(v.id)}
+            onCloseCrop={() => setActiveCrop(null)}
+            onCropApplied={onCropApplied}
           />
         ))}
         {completedCaptions.map((caption) => (

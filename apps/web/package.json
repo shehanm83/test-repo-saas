@@ -24,14 +24,15 @@
     "@vyora/gateway": "workspace:*",
     "@vyora/observability": "workspace:*",
     "@vyora/queue": "workspace:*",
-    "@vyora/shared": "workspace:*",
     "@vyora/renderer": "workspace:*",
+    "@vyora/shared": "workspace:*",
     "@vyora/storage": "workspace:*",
     "@vyora/worker": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "next": "^16.2.4",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "react-image-crop": "^11.0.10"
   },
   "devDependencies": {
     "@opennextjs/aws": "^3.10.4",

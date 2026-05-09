@@ -200,6 +200,12 @@ export class GenerationApi {
       gen.variants.map(async (v) => ({
         ...v,
         url: v.outputS3Key ? await this.adapters.storage.getSignedUrl(v.outputS3Key) : null,
+        // Sub-project D needs a signed URL on the immutable background so the
+        // crop editor can render `<ReactCrop>` over it. Null on legacy rows
+        // from before A's pipeline — the wizard hides the Crop button there.
+        backgroundUrl: v.backgroundS3Key
+          ? await this.adapters.storage.getSignedUrl(v.backgroundS3Key)
+          : null,
       })),
     );
     const captions = await this.db("app_admin")
