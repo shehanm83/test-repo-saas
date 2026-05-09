@@ -6,7 +6,7 @@ const COST_LARGE = 12;
 
 export class RecraftImageProvider implements ImageProvider {
   capabilities: ProviderCapabilities = {
-    modelCodes: ["recraft-v3"],
+    modelCodes: ["design-studio"],
     supportsImageToImage: true,
     supportsMultiReference: false,
     tier: "design",
@@ -49,7 +49,7 @@ export class RecraftImageProvider implements ImageProvider {
 
     return {
       imageBytes: bytes,
-      modelUsedCode: "recraft-v3",
+      modelUsedCode: req.modelCode,
       upstreamCostCents: req.width * req.height > 1024 * 1024 ? COST_LARGE : COST_STD,
       latencyMs: Date.now() - start,
       safetyFlags: [],

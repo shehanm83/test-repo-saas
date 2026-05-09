@@ -10,7 +10,10 @@ const FLUX_COST_CENTS_LARGE = 8;
 
 export class FluxImageProvider implements ImageProvider {
   capabilities: ProviderCapabilities = {
-    modelCodes: ["flux-1.1-pro"],
+    // Both internal codes are served by the same Replicate-hosted Flux 1.1 Pro
+    // (see spec §5: "Replacing Replicate Flux with BFL Flux for `economy` is
+    // out of scope — kept Replicate for Economy because it's cheaper per call").
+    modelCodes: ["economy", "photoreal-pro"],
     supportsImageToImage: true,
     supportsMultiReference: false,
     tier: "fast",
@@ -63,7 +66,7 @@ export class FluxImageProvider implements ImageProvider {
 
     return {
       imageBytes: bytes,
-      modelUsedCode: "flux-1.1-pro",
+      modelUsedCode: req.modelCode,
       upstreamCostCents: req.width * req.height > 1024 * 1024 ? FLUX_COST_CENTS_LARGE : FLUX_COST_CENTS_STANDARD,
       latencyMs: Date.now() - start,
       safetyFlags: [],

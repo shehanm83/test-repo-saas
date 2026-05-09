@@ -10,15 +10,23 @@ export default async function AdminModelDetailPage({
 }) {
   const { code } = await params;
   const api = new TaxonomyApi(loadConfig());
-  const [model, allStrengths, allTags, routing, assignedStrengths, assignedTags] =
-    await Promise.all([
-      api.getModel(code),
-      api.listStrengths(),
-      api.listTags(),
-      api.listRouting(),
-      api.listStrengthsForModel(code),
-      api.listTagsForModel(code),
-    ]);
+  const [
+    model,
+    allStrengths,
+    allTags,
+    routing,
+    assignedStrengths,
+    assignedTags,
+    supportedSizes,
+  ] = await Promise.all([
+    api.getModel(code),
+    api.listStrengths(),
+    api.listTags(),
+    api.listRouting(),
+    api.listStrengthsForModel(code),
+    api.listTagsForModel(code),
+    api.listSupportedSizes(code),
+  ]);
 
   if (!model) {
     return (
@@ -39,6 +47,7 @@ export default async function AdminModelDetailPage({
       routing={routing as never}
       assignedStrengths={assignedStrengths}
       assignedTags={assignedTags}
+      supportedSizes={supportedSizes}
     />
   );
 }

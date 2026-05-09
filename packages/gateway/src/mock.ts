@@ -14,7 +14,27 @@ const SAMPLE_COUNT = 4;
 
 export class MockImageProvider implements ImageProvider {
   capabilities = {
-    modelCodes: ["flux-1.1-pro", "gpt-image-2", "gpt-image-1", "recraft-v3", "bedrock-sd35", "nova-canvas"],
+    // Lists every internal code shipped today plus the legacy llm-id aliases
+    // so tests written against either naming still resolve to this mock.
+    modelCodes: [
+      // Internal codes (canonical post-B3 surface)
+      "economy",
+      "photoreal-pro",
+      "photoreal-ultra",
+      "text-master",
+      "text-master-pro",
+      "design-studio",
+      "speed-draft",
+      "nova-canvas",
+      "nano-banana",
+      "nano-banana-pro",
+      // Legacy llm-id aliases — keep until all callers migrate
+      "flux-1.1-pro",
+      "gpt-image-2",
+      "gpt-image-1",
+      "recraft-v3",
+      "bedrock-sd35",
+    ],
     supportsImageToImage: true,
     supportsMultiReference: true,
     tier: "fast" as const,

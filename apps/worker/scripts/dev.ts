@@ -1,3 +1,4 @@
+import { createDb, listSupportedSizes } from "@vyora/db";
 import {
   Gateway,
   MockImageProvider,
@@ -19,12 +20,15 @@ initWorkerSentry();
 
 const config = loadConfig();
 
+const dbAdmin = createDb(config.db.url, "app_admin");
+
 function buildMockAI(): Gateway {
   const gw = new Gateway();
   gw.registerImage(new MockImageProvider({ minDelayMs: 4000, maxDelayMs: 10000 }));
   gw.setText(new MockTextProvider());
   gw.setVision(new MockVisionProvider());
   gw.setModeration(new MockModerationProvider());
+  gw.setSupportedSizesLookup((code) => listSupportedSizes(dbAdmin, code));
   return gw;
 }
 
@@ -45,6 +49,7 @@ function buildRealAI(storage: ReturnType<typeof createAdapters>["storage"]): Gat
   gw.setText(new OpenAITextProvider({ apiKey: config.ai.openaiKey, model: config.ai.openaiTextModel }));
   gw.setVision(new MockVisionProvider());
   gw.setModeration(new OpenAIModerationProvider({ apiKey: config.ai.openaiKey }));
+  gw.setSupportedSizesLookup((code) => listSupportedSizes(dbAdmin, code));
   return gw;
 }
 

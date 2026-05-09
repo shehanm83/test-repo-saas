@@ -2,7 +2,6 @@ import { Ledger } from "@vyora/billing";
 import {
   createDb,
   getGenerationFull,
-  getModel,
   generationVariants,
   generations,
   brandAssets,
@@ -32,6 +31,23 @@ function parseInspirationKeys(raw: string): string[] {
     /* not JSON */
   }
   return [raw];
+}
+
+// Legacy fallback: maps llm/vendor model ids back onto today's internal model
+// codes. Only hit when v0.modelUsed isn't set (pre-A enqueues). Anything we
+// don't recognise is returned untouched so we still surface a useful error.
+const VENDOR_TO_INTERNAL: Record<string, string> = {
+  "flux-1.1-pro": "economy",
+  "gpt-image-1": "text-master",
+  "gpt-image-2": "text-master-pro",
+  "recraft-v3": "design-studio",
+  "bedrock-sd35": "speed-draft",
+  "stability.sd3-large-v1:0": "speed-draft",
+  "amazon.nova-canvas-v1:0": "nova-canvas",
+};
+
+function mapVendorIdToInternal(vendorIdOrInternal: string): string {
+  return VENDOR_TO_INTERNAL[vendorIdOrInternal] ?? vendorIdOrInternal;
 }
 
 function dedupeReferences(
@@ -469,26 +485,27 @@ export class GenerationWorker {
       !this.config.ai.replicateToken &&
       !this.config.ai.recraftKey;
 
-    // Dereference our internal model code (e.g. "economy") to the gateway's llm_model_id
-    // (e.g. "flux-1.1-pro"). v0.modelUsed is set by GenerationApi to the internal code.
+    // After B3, the gateway is the seam between models.code (internal) and
+    // vendor llm_model_ids — providers receive the internal code in
+    // req.modelCode and dispatch to the right vendor endpoint themselves.
+    // The worker no longer touches the DB for resolution; v0.modelUsed
+    // (set by GenerationApi.create from resolveSelection) is the internal
+    // code we pass straight through.
     let modelCode: string;
     if (v0.modelUsed) {
-      const model = await getModel(dbAdmin, v0.modelUsed);
-      if (!model) {
-        await this.markFailed(dbAdmin, job, "unknown_model", v0.modelUsed, "failed");
-        await this.releaseCredits(job, v0.creditCost);
-        return;
-      }
-      modelCode = model.llmModelId;
+      modelCode = v0.modelUsed;
     } else {
-      // Fallback for legacy paths or when modelUsed wasn't set: keep the previous heuristic.
-      modelCode =
+      // Legacy fallback for variants enqueued before A's resolveSelection
+      // was wired in. tpl.preferredModel and openaiImageModel are vendor-side
+      // ids, so map them onto today's internal codes.
+      const fallbackVendorId =
         settings.usePremiumModel || openAIOnlyRealMode
           ? this.config.ai.openaiImageModel
           : tpl.preferredModel;
+      modelCode = mapVendorIdToInternal(fallbackVendorId);
     }
     if (openAIOnlyRealMode) {
-      modelCode = this.config.ai.openaiImageModel;
+      modelCode = mapVendorIdToInternal(this.config.ai.openaiImageModel);
     }
     const negPrompt = combineNegativePrompts(quickPrompt?.negativePrompt, mood?.negativePrompts);
     const baseReq: AIImageRequest = {
@@ -528,7 +545,7 @@ export class GenerationWorker {
           const { references: _r, ...baseReqNoRefs } = baseReq;
           imageRes = await this.adapters.ai.generateImage({
             ...baseReqNoRefs,
-            modelCode: "bedrock-sd35",
+            modelCode: "speed-draft",
           });
         } catch (e2) {
           this.adapters.telemetry.captureException(retryError ?? e2, {

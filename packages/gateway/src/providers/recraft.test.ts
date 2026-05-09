@@ -22,14 +22,14 @@ describe("RecraftImageProvider", () => {
     const storage = { getSignedUrl: vi.fn() } as never;
     const p = new RecraftImageProvider({ apiKey: "k", storage });
     const r = await p.generate({
-      modelCode: "recraft-v3",
+      modelCode: "design-studio",
       prompt: "test",
       aspectRatio: "1:1",
       width: 1024,
       height: 1024,
       safetyLevel: "default",
     });
-    expect(r.modelUsedCode).toBe("recraft-v3");
+    expect(r.modelUsedCode).toBe("design-studio");
     expect(r.imageBytes.byteLength).toBeGreaterThan(0);
   });
 
@@ -39,7 +39,7 @@ describe("RecraftImageProvider", () => {
     const storage = { getSignedUrl: vi.fn() } as never;
     const p = new RecraftImageProvider({ apiKey: "k", storage });
     await expect(
-      p.generate({ modelCode: "recraft-v3", prompt: "test", aspectRatio: "1:1", width: 512, height: 512, safetyLevel: "default" }),
+      p.generate({ modelCode: "design-studio", prompt: "test", aspectRatio: "1:1", width: 512, height: 512, safetyLevel: "default" }),
     ).rejects.toThrow(/recraft-status-401/);
   });
 });

@@ -26,8 +26,9 @@ export function chooseProvider(
     return { provider: requested, modelCode: requestedModel, substituted: false, needsVisionFallback: false };
   }
 
-  // Promotion: pick a same-or-higher-tier i2i-capable model
-  const promotionOrder = ["gpt-image-2", "gpt-image-1", "flux-1.1-pro", "recraft-v3"];
+  // Promotion: pick a same-or-higher-tier i2i-capable model. Internal codes —
+  // see B3 in the image-providers plan for why this list moved off llm ids.
+  const promotionOrder = ["text-master-pro", "text-master", "photoreal-pro", "design-studio"];
   for (const candidate of promotionOrder) {
     const p = registry.get(candidate);
     if (p?.capabilities.supportsImageToImage) {

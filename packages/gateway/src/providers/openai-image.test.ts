@@ -28,14 +28,14 @@ describe("OpenAIImageProvider", () => {
     const storage = { getBytes: vi.fn() } as never;
     const p = new OpenAIImageProvider({ apiKey: "k", storage });
     const r = await p.generate({
-      modelCode: "gpt-image-2",
+      modelCode: "text-master-pro",
       prompt: "hello",
       aspectRatio: "1:1",
       width: 1024,
       height: 1024,
       safetyLevel: "default",
     });
-    expect(r.modelUsedCode).toBe("gpt-image-2");
+    expect(r.modelUsedCode).toBe("text-master-pro");
     expect(__mockGenerate).toHaveBeenCalledWith(
       expect.objectContaining({ model: "gpt-image-2", output_format: "png", size: "1024x1024" }),
     );
@@ -51,9 +51,9 @@ describe("OpenAIImageProvider", () => {
     });
 
     const storage = { getBytes: vi.fn() } as never;
-    const p = new OpenAIImageProvider({ apiKey: "k", storage, model: "gpt-image-1" });
+    const p = new OpenAIImageProvider({ apiKey: "k", storage });
     await p.generate({
-      modelCode: "gpt-image-1",
+      modelCode: "text-master",
       prompt: "facebook landscape",
       aspectRatio: "1.91:1",
       width: 1080,
@@ -77,7 +77,7 @@ describe("OpenAIImageProvider", () => {
     const storage = { getBytes: vi.fn(async () => new Uint8Array([1, 2, 3])) } as never;
     const p = new OpenAIImageProvider({ apiKey: "k", storage });
     const r = await p.generate({
-      modelCode: "gpt-image-2",
+      modelCode: "text-master-pro",
       prompt: "hello",
       aspectRatio: "1:1",
       width: 1024,
@@ -85,7 +85,7 @@ describe("OpenAIImageProvider", () => {
       safetyLevel: "default",
       references: [{ s3Key: "ref.png", role: "inspiration", weight: 0.5 }],
     });
-    expect(r.modelUsedCode).toBe("gpt-image-2");
+    expect(r.modelUsedCode).toBe("text-master-pro");
     expect(__mockEdit).toHaveBeenCalledOnce();
   });
 });

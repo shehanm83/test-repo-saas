@@ -10,12 +10,25 @@ import type {
 import type { ImageProvider, TextProvider, VisionProvider, ModerationProvider } from "./types.js";
 import { chooseProvider } from "./routing.js";
 
+/** Read-only view of what {@link Gateway.getSupportedSizes} returns. */
+export interface SupportedSize {
+  width: number;
+  height: number;
+  label?: string | null;
+}
+
+export type SupportedSizesLookup = (modelCode: string) => Promise<SupportedSize[]>;
+
+const SUPPORTED_SIZES_TTL_MS = 60_000;
+
 export class Gateway implements AIProvider {
   private images = new Map<string, ImageProvider>();
   private text: TextProvider | null = null;
   private vision: VisionProvider | null = null;
   private moderation: ModerationProvider | null = null;
   private storage: StorageAdapter | null = null;
+  private sizesLookup: SupportedSizesLookup | null = null;
+  private sizesCache = new Map<string, { fetchedAt: number; sizes: SupportedSize[] }>();
 
   registerImage(p: ImageProvider): void {
     for (const code of p.capabilities.modelCodes) this.images.set(code, p);
@@ -24,6 +37,21 @@ export class Gateway implements AIProvider {
   setVision(p: VisionProvider): void { this.vision = p; }
   setModeration(p: ModerationProvider): void { this.moderation = p; }
   setStorage(s: StorageAdapter): void { this.storage = s; }
+  setSupportedSizesLookup(fn: SupportedSizesLookup): void {
+    this.sizesLookup = fn;
+    this.sizesCache.clear();
+  }
+
+  async getSupportedSizes(modelCode: string): Promise<SupportedSize[]> {
+    if (!this.sizesLookup) throw new Error("supported-sizes-lookup-not-injected");
+    const cached = this.sizesCache.get(modelCode);
+    if (cached && Date.now() - cached.fetchedAt < SUPPORTED_SIZES_TTL_MS) {
+      return cached.sizes;
+    }
+    const sizes = await this.sizesLookup(modelCode);
+    this.sizesCache.set(modelCode, { fetchedAt: Date.now(), sizes });
+    return sizes;
+  }
 
   async generateImage(req: AIImageRequest): Promise<AIImageResponse> {
     const hasInspiration = !!req.references?.some((r) => r.role === "inspiration");

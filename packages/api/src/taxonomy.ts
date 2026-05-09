@@ -15,6 +15,7 @@ import {
   listRouting,
   listStrengths,
   listStrengthsForModel,
+  listSupportedSizes,
   listTags,
   listTagsForModel,
   removeStrength,
@@ -112,6 +113,9 @@ export class TaxonomyApi {
   }
   listTagsForModel(modelCode: string) {
     return listTagsForModel(this.db(), modelCode);
+  }
+  listSupportedSizes(modelCode: string) {
+    return listSupportedSizes(this.db(), modelCode);
   }
 
   // Tags

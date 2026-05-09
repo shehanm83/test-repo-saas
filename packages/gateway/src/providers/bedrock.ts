@@ -7,7 +7,9 @@ const NOVA_COST_CENTS = 4;
 
 export class BedrockImageProvider implements ImageProvider {
   capabilities: ProviderCapabilities = {
-    modelCodes: ["bedrock-sd35", "nova-canvas"],
+    // Internal codes per the taxonomy. speed-draft → SD3.5 Large; nova-canvas
+    // → Amazon Nova Canvas. Both go through Bedrock InvokeModel.
+    modelCodes: ["speed-draft", "nova-canvas"],
     supportsImageToImage: false,
     supportsMultiReference: false,
     tier: "fallback",
@@ -21,29 +23,26 @@ export class BedrockImageProvider implements ImageProvider {
 
   async generate(req: AIImageRequest): Promise<AIImageResponse> {
     const start = Date.now();
-    const modelId =
-      req.modelCode === "nova-canvas"
-        ? "amazon.nova-canvas-v1:0"
-        : "stability.sd3-large-v1:0";
+    const isNova = req.modelCode === "nova-canvas";
+    const modelId = isNova ? "amazon.nova-canvas-v1:0" : "stability.sd3-large-v1:0";
 
-    const body =
-      req.modelCode === "nova-canvas"
-        ? {
-            taskType: "TEXT_IMAGE",
-            textToImageParams: { text: req.prompt, negativeText: req.negativePrompt },
-            imageGenerationConfig: {
-              numberOfImages: 1,
-              width: req.width,
-              height: req.height,
-              cfgScale: 6.5,
-            },
-          }
-        : {
-            prompt: req.prompt,
-            negative_prompt: req.negativePrompt,
-            aspect_ratio: req.aspectRatio,
-            output_format: "png",
-          };
+    const body = isNova
+      ? {
+          taskType: "TEXT_IMAGE",
+          textToImageParams: { text: req.prompt, negativeText: req.negativePrompt },
+          imageGenerationConfig: {
+            numberOfImages: 1,
+            width: req.width,
+            height: req.height,
+            cfgScale: 6.5,
+          },
+        }
+      : {
+          prompt: req.prompt,
+          negative_prompt: req.negativePrompt,
+          aspect_ratio: req.aspectRatio,
+          output_format: "png",
+        };
 
     const cmd = new InvokeModelCommand({
       modelId,
@@ -59,7 +58,7 @@ export class BedrockImageProvider implements ImageProvider {
     return {
       imageBytes: bytes,
       modelUsedCode: req.modelCode,
-      upstreamCostCents: req.modelCode === "nova-canvas" ? NOVA_COST_CENTS : BEDROCK_SD35_COST_CENTS,
+      upstreamCostCents: isNova ? NOVA_COST_CENTS : BEDROCK_SD35_COST_CENTS,
       latencyMs: Date.now() - start,
       safetyFlags: [],
     };

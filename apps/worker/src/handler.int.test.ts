@@ -185,7 +185,7 @@ describe("GenerationWorker.handle", () => {
         jsxSource: MINIMAL_JSX,
         slots: [],
         textSafeZones: [],
-        preferredModel: "flux-1.1-pro",
+        preferredModel: "economy",
         supportedAspectRatios: ["1:1"],
         status: "published",
         requiresBrowserRender: false,
@@ -193,15 +193,20 @@ describe("GenerationWorker.handle", () => {
       .returning();
     templateId = tpl!.id;
 
-    // Seed pricebook entry
-    await adminDb.insert(priceBookEntries).values({
-      modelCode: "flux-1.1-pro",
-      sizeBucket: "standard",
-      premiumFlag: false,
-      hasInspirationFlag: false,
-      credits: 10,
-      version: 1,
-    });
+    // Seed pricebook entry. After migration 0016 (sub-project A), pricebook
+    // is FK'd to models.code (internal), so the model_code here must be one
+    // of the seeded internal codes — "economy" is the standard-tier default.
+    await adminDb
+      .insert(priceBookEntries)
+      .values({
+        modelCode: "economy",
+        sizeBucket: "standard",
+        premiumFlag: false,
+        hasInspirationFlag: false,
+        credits: 10,
+        version: 1,
+      })
+      .onConflictDoNothing();
 
     // Grant credits to workspace so reserve succeeds
     const ledger = new Ledger(adminDb);
@@ -236,6 +241,7 @@ describe("GenerationWorker.handle", () => {
         templateId,
         creditCost: 10,
         status: "queued",
+        modelUsed: "economy",
       })
       .returning();
 

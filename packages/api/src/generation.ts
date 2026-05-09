@@ -417,7 +417,7 @@ export class GenerationApi {
       target.width * target.height > 1280 * 1280 ? "large" : "standard";
     const hasInspiration = !!gen.inspirationImageS3Key;
 
-    const modelCode = sourceVariant.modelUsed ?? "flux-1.1-pro";
+    const modelCode = sourceVariant.modelUsed ?? "economy";
     const price = await priceBookLookup(this.db(), {
       modelCode,
       sizeBucket,

@@ -13,6 +13,14 @@ interface ModelRow {
   vendor: string;
   llmModelId: string;
   status: "active" | "paused" | "deprecated";
+  allowCustomSize?: boolean;
+}
+
+interface SupportedSize {
+  width: number;
+  height: number;
+  label: string | null;
+  sortOrder: number;
 }
 
 interface StrengthRow {
@@ -39,6 +47,7 @@ export function ModelDetail({
   routing,
   assignedStrengths,
   assignedTags,
+  supportedSizes = [],
 }: {
   model: ModelRow;
   allStrengths: StrengthRow[];
@@ -46,6 +55,7 @@ export function ModelDetail({
   routing: RoutingRow[];
   assignedStrengths: string[];
   assignedTags: string[];
+  supportedSizes?: SupportedSize[];
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -461,6 +471,45 @@ export function ModelDetail({
                     {r.strengthCode ? ` · ${r.strengthCode}` : ""}
                   </span>
                   {r.isDefault ? <span className="pill pill--green">Default</span> : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Supported sizes (read-only — seeded by migration) */}
+        <div className="card" style={{ padding: 24 }}>
+          <h2 className="t-h4" style={{ margin: "0 0 8px" }}>
+            Supported sizes
+          </h2>
+          <p style={{ color: "var(--fg-3)", fontSize: 13, margin: "0 0 16px" }}>
+            {model.allowCustomSize
+              ? "This model accepts custom resolutions. Listed sizes are recommended presets."
+              : "Selectable resolutions for this model."}
+          </p>
+          {supportedSizes.length === 0 ? (
+            <p style={{ color: "var(--fg-3)", fontSize: 13, margin: 0 }}>
+              No sizes seeded. Add via migration.
+            </p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {supportedSizes.map((s) => (
+                <li
+                  key={`${s.width}x${s.height}`}
+                  style={{
+                    padding: "8px 0",
+                    borderBottom: "1px solid var(--cal-gray-200)",
+                    display: "flex",
+                    gap: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <span className="mono" style={{ fontSize: 13 }}>
+                    {s.width} × {s.height}
+                  </span>
+                  {s.label ? (
+                    <span style={{ color: "var(--fg-3)", fontSize: 13 }}>{s.label}</span>
+                  ) : null}
                 </li>
               ))}
             </ul>

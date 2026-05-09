@@ -22,14 +22,14 @@ describe("FluxImageProvider", () => {
     const storage = { getSignedUrl: vi.fn(async () => "https://s/x") } as never;
     const p = new FluxImageProvider({ replicateToken: "t", storage });
     const r = await p.generate({
-      modelCode: "flux-1.1-pro",
+      modelCode: "economy",
       prompt: "hi",
       aspectRatio: "1:1",
       width: 1024,
       height: 1024,
       safetyLevel: "default",
     });
-    expect(r.modelUsedCode).toBe("flux-1.1-pro");
+    expect(r.modelUsedCode).toBe("economy");
     expect(r.imageBytes.byteLength).toBeGreaterThan(0);
   });
 
@@ -42,7 +42,7 @@ describe("FluxImageProvider", () => {
     const p = new FluxImageProvider({ replicateToken: "t", storage });
     await expect(
       p.generate({
-        modelCode: "flux-1.1-pro",
+        modelCode: "economy",
         prompt: "hi",
         aspectRatio: "1:1",
         width: 1024,

@@ -28,14 +28,14 @@ describe("BedrockImageProvider", () => {
 
     const p = new BedrockImageProvider({ region: "us-east-1" });
     const r = await p.generate({
-      modelCode: "bedrock-sd35",
+      modelCode: "speed-draft",
       prompt: "test",
       aspectRatio: "1:1",
       width: 1024,
       height: 1024,
       safetyLevel: "default",
     });
-    expect(r.modelUsedCode).toBe("bedrock-sd35");
+    expect(r.modelUsedCode).toBe("speed-draft");
     expect(r.imageBytes.byteLength).toBeGreaterThan(0);
     expect(r.upstreamCostCents).toBe(3);
   });
