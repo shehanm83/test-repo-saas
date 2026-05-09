@@ -83,6 +83,7 @@ const config = {
     replicateToken: undefined,
     recraftKey: undefined,
     bflKey: undefined,
+    googleGenaiKey: undefined,
     bedrockRegion: "us-east-1",
   },
   email: {

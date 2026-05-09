@@ -46,6 +46,7 @@ const baseSchema = z.object({
   REPLICATE_API_TOKEN: z.string().optional(),
   RECRAFT_API_KEY: z.string().optional(),
   BFL_API_KEY: z.string().optional(),
+  GOOGLE_GENAI_API_KEY: z.string().optional(),
   AWS_BEDROCK_REGION: z.string().default("us-east-1"),
 
   EMAIL_MODE: z.enum(["resend", "mailpit", "console"]).default("console"),
@@ -207,6 +208,7 @@ function shape(env: z.output<typeof baseSchema>) {
       replicateToken: env.REPLICATE_API_TOKEN,
       recraftKey: env.RECRAFT_API_KEY,
       bflKey: env.BFL_API_KEY,
+      googleGenaiKey: env.GOOGLE_GENAI_API_KEY,
       bedrockRegion: env.AWS_BEDROCK_REGION,
     },
     email: {
