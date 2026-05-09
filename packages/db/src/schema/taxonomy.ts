@@ -26,9 +26,26 @@ export const models = pgTable("models", {
   status: text("status", { enum: ["active", "paused", "deprecated"] })
     .notNull()
     .default("active"),
+  allowCustomSize: boolean("allow_custom_size").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const modelSupportedSizes = pgTable(
+  "model_supported_sizes",
+  {
+    modelCode: text("model_code")
+      .notNull()
+      .references(() => models.code, { onDelete: "cascade" }),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    label: text("label"),
+    sortOrder: integer("sort_order").notNull().default(0),
+  },
+  (table) => ({
+    pk: uniqueIndex("model_supported_sizes_pk").on(table.modelCode, table.width, table.height),
+  }),
+);
 
 export const modelStrengths = pgTable(
   "model_strengths",

@@ -3,6 +3,7 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 import type { Db } from "../client";
 import {
   modelStrengths,
+  modelSupportedSizes,
   modelTags,
   models,
   qualityTiers,
@@ -254,6 +255,27 @@ export async function listStrengthsForModel(db: Db, modelCode: string): Promise<
     .from(modelStrengths)
     .where(eq(modelStrengths.modelCode, modelCode));
   return rows.map((r) => r.strengthCode);
+}
+
+// Supported sizes
+export interface SupportedSize {
+  width: number;
+  height: number;
+  label: string | null;
+  sortOrder: number;
+}
+
+export async function listSupportedSizes(db: Db, modelCode: string): Promise<SupportedSize[]> {
+  return db
+    .select({
+      width: modelSupportedSizes.width,
+      height: modelSupportedSizes.height,
+      label: modelSupportedSizes.label,
+      sortOrder: modelSupportedSizes.sortOrder,
+    })
+    .from(modelSupportedSizes)
+    .where(eq(modelSupportedSizes.modelCode, modelCode))
+    .orderBy(asc(modelSupportedSizes.sortOrder), asc(modelSupportedSizes.width));
 }
 
 // Tags

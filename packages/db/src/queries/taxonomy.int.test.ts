@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 
 import { createDb } from "../client";
 import { getTierOptions, getModel, resolveSelection } from "./taxonomy";
-import { addRouting, updateRouting, listRouting, deleteRouting } from "./taxonomy";
+import { addRouting, updateRouting, listRouting, deleteRouting, listSupportedSizes } from "./taxonomy";
 
 const url = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5433/studio";
 
@@ -64,6 +64,46 @@ describe("resolveSelection (integration)", () => {
     expect(r.models).toHaveLength(1);
     expect(r.models[0]!.modelCode).toBe("text-master");
     expect(r.totalCredits).toBe(15);
+  });
+});
+
+describe("listSupportedSizes (integration)", () => {
+  const db = createDb(url, "app_admin");
+
+  it("returns ≥3 seeded sizes for each of the 5 models from migration 0016", async () => {
+    for (const code of ["economy", "photoreal-pro", "text-master", "design-studio", "speed-draft"]) {
+      const sizes = await listSupportedSizes(db, code);
+      expect(sizes.length, `model ${code}`).toBeGreaterThanOrEqual(3);
+      // Square should be present and first by sortOrder.
+      expect(sizes[0]).toMatchObject({ width: 1024, height: 1024 });
+    }
+  });
+
+  it("orders by sort_order then width", async () => {
+    const sizes = await listSupportedSizes(db, "text-master");
+    const orders = sizes.map((s) => s.sortOrder);
+    const sorted = [...orders].sort((a, b) => a - b);
+    expect(orders).toEqual(sorted);
+  });
+
+  it("returns empty for an unknown model_code", async () => {
+    const sizes = await listSupportedSizes(db, "does-not-exist");
+    expect(sizes).toEqual([]);
+  });
+
+  it("FK cascades on model delete", async () => {
+    // Insert a throwaway model, attach a size, delete the model — sizes should vanish.
+    await db.execute(sql`
+      INSERT INTO models (code, display_name, vendor, llm_model_id, status)
+      VALUES ('cascade-probe', 'Cascade Probe', 'replicate', 'flux-1.1-pro', 'paused')
+    `);
+    await db.execute(sql`
+      INSERT INTO model_supported_sizes (model_code, width, height, label, sort_order)
+      VALUES ('cascade-probe', 1024, 1024, 'Square', 0)
+    `);
+    expect(await listSupportedSizes(db, "cascade-probe")).toHaveLength(1);
+    await db.execute(sql`DELETE FROM models WHERE code = 'cascade-probe'`);
+    expect(await listSupportedSizes(db, "cascade-probe")).toHaveLength(0);
   });
 });
 
