@@ -51,6 +51,8 @@ const baseSchema = z.object({
   EMAIL_MODE: z.enum(["resend", "mailpit", "console"]).default("console"),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().email().default("studio@example.com"),
+  EMAIL_SMTP_HOST: z.string().default("localhost"),
+  EMAIL_SMTP_PORT: z.coerce.number().int().positive().default(1025),
 
   OBSERVABILITY: z.enum(["sentry", "none"]).default("none"),
   SENTRY_DSN: z.string().optional(),
@@ -62,7 +64,6 @@ const refinedSchema = baseSchema.superRefine((env, ctx) => {
     for (const key of [
       "CLERK_PUBLISHABLE_KEY",
       "CLERK_SECRET_KEY",
-      "CLERK_WEBHOOK_SECRET",
     ] as const) {
       if (!env[key]) {
         ctx.addIssue({
@@ -72,6 +73,9 @@ const refinedSchema = baseSchema.superRefine((env, ctx) => {
         });
       }
     }
+    // CLERK_WEBHOOK_SECRET is optional. The webhook route (/api/webhooks/clerk)
+    // refuses to process events when it is unset — see ClerkWebhookHandler.
+    // Local environments without a public URL/tunnel can leave it empty.
   }
 
   if (env.AUTH_MODE === "dev" && !env.DEV_USER_ID) {
@@ -98,12 +102,22 @@ const refinedSchema = baseSchema.superRefine((env, ctx) => {
     });
   }
 
-  if (env.BILLING_MODE !== "stub" && !env.STRIPE_SECRET_KEY) {
-    ctx.addIssue({
-      code: "custom",
-      path: ["STRIPE_SECRET_KEY"],
-      message: "STRIPE_SECRET_KEY required when BILLING_MODE != stub",
-    });
+  if (env.BILLING_MODE !== "stub") {
+    if (!env.STRIPE_SECRET_KEY) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["STRIPE_SECRET_KEY"],
+        message: "STRIPE_SECRET_KEY required when BILLING_MODE != stub",
+      });
+    }
+    if (!env.STRIPE_WEBHOOK_SECRET) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["STRIPE_WEBHOOK_SECRET"],
+        message:
+          "STRIPE_WEBHOOK_SECRET required when BILLING_MODE != stub. Without it, Stripe webhook events (invoice.paid, checkout.session.completed) cannot be verified, so paid checkouts will never grant credits. Run `stripe listen --forward-to localhost:3000/api/webhooks/stripe` and copy the printed whsec_… value, or set BILLING_MODE=stub to disable Stripe entirely.",
+      });
+    }
   }
 
   if (env.AI_MODE === "real" && !env.OPENAI_API_KEY && !env.REPLICATE_API_TOKEN) {
@@ -111,6 +125,14 @@ const refinedSchema = baseSchema.superRefine((env, ctx) => {
       code: "custom",
       path: ["AI_MODE"],
       message: "AI_MODE=real requires at least one provider key",
+    });
+  }
+
+  if (env.EMAIL_MODE === "resend" && !env.RESEND_API_KEY) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["RESEND_API_KEY"],
+      message: "RESEND_API_KEY required when EMAIL_MODE=resend",
     });
   }
 
@@ -135,7 +157,7 @@ function shape(env: z.output<typeof baseSchema>) {
             mode: "clerk" as const,
             publishableKey: env.CLERK_PUBLISHABLE_KEY!,
             secretKey: env.CLERK_SECRET_KEY!,
-            webhookSecret: env.CLERK_WEBHOOK_SECRET!,
+            webhookSecret: env.CLERK_WEBHOOK_SECRET,
           }
         : {
             mode: "dev" as const,
@@ -191,6 +213,8 @@ function shape(env: z.output<typeof baseSchema>) {
       mode: env.EMAIL_MODE,
       resendKey: env.RESEND_API_KEY,
       from: env.EMAIL_FROM,
+      smtpHost: env.EMAIL_SMTP_HOST,
+      smtpPort: env.EMAIL_SMTP_PORT,
     },
     observability: {
       mode: env.OBSERVABILITY,

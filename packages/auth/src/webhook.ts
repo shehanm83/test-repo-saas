@@ -9,7 +9,7 @@ interface ClerkWebhookConfig {
         mode: "clerk";
         publishableKey: string;
         secretKey: string;
-        webhookSecret: string;
+        webhookSecret: string | undefined;
       };
   db: { url: string };
 }
@@ -29,6 +29,10 @@ export class ClerkWebhookHandler {
   async handle(rawBody: string, headers: Headers): Promise<{ status: number; body: unknown }> {
     if (this.config.auth.mode !== "clerk") {
       return { status: 200, body: { skipped: "dev-mode" } };
+    }
+
+    if (!this.config.auth.webhookSecret) {
+      return { status: 503, body: { error: "webhook-not-configured" } };
     }
 
     let event: ClerkWebhookEvent;
