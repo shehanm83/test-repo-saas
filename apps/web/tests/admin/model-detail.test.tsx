@@ -52,7 +52,10 @@ describe("ModelDetail", () => {
     expect(screen.getByRole("heading", { name: "Basics" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Strengths" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Tags" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Routing" })).toBeInTheDocument();
+    // The routing section was renamed to "Used in" in the admin redesign;
+    // it shows the same data plus an inline default-swap button.
+    expect(screen.getByRole("heading", { name: "Used in" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Credit cost" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Danger zone" })).toBeInTheDocument();
     // Assigned strength chip
     expect(screen.getByText("Photoreal")).toBeInTheDocument();

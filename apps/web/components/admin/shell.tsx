@@ -6,13 +6,17 @@ import React from "react";
 
 import { I } from "@/components/icons";
 
+// /admin/pricebook and /admin/routing are intentionally NOT linked from the
+// sidebar — their config now lives inside each model's detail page (Credit
+// cost + Used in panels). The standalone pages still work via direct URL
+// for advanced version-history use cases.
 const items = [
+  { href: "/admin/models", label: "Models", icon: <I.Layout size={16} /> },
+  { href: "/admin/use-cases", label: "Use cases", icon: <I.Layout size={16} /> },
   { href: "/admin/landing-hero", label: "Landing hero", icon: <I.Image size={16} /> },
   { href: "/admin/moods", label: "Moods", icon: <I.Library size={16} /> },
   { href: "/admin/templates", label: "Templates", icon: <I.Layout size={16} /> },
   { href: "/admin/stock", label: "Stock", icon: <I.Image size={16} /> },
-  { href: "/admin/use-cases", label: "Use cases", icon: <I.Layout size={16} /> },
-  { href: "/admin/pricebook", label: "Pricebook", icon: <I.Coin size={16} /> },
   { href: "/admin/generations", label: "Inspector", icon: <I.Search size={16} /> },
   { href: "/admin/users", label: "Users", icon: <I.User size={16} /> },
   { href: "/admin/aup", label: "AUP", icon: <I.Shield size={16} /> },

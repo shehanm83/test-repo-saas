@@ -58,3 +58,21 @@ export async function expirePricebookVersion(db: Db, id: string, expireAt: Date)
     .set({ effectiveTo: expireAt })
     .where(eq(priceBookEntries.id, id));
 }
+
+// All currently-active price entries for a single model — exactly 4 in
+// theory (size_bucket × has_inspiration_flag). Sorted so the model detail
+// page can render them in a stable table order.
+export async function adminListPricebookForModel(db: Db, modelCode: string) {
+  const now = new Date();
+  return db
+    .select()
+    .from(priceBookEntries)
+    .where(
+      and(
+        eq(priceBookEntries.modelCode, modelCode),
+        lte(priceBookEntries.effectiveFrom, now),
+        or(isNull(priceBookEntries.effectiveTo), gt(priceBookEntries.effectiveTo, now)),
+      ),
+    )
+    .orderBy(asc(priceBookEntries.sizeBucket), asc(priceBookEntries.hasInspirationFlag));
+}

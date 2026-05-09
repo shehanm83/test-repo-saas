@@ -40,6 +40,25 @@ interface RoutingRow {
   sortOrder: number;
 }
 
+interface PricingRow {
+  sizeBucket: "standard" | "large";
+  hasInspirationFlag: boolean;
+  credits: number;
+  version: number;
+}
+
+const PRICING_CELLS: Array<{
+  sizeBucket: "standard" | "large";
+  hasInspirationFlag: boolean;
+  label: string;
+  hint: string;
+}> = [
+  { sizeBucket: "standard", hasInspirationFlag: false, label: "Standard size", hint: "≤ 1280×1280" },
+  { sizeBucket: "standard", hasInspirationFlag: true, label: "Standard + inspiration", hint: "≤ 1280×1280, with reference image" },
+  { sizeBucket: "large", hasInspirationFlag: false, label: "Large size", hint: "> 1280×1280" },
+  { sizeBucket: "large", hasInspirationFlag: true, label: "Large + inspiration", hint: "> 1280×1280, with reference image" },
+];
+
 export function ModelDetail({
   model,
   allStrengths,
@@ -48,6 +67,7 @@ export function ModelDetail({
   assignedStrengths,
   assignedTags,
   supportedSizes = [],
+  pricing = [],
 }: {
   model: ModelRow;
   allStrengths: StrengthRow[];
@@ -56,6 +76,7 @@ export function ModelDetail({
   assignedStrengths: string[];
   assignedTags: string[];
   supportedSizes?: SupportedSize[];
+  pricing?: PricingRow[];
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -85,6 +106,18 @@ export function ModelDetail({
   );
 
   async function saveBasics() {
+    // Vendor / llm_model_id changes re-point production traffic. Confirm if
+    // either has been edited from the value the page rendered with.
+    const mappingChanged = vendor !== model.vendor || llmModelId !== model.llmModelId;
+    if (mappingChanged) {
+      const ok = window.confirm(
+        `You're changing the vendor mapping for "${model.code}":\n` +
+          `\n  ${model.vendor} / ${model.llmModelId}\n  →  ${vendor} / ${llmModelId}\n\n` +
+          `This re-points production generation traffic for any active routing. ` +
+          `Make sure a provider class exists that handles "${vendor}".`,
+      );
+      if (!ok) return;
+    }
     setPending(true);
     setErrorMsg(null);
     try {
@@ -432,50 +465,13 @@ export function ModelDetail({
           </div>
         </div>
 
-        {/* Routing (read-only) */}
-        <div className="card" style={{ padding: 24 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 16,
-            }}
-          >
-            <h2 className="t-h4" style={{ margin: 0 }}>
-              Routing
-            </h2>
-            <Link href="/admin/routing" className="btn btn--secondary btn--sm">
-              Edit routing
-            </Link>
-          </div>
-          {myRouting.length === 0 ? (
-            <p style={{ color: "var(--fg-3)", fontSize: 13, margin: 0 }}>
-              This model is not in any routing bucket.
-            </p>
-          ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {myRouting.map((r) => (
-                <li
-                  key={r.id}
-                  style={{
-                    padding: "8px 0",
-                    borderBottom: "1px solid var(--cal-gray-200)",
-                    display: "flex",
-                    gap: 8,
-                    alignItems: "center",
-                  }}
-                >
-                  <span className="mono" style={{ fontSize: 13 }}>
-                    {r.tierCode}
-                    {r.strengthCode ? ` · ${r.strengthCode}` : ""}
-                  </span>
-                  {r.isDefault ? <span className="pill pill--green">Default</span> : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {/* Credits — sub-project D2 of the admin UX redesign. Inline editable
+            grid; mutation hits PUT /api/admin/pricebook/credits which expires
+            the active row and inserts a new versioned one. */}
+        <PricingCard modelCode={model.code} initial={pricing} />
+
+        {/* Used in (was Routing — same data, friendlier framing + inline swap) */}
+        <UsedInCard modelCode={model.code} routing={myRouting} />
 
         {/* Supported sizes (read-only — seeded by migration) */}
         <div className="card" style={{ padding: 24 }}>
@@ -537,6 +533,255 @@ export function ModelDetail({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Credits ────────────────────────────────────────────────────────────────
+
+function PricingCard({
+  modelCode,
+  initial,
+}: {
+  modelCode: string;
+  initial: PricingRow[];
+}) {
+  const router = useRouter();
+  const [rows, setRows] = useState<PricingRow[]>(initial);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [pendingKey, setPendingKey] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const cellKey = (sb: "standard" | "large", insp: boolean) => `${sb}|${insp}`;
+
+  function find(sb: "standard" | "large", insp: boolean) {
+    return rows.find((r) => r.sizeBucket === sb && r.hasInspirationFlag === insp) ?? null;
+  }
+
+  async function save(sb: "standard" | "large", insp: boolean) {
+    const key = cellKey(sb, insp);
+    const raw = draft[key];
+    if (raw == null) return;
+    const credits = Number(raw);
+    if (!Number.isInteger(credits) || credits < 1 || credits > 1000) {
+      setError("Credits must be an integer 1–1000.");
+      return;
+    }
+    setPendingKey(key);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/pricebook/credits", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ modelCode, sizeBucket: sb, hasInspirationFlag: insp, credits }),
+      });
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(json.error ?? `Save failed: ${res.status}`);
+        return;
+      }
+      const inserted = (await res.json()) as PricingRow;
+      setRows((prev) => [
+        ...prev.filter((r) => !(r.sizeBucket === sb && r.hasInspirationFlag === insp)),
+        inserted,
+      ]);
+      setDraft((d) => {
+        const { [key]: _drop, ...rest } = d;
+        void _drop;
+        return rest;
+      });
+      router.refresh();
+    } finally {
+      setPendingKey(null);
+    }
+  }
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <h2 className="t-h4" style={{ margin: "0 0 8px" }}>
+        Credit cost
+      </h2>
+      <p style={{ color: "var(--fg-3)", fontSize: 13, margin: "0 0 16px" }}>
+        How many credits this model charges per generation. Set per size bucket
+        and per "has reference image" flag. Each save creates a new versioned
+        row in the price book; old versions stay for audit.
+      </p>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <thead>
+          <tr style={{ background: "var(--cal-gray-50)" }}>
+            {["Bucket", "Threshold", "Credits", "Version", ""].map((h, i) => (
+              <th
+                key={h || i}
+                style={{
+                  textAlign: "left",
+                  padding: "10px 16px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--fg-3)",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.4,
+                }}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {PRICING_CELLS.map((cell) => {
+            const key = cellKey(cell.sizeBucket, cell.hasInspirationFlag);
+            const row = find(cell.sizeBucket, cell.hasInspirationFlag);
+            const value = draft[key] ?? (row ? String(row.credits) : "");
+            const dirty = draft[key] != null && draft[key] !== String(row?.credits ?? "");
+            return (
+              <tr
+                key={key}
+                style={{ borderTop: "1px solid var(--cal-gray-200)" }}
+              >
+                <td style={{ padding: "10px 16px" }}>{cell.label}</td>
+                <td style={{ padding: "10px 16px", color: "var(--fg-3)" }}>{cell.hint}</td>
+                <td style={{ padding: "10px 16px" }}>
+                  <input
+                    className="input mono"
+                    style={{ width: 90 }}
+                    type="number"
+                    min={1}
+                    max={1000}
+                    value={value}
+                    placeholder={row ? "" : "—"}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, [key]: e.target.value }))
+                    }
+                  />
+                </td>
+                <td style={{ padding: "10px 16px", color: "var(--fg-3)" }}>
+                  {row ? `v${row.version}` : "—"}
+                </td>
+                <td style={{ padding: "10px 16px", textAlign: "right" }}>
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--sm"
+                    disabled={!dirty || pendingKey === key}
+                    onClick={() => void save(cell.sizeBucket, cell.hasInspirationFlag)}
+                  >
+                    {pendingKey === key ? "Saving…" : "Save"}
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {error ? (
+        <p style={{ color: "var(--studio-red, #c00)", fontSize: 12, marginTop: 12 }}>
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+// ── Used in (routing) ──────────────────────────────────────────────────────
+
+function UsedInCard({
+  modelCode,
+  routing,
+}: {
+  modelCode: string;
+  routing: RoutingRow[];
+}) {
+  const router = useRouter();
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function makeDefault(routingId: string) {
+    setPendingId(routingId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/taxonomy/routing/${routingId}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ isDefault: true }),
+      });
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(json.error ?? `Update failed: ${res.status}`);
+        return;
+      }
+      router.refresh();
+    } finally {
+      setPendingId(null);
+    }
+  }
+
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 8,
+        }}
+      >
+        <h2 className="t-h4" style={{ margin: 0 }}>
+          Used in
+        </h2>
+        <span className="mono" style={{ color: "var(--fg-3)", fontSize: 12 }}>
+          {modelCode}
+        </span>
+      </div>
+      <p style={{ color: "var(--fg-3)", fontSize: 13, margin: "0 0 16px" }}>
+        Tier / strength buckets where this model is wired. Click "Make default"
+        to flip the active default for that bucket — production traffic will
+        re-route immediately.
+      </p>
+      {routing.length === 0 ? (
+        <p style={{ color: "var(--fg-3)", fontSize: 13, margin: 0 }}>
+          This model is not in any routing bucket. Add it via{" "}
+          <Link href="/admin/routing" style={{ textDecoration: "underline" }}>
+            /admin/routing
+          </Link>
+          .
+        </p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {routing.map((r) => (
+            <li
+              key={r.id}
+              style={{
+                padding: "10px 0",
+                borderBottom: "1px solid var(--cal-gray-200)",
+                display: "flex",
+                gap: 12,
+                alignItems: "center",
+              }}
+            >
+              <span className="mono" style={{ fontSize: 13, minWidth: 180 }}>
+                {r.tierCode}
+                {r.strengthCode ? ` · ${r.strengthCode}` : ""}
+              </span>
+              {r.isDefault ? (
+                <span className="pill pill--green">Default</span>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--sm"
+                  disabled={pendingId === r.id}
+                  onClick={() => void makeDefault(r.id)}
+                >
+                  {pendingId === r.id ? "Updating…" : "Make default"}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {error ? (
+        <p style={{ color: "var(--studio-red, #c00)", fontSize: 12, marginTop: 12 }}>
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { PricebookApi } from "@vyora/api/pricebook";
 import { TaxonomyApi } from "@vyora/api/taxonomy";
 import { loadConfig } from "@vyora/shared/config";
 
@@ -9,7 +10,9 @@ export default async function AdminModelDetailPage({
   params: Promise<{ code: string }>;
 }) {
   const { code } = await params;
-  const api = new TaxonomyApi(loadConfig());
+  const config = loadConfig();
+  const api = new TaxonomyApi(config);
+  const pricebook = new PricebookApi(config);
   const [
     model,
     allStrengths,
@@ -18,6 +21,7 @@ export default async function AdminModelDetailPage({
     assignedStrengths,
     assignedTags,
     supportedSizes,
+    pricing,
   ] = await Promise.all([
     api.getModel(code),
     api.listStrengths(),
@@ -26,6 +30,7 @@ export default async function AdminModelDetailPage({
     api.listStrengthsForModel(code),
     api.listTagsForModel(code),
     api.listSupportedSizes(code),
+    pricebook.forModel(code),
   ]);
 
   if (!model) {
@@ -48,6 +53,12 @@ export default async function AdminModelDetailPage({
       assignedStrengths={assignedStrengths}
       assignedTags={assignedTags}
       supportedSizes={supportedSizes}
+      pricing={pricing.map((p) => ({
+        sizeBucket: p.sizeBucket,
+        hasInspirationFlag: p.hasInspirationFlag,
+        credits: p.credits,
+        version: p.version,
+      }))}
     />
   );
 }
