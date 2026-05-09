@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { BrandApi } from "@vyora/api/brand";
-import { createDb, listBrands } from "@vyora/db";
+import { BrandNameTakenError, createDb, listBrands } from "@vyora/db";
 import { loadConfig } from "@vyora/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
@@ -24,6 +24,13 @@ export async function POST(request: Request) {
   }
 
   const api = new BrandApi(loadConfig(), createServerAdapters() as never);
-  const payload = await api.create(session.workspaceId, await request.json());
-  return NextResponse.json(payload);
+  try {
+    const payload = await api.create(session.workspaceId, await request.json());
+    return NextResponse.json(payload);
+  } catch (err) {
+    if (err instanceof BrandNameTakenError) {
+      return NextResponse.json({ error: err.code, message: err.message }, { status: 409 });
+    }
+    throw err;
+  }
 }

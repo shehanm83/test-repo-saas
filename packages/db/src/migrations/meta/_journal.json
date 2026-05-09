@@ -99,6 +99,13 @@
       "when": 1778289600000,
       "tag": "0014_quick_create_non_cropping_template",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1778659200000,
+      "tag": "0015_brands_workspace_name_unique",
+      "breakpoints": true
     }
   ]
 }
