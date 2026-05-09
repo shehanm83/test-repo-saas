@@ -9,6 +9,8 @@ export { LandingHeroApi } from "./landing-hero";
 export { MoodApi } from "./mood";
 export { PricebookApi } from "./pricebook";
 export { ProductApi } from "./product";
+export { RecomposeService } from "./recompose";
+export type { RecomposeResult, RecomposeInputType } from "./recompose";
 export { StockApi } from "./stock";
 export { TemplateApi } from "./template";
 export { WorkspaceApi } from "./workspace";

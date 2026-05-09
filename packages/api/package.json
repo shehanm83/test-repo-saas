@@ -17,6 +17,7 @@
     "./mood": "./src/mood.ts",
     "./pricebook": "./src/pricebook.ts",
     "./product": "./src/product.ts",
+    "./recompose": "./src/recompose.ts",
     "./stock": "./src/stock.ts",
     "./taxonomy": "./src/taxonomy.ts",
     "./template": "./src/template.ts",

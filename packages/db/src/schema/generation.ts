@@ -50,6 +50,18 @@ export const generationVariants = pgTable("generation_variants", {
   errorPayload: jsonb("error_payload"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   completedAt: timestamp("completed_at", { withTimezone: true }),
+  // Sub-project D — manual crop. recomposed_at is set every time the user
+  // applies a crop; crop_region stores the last-applied region so the editor
+  // can repopulate when re-opened. Both null on legacy rows from before D.
+  recomposedAt: timestamp("recomposed_at", { withTimezone: true }),
+  cropRegion: jsonb("crop_region").$type<{
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    targetWidth: number;
+    targetHeight: number;
+  }>(),
 });
 
 export const captionJobs = pgTable("caption_jobs", {

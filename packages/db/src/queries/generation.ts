@@ -104,3 +104,34 @@ export async function getGenerationFull(
     return { ...g, variants };
   });
 }
+
+// Variant + its parent generation's workspace (so the recompose handler can
+// authorise against the session) and the background_s3_key needed to re-run
+// Sharp. Returns null if the generation/variant don't exist.
+export async function getVariantWithBackground(
+  db: Db,
+  generationId: string,
+  variantId: string,
+) {
+  const [row] = await db
+    .select({
+      id: generationVariants.id,
+      generationId: generationVariants.generationId,
+      workspaceId: generations.workspaceId,
+      status: generationVariants.status,
+      outputS3Key: generationVariants.outputS3Key,
+      backgroundS3Key: generationVariants.backgroundS3Key,
+      cropRegion: generationVariants.cropRegion,
+      recomposedAt: generationVariants.recomposedAt,
+    })
+    .from(generationVariants)
+    .innerJoin(generations, eq(generations.id, generationVariants.generationId))
+    .where(
+      and(
+        eq(generationVariants.id, variantId),
+        eq(generationVariants.generationId, generationId),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
