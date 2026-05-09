@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 
 import { createDb } from "../client";
-import { getTierOptions, getModel } from "./taxonomy";
+import { getTierOptions, getModel, resolveSelection } from "./taxonomy";
 
 const url = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5433/studio";
 
@@ -35,5 +35,33 @@ describe("taxonomy integration", () => {
         VALUES ('premium', 'text', 'photoreal-pro', true)
       `),
     ).rejects.toThrow();
+  });
+});
+
+describe("resolveSelection (integration)", () => {
+  const db = createDb(url, "app_admin");
+
+  it("default path resolves to economy for standard tier", async () => {
+    const r = await resolveSelection(db, {
+      tier: "standard",
+      sizeBucket: "standard",
+      hasInspirationFlag: false,
+    });
+    expect(r.models).toHaveLength(1);
+    expect(r.models[0]!.modelCode).toBe("economy");
+    expect(r.totalCredits).toBe(5);
+  });
+
+  it("multi-model premium-text fans out to listed models", async () => {
+    const r = await resolveSelection(db, {
+      tier: "premium",
+      strength: "text",
+      selectedModelCodes: ["text-master"],
+      sizeBucket: "standard",
+      hasInspirationFlag: false,
+    });
+    expect(r.models).toHaveLength(1);
+    expect(r.models[0]!.modelCode).toBe("text-master");
+    expect(r.totalCredits).toBe(15);
   });
 });
