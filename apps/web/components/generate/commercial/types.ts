@@ -169,6 +169,38 @@ export interface BrandFlags {
   applyMoodDecorations: boolean;
   applyMoodAccentColors: boolean;
   usePremiumModel: boolean;
+  /** Sub-project A taxonomy — server resolves the actual model. */
+  tier?: "standard" | "premium";
+  strength?: string;
+  selectedModelCodes?: string[];
+}
+
+// Sub-project C lookup tiles passed through from the server. Wire shape
+// matches the public /api/use-cases response.
+export interface UseCaseLite {
+  code: string;
+  label: string;
+  platform: string | null;
+  targetWidth: number;
+  targetHeight: number;
+  aspectRatio: string;
+  icon: string | null;
+}
+
+export interface TierBucketLite {
+  defaultModelCode: string;
+  eligibleModelCodes: string[];
+  modelsByCode: Record<string, { displayName: string; description: string | null }>;
+}
+
+export interface TierOptionsLite {
+  standard: { modelCode: string; displayName: string } | null;
+  premium: Record<string, TierBucketLite>;
+}
+
+export interface StrengthLite {
+  code: string;
+  label: string;
 }
 
 export interface GenerateState {
@@ -185,6 +217,14 @@ export interface GenerateState {
   outputs: OutputSettings;
   flags: BrandFlags;
   brandLogoAssetIds: string[];
+  /** Sub-project C — section 1 picks a use_case OR (future) custom W×H. */
+  selectedUseCase: {
+    code: string;
+    width: number;
+    height: number;
+    aspectRatio: string;
+  } | null;
+  customSize: { width: number; height: number } | null;
 }
 
 export interface PreflightIssue {
@@ -241,6 +281,14 @@ export type GeneratePayload = {
   brandId?: string;
   moodId: string | null;
   brief?: string;
+  /** Sub-project C — when set, the server resolves W×H + aspect from the use_case row. */
+  outputTarget?: {
+    kind: "social";
+    useCaseCode: string;
+    width: number;
+    height: number;
+    aspectRatio: string;
+  };
   productRefs: Array<{
     productId?: string;
     uploadId?: string;

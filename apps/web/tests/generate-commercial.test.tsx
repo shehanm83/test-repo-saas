@@ -228,61 +228,13 @@ describe("commercial generation page", () => {
     ]);
   });
 
-  it("selecting Story/Reel sets instagram_story format in the payload", async () => {
-    const fetchMock = vi.mocked(fetch);
-    render(React.createElement(Generate, props));
-
-    fireEvent.change(screen.getByLabelText(/select brand/i), { target: { value: brandId } });
-    fireEvent.click(screen.getByRole("button", { name: /story \/ reel/i }));
-    fireEvent.click(screen.getByRole("button", { name: /glow serum/i }));
-    fireEvent.change(screen.getByLabelText(/creative brief/i), {
-      target: { value: "Vertical reel for spring launch" },
-    });
-
-    const generate = await screen.findByRole("button", { name: /generate images/i });
-    await waitFor(() => expect(generate).toBeEnabled());
-    fireEvent.click(generate);
-
-    expect(await screen.findByRole("dialog", { name: /prompt sent to image model/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /start generation/i }));
-
-    await waitFor(() => expect(push).toHaveBeenCalled());
-    const createCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/generations"));
-    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<string, unknown>;
-    expect(body).toMatchObject({
-      outputs: expect.objectContaining({ formats: ["instagram_story"] }),
-    });
-  });
-
-  it("uses a real TikTok format and removes unsupported quick social platforms", async () => {
-    const fetchMock = vi.mocked(fetch);
-    render(React.createElement(Generate, props));
-
-    expect(screen.queryByRole("button", { name: /pinterest/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /youtube/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /x \/ twitter/i })).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: /tiktok - vertical/i }));
-    fireEvent.change(screen.getByLabelText(/select brand/i), { target: { value: brandId } });
-    fireEvent.click(screen.getByRole("button", { name: /glow serum/i }));
-    fireEvent.change(screen.getByLabelText(/creative brief/i), {
-      target: { value: "TikTok launch creative" },
-    });
-
-    const generate = await screen.findByRole("button", { name: /generate images/i });
-    await waitFor(() => expect(generate).toBeEnabled());
-    fireEvent.click(generate);
-
-    expect(await screen.findByRole("dialog", { name: /prompt sent to image model/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /start generation/i }));
-
-    await waitFor(() => expect(push).toHaveBeenCalled());
-    const createCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/generations"));
-    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<string, unknown>;
-    expect(body).toMatchObject({
-      outputs: expect.objectContaining({ formats: ["tiktok_vertical"] }),
-    });
-  });
+  // Section 1's old MEDIA_OPTIONS / SOCIAL_FORMATS pickers are replaced by
+  // use-case tiles. The two tests that asserted instagram_story / tiktok_vertical
+  // came out of `outputs.formats` no longer apply — the new payload carries
+  // an `outputTarget: { useCaseCode, … }` shape instead. The replacement
+  // assertion lives in the test file paired with QuickCreateWizard; the
+  // commercial flow's submit shape is exercised end-to-end by the smoke
+  // path on /generate.
 
   it("unchecking promotion toggle clears campaign fields from payload", async () => {
     const fetchMock = vi.mocked(fetch);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type React from "react";
 
 import { ProductStep } from "./product-step";
@@ -10,48 +10,14 @@ import type {
   CampaignDetails,
   GenerateState,
   MoodLite,
-  OutputFormat,
   OutputSettings,
   ProductLite,
   ProductRole,
   SelectedProduct,
+  StrengthLite,
+  TierOptionsLite,
+  UseCaseLite,
 } from "./types";
-
-type MediaType = "social" | "image" | "story" | "portrait" | "custom";
-
-const MEDIA_OPTIONS: Array<{ id: MediaType; icon: string; label: string; sub: string; color: string }> = [
-  { id: "social", icon: "◎", label: "For social", sub: "Perfect for posts", color: "#E4405F" },
-  { id: "image", icon: "▧", label: "Just an image", sub: "General purpose", color: "#1F7A5A" },
-  { id: "story", icon: "▯", label: "Story / Reel", sub: "9:16 vertical", color: "#0E0E10" },
-  { id: "portrait", icon: "◫", label: "Portrait", sub: "4:5 portrait", color: "#B5651D" },
-  { id: "custom", icon: "⌗", label: "Custom size", sub: "Set your size", color: "#5E5CE6" },
-];
-
-const SOCIAL_FORMATS: Array<{ id: OutputFormat; label: string; icon: string; color: string; sub: string }> = [
-  { id: "instagram_square", label: "Instagram - Square", icon: "IG", color: "#E4405F", sub: "Post image: 1080 × 1080" },
-  { id: "instagram_portrait", label: "Instagram - Portrait", icon: "IG", color: "#E4405F", sub: "Post image: 1080 × 1350" },
-  { id: "instagram_landscape", label: "Instagram - Landscape", icon: "IG", color: "#E4405F", sub: "Post image: 1080 × 566" },
-  { id: "instagram_story", label: "Instagram - Story", icon: "IG", color: "#E4405F", sub: "Story: 1080 × 1920 (9:16)" },
-  { id: "instagram_reel", label: "Instagram - Reel", icon: "IG", color: "#E4405F", sub: "Reel: 1080 × 1920 (9:16)" },
-  { id: "instagram_feed_video_portrait", label: "Instagram - Feed video", icon: "IG", color: "#E4405F", sub: "Portrait: 1080 × 1350" },
-  { id: "instagram_feed_video_square", label: "Instagram - Feed video", icon: "IG", color: "#E4405F", sub: "Square: 1080 × 1080" },
-  { id: "facebook_square", label: "Facebook - Square", icon: "f", color: "#1877F2", sub: "Post image: 1080 × 1080" },
-  { id: "facebook_portrait", label: "Facebook - Portrait", icon: "f", color: "#1877F2", sub: "Post image: 1080 × 1350" },
-  { id: "facebook_landscape", label: "Facebook - Landscape", icon: "f", color: "#1877F2", sub: "Post image: 1080 × 566" },
-  { id: "facebook_link_preview", label: "Facebook - Link preview", icon: "f", color: "#1877F2", sub: "Link image: 1200 × 630" },
-  { id: "facebook_profile_photo", label: "Facebook - Profile", icon: "f", color: "#1877F2", sub: "Profile photo: 320 × 320" },
-  { id: "facebook_cover_photo", label: "Facebook - Cover", icon: "f", color: "#1877F2", sub: "Cover photo: 820 × 360" },
-  { id: "facebook_story", label: "Facebook - Story", icon: "f", color: "#1877F2", sub: "Story: 1080 × 1920" },
-  { id: "linkedin_feed", label: "LinkedIn - Standard post", icon: "in", color: "#0A66C2", sub: "1200 × 627" },
-  { id: "tiktok_vertical", label: "TikTok - Vertical", icon: "TT", color: "#0E0E10", sub: "Video/image: 1080 × 1920 (9:16)" },
-];
-
-const MEDIA_FORMAT: Record<Exclude<MediaType, "social">, OutputFormat> = {
-  image: "product_card",
-  story: "instagram_story",
-  portrait: "instagram_portrait",
-  custom: "website_banner",
-};
 
 const EMPTY_CAMPAIGN: CampaignDetails = {
   title: "", subtitle: "", message: "", price: "", discount: "",
@@ -64,6 +30,10 @@ export function QuickCreate(props: {
   brands: BrandLite[];
   moods: MoodLite[];
   products: ProductLite[];
+  // Sub-project A + C
+  useCases: UseCaseLite[];
+  tierOptions: TierOptionsLite;
+  strengths: StrengthLite[];
   onBriefChange: (brief: string) => void;
   onCampaignChange: (patch: Partial<CampaignDetails>) => void;
   onAddProduct: (product: SelectedProduct) => void;
@@ -74,29 +44,15 @@ export function QuickCreate(props: {
   onFlagsChange: (flags: GenerateState["flags"]) => void;
   onBrandLogoAssetIdsChange: (ids: string[]) => void;
   onOutputsChange: (outputs: OutputSettings) => void;
+  // New: section 1 picks a use_case; section 7 picks tier/strength/compare.
+  onUseCaseChange: (
+    payload: { code: string; width: number; height: number; aspectRatio: string } | null,
+  ) => void;
+  onTierChange: (tier: "standard" | "premium") => void;
+  onStrengthChange: (strength: string | null) => void;
+  onCompareModelsChange: (codes: string[]) => void;
 }) {
-  const [mediaType, setMediaType] = useState<MediaType>("social");
-  const [platform, setPlatform] = useState<OutputFormat>("instagram_square");
   const [promotionEnabled, setPromotionEnabled] = useState(false);
-
-  const outputsRef = useRef(props.state.outputs);
-  outputsRef.current = props.state.outputs;
-
-  // Sync media/platform selection into shared outputs.formats
-  useEffect(() => {
-    const format: OutputFormat =
-      mediaType === "social" ? platform : MEDIA_FORMAT[mediaType];
-    props.onOutputsChange({ ...outputsRef.current, formats: [format] });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediaType, platform]);
-
-  function handleMediaType(type: MediaType) {
-    setMediaType(type);
-  }
-
-  function handlePlatform(fmt: OutputFormat) {
-    setPlatform(fmt);
-  }
 
   function handlePromotionToggle() {
     const next = !promotionEnabled;
@@ -126,39 +82,42 @@ export function QuickCreate(props: {
           </div>
         </div>
 
-        <div className="qc-media-grid">
-          {MEDIA_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              className={`qc-option ${mediaType === opt.id ? "is-active" : ""}`}
-              onClick={() => handleMediaType(opt.id)}
-            >
-              <div className="qc-option-icon" style={{ background: opt.color }}>{opt.icon}</div>
-              <strong>{opt.label}</strong>
-              <span>{opt.sub}</span>
-            </button>
-          ))}
-        </div>
+        <p className="qc-hint" style={{ marginBottom: 12 }}>
+          Pick a use-case style. The resolution is set automatically from the
+          chosen surface — manage the catalog at <code>/admin/use-cases</code>.
+        </p>
 
-        {mediaType === "social" && (
-          <div className="qc-platform-grid">
-            {SOCIAL_FORMATS.map((p) => (
+        <div className="qc-platform-grid">
+          {props.useCases.map((uc) => {
+            const active = props.state.selectedUseCase?.code === uc.code;
+            return (
               <button
-                key={p.id}
+                key={uc.code}
                 type="button"
-                className={`qc-platform-card ${platform === p.id ? "is-active" : ""}`}
-                onClick={() => handlePlatform(p.id)}
+                aria-pressed={active}
+                className={`qc-platform-card ${active ? "is-active" : ""}`}
+                onClick={() =>
+                  props.onUseCaseChange({
+                    code: uc.code,
+                    width: uc.targetWidth,
+                    height: uc.targetHeight,
+                    aspectRatio: uc.aspectRatio,
+                  })
+                }
               >
-                <span className="qc-platform-icon" style={{ background: p.color }}>{p.icon}</span>
+                <span className="qc-platform-icon" aria-hidden style={{ fontSize: 20 }}>
+                  {uc.icon ?? "▦"}
+                </span>
                 <span>
-                  <strong>{p.label}</strong>
-                  <small>{p.sub}</small>
+                  <strong>{uc.label}</strong>
+                  <small>
+                    {uc.targetWidth}×{uc.targetHeight} · {uc.aspectRatio}
+                  </small>
                 </span>
               </button>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </section>
 
       {/* Section 2 — Campaign details */}
@@ -396,59 +355,173 @@ export function QuickCreate(props: {
         />
       </section>
 
-      {/* Section 7 — Generation settings */}
+      {/* Section 7 — Generation settings (tier + strength + compare + samples) */}
       <section className="qc-section">
         <h2 className="qc-step-title">
           <span className="qc-num">7</span>
           Generation settings
         </h2>
+        <p className="qc-hint" style={{ marginBottom: 18 }}>
+          Pick a quality tier. Premium opens a strength picker so you can
+          target text rendering, photoreal, design, or speed.
+        </p>
 
-        <div className="qc-gen-grid">
-          <div>
-            <span className="qc-gen-label">Quality tier</span>
-            <div className="qc-quality-grid">
-              {(["standard", "premium"] as const).map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  className={`qc-gen-option ${outputs.quality === q ? "is-active" : ""}`}
-                  onClick={() =>
-                    props.onOutputsChange({
-                      ...outputs,
-                      quality: q,
-                    })
-                  }
-                >
-                  <strong>{q === "standard" ? "Standard" : "Premium"}</strong>
-                  <span>{q === "standard" ? "10 credits / image" : "20 credits / image"}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+        <QuickGenSettings
+          tier={props.state.flags.tier ?? (outputs.quality === "premium" ? "premium" : "standard")}
+          strength={props.state.flags.strength ?? null}
+          selectedModelCodes={props.state.flags.selectedModelCodes ?? []}
+          variants={outputs.variants}
+          tierOptions={props.tierOptions}
+          strengths={props.strengths}
+          onTierChange={props.onTierChange}
+          onStrengthChange={props.onStrengthChange}
+          onCompareChange={props.onCompareModelsChange}
+          onVariantsChange={(n) => props.onOutputsChange({ ...outputs, variants: n })}
+        />
+      </section>
+    </div>
+  );
+}
 
-          <div>
-            <span className="qc-gen-label">Number of samples</span>
-            <div className="qc-samples-grid">
-              {([1, 2, 3, 4] as const).map((n) => (
+function QuickGenSettings(props: {
+  tier: "standard" | "premium";
+  strength: string | null;
+  selectedModelCodes: string[];
+  variants: 1 | 2 | 3 | 4;
+  tierOptions: TierOptionsLite;
+  strengths: StrengthLite[];
+  onTierChange: (tier: "standard" | "premium") => void;
+  onStrengthChange: (strength: string | null) => void;
+  onCompareChange: (codes: string[]) => void;
+  onVariantsChange: (n: 1 | 2 | 3 | 4) => void;
+}) {
+  const bucket =
+    props.tier === "premium" && props.strength
+      ? props.tierOptions.premium[props.strength] ?? null
+      : null;
+  const compareCandidates =
+    bucket?.eligibleModelCodes.filter((c) => c !== bucket.defaultModelCode) ?? [];
+
+  function toggleCompare(code: string) {
+    const has = props.selectedModelCodes.includes(code);
+    props.onCompareChange(
+      has
+        ? props.selectedModelCodes.filter((c) => c !== code)
+        : [...props.selectedModelCodes, code],
+    );
+  }
+
+  // Per-variant credit estimate. Premium = 20; standard = 10. Pre-existing
+  // copy used these constants — keep them so the displayed total doesn't
+  // contradict the price book until we wire the live estimate API.
+  const perVariant = props.tier === "premium" ? 20 : 10;
+  const totalCompareModels = Math.max(1, props.selectedModelCodes.length || 1);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      {/* Tier */}
+      <div>
+        <span className="qc-gen-label">Quality tier</span>
+        <div className="qc-quality-grid">
+          {(["standard", "premium"] as const).map((t) => {
+            const active = props.tier === t;
+            const sub =
+              t === "standard"
+                ? props.tierOptions.standard
+                  ? `${props.tierOptions.standard.displayName} · 10 credits / image`
+                  : "Default model · 10 credits / image"
+                : "Pick a strength below · 20 credits / image";
+            return (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={active}
+                className={`qc-gen-option ${active ? "is-active" : ""}`}
+                onClick={() => props.onTierChange(t)}
+              >
+                <strong>{t === "standard" ? "Standard" : "Premium"}</strong>
+                <span>{sub}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Strength chips — only when premium */}
+      {props.tier === "premium" ? (
+        <div>
+          <span className="qc-gen-label">Strength</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+            {props.strengths.map((s) => {
+              const has = !!props.tierOptions.premium[s.code];
+              const active = props.strength === s.code;
+              return (
                 <button
-                  key={n}
+                  key={s.code}
                   type="button"
-                  className={`qc-gen-option ${outputs.variants === n ? "is-active" : ""}`}
-                  onClick={() =>
-                    props.onOutputsChange({
-                      ...outputs,
-                      variants: n,
-                    })
-                  }
+                  disabled={!has}
+                  aria-pressed={active}
+                  title={has ? "" : "No model wired to this strength yet"}
+                  className={`pill ${active ? "pill--green" : "pill--ring"}`}
+                  style={{
+                    cursor: has ? "pointer" : "not-allowed",
+                    opacity: has ? 1 : 0.45,
+                    padding: "6px 14px",
+                  }}
+                  onClick={() => props.onStrengthChange(active ? null : s.code)}
                 >
-                  <strong>{n}</strong>
-                  <span>{n * (outputs.quality === "premium" ? 20 : 10)} credits</span>
+                  {s.label}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
-      </section>
+      ) : null}
+
+      {/* Compare-with — only when premium + strength has alternates */}
+      {bucket && compareCandidates.length > 0 ? (
+        <div>
+          <span className="qc-gen-label">Compare with (multi-model variation)</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+            {compareCandidates.map((code) => {
+              const active = props.selectedModelCodes.includes(code);
+              const dn = bucket.modelsByCode[code]?.displayName ?? code;
+              return (
+                <button
+                  key={code}
+                  type="button"
+                  aria-pressed={active}
+                  className={`pill ${active ? "pill--green" : "pill--ring"}`}
+                  style={{ padding: "6px 14px", cursor: "pointer" }}
+                  onClick={() => toggleCompare(code)}
+                >
+                  {active ? "✓ " : "+ "}
+                  {dn}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Samples */}
+      <div>
+        <span className="qc-gen-label">Number of samples</span>
+        <div className="qc-samples-grid">
+          {([1, 2, 3, 4] as const).map((n) => (
+            <button
+              key={n}
+              type="button"
+              aria-pressed={props.variants === n}
+              className={`qc-gen-option ${props.variants === n ? "is-active" : ""}`}
+              onClick={() => props.onVariantsChange(n)}
+            >
+              <strong>{n}</strong>
+              <span>{n * perVariant * totalCompareModels} credits</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

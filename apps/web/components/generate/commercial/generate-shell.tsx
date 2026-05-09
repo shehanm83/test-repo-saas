@@ -22,7 +22,10 @@ import type {
   ProductRole,
   PreflightResult,
   SelectedProduct,
+  StrengthLite,
   TemplateSelection,
+  TierOptionsLite,
+  UseCaseLite,
 } from "./types";
 
 type Action =
@@ -40,7 +43,19 @@ type Action =
   | { type: "brandLogoAssetIds"; ids: string[] }
   | { type: "addProduct"; product: SelectedProduct }
   | { type: "removeProduct"; localId: string }
-  | { type: "productRole"; localId: string; role: ProductRole };
+  | { type: "productRole"; localId: string; role: ProductRole }
+  // Sub-project C — section 1 picks a use_case (with resolved W×H + aspect)
+  // OR (future) a custom W×H. Pass the resolved values in to keep
+  // buildGeneratePayload lookup-free.
+  | {
+      type: "useCase";
+      payload: { code: string; width: number; height: number; aspectRatio: string } | null;
+    }
+  | { type: "customSize"; width: number | null; height: number | null }
+  // Sub-project A — section 7 tier/strength/model selection.
+  | { type: "tier"; tier: "standard" | "premium" }
+  | { type: "strength"; strength: string | null }
+  | { type: "selectedModelCodes"; codes: string[] };
 
 function initialState(brands: BrandLite[]): GenerateState {
   void brands;
@@ -95,8 +110,11 @@ function initialState(brands: BrandLite[]): GenerateState {
       applyMoodDecorations: true,
       applyMoodAccentColors: true,
       usePremiumModel: false,
+      tier: "standard",
     },
     brandLogoAssetIds: [],
+    selectedUseCase: null,
+    customSize: null,
   };
 }
 
@@ -158,6 +176,56 @@ function reducer(state: GenerateState, action: Action): GenerateState {
           product.localId === action.localId ? { ...product, role: action.role } : product,
         ),
       };
+    case "useCase":
+      return { ...state, selectedUseCase: action.payload, customSize: null };
+    case "customSize":
+      if (action.width == null || action.height == null) {
+        return { ...state, customSize: null };
+      }
+      return {
+        ...state,
+        customSize: { width: action.width, height: action.height },
+        selectedUseCase: null,
+      };
+    case "tier": {
+      // Strip strength/compare when switching to standard. With
+      // exactOptionalPropertyTypes we can't write `undefined` — must omit.
+      const { strength: _s, selectedModelCodes: _m, ...flagsWithoutPremium } = state.flags;
+      void _s;
+      void _m;
+      const flags: BrandFlags =
+        action.tier === "standard"
+          ? { ...flagsWithoutPremium, tier: "standard", usePremiumModel: false }
+          : { ...state.flags, tier: "premium", usePremiumModel: true };
+      return {
+        ...state,
+        flags,
+        // outputs.quality stays mirrored — review rail + credit estimate read it.
+        outputs: { ...state.outputs, quality: action.tier },
+      };
+    }
+    case "strength": {
+      // Compare-with selection is bucket-specific; reset on strength change.
+      const { selectedModelCodes: _m, ...rest } = state.flags;
+      void _m;
+      const flags: BrandFlags = action.strength
+        ? { ...rest, strength: action.strength }
+        : (() => {
+            const { strength: _s, ...noStrength } = rest;
+            void _s;
+            return noStrength;
+          })();
+      return { ...state, flags };
+    }
+    case "selectedModelCodes": {
+      const { selectedModelCodes: _m, ...rest } = state.flags;
+      void _m;
+      const flags: BrandFlags =
+        action.codes.length > 0
+          ? { ...rest, selectedModelCodes: action.codes }
+          : rest;
+      return { ...state, flags };
+    }
   }
 }
 
@@ -182,12 +250,26 @@ export function buildGeneratePayload(state: GenerateState): GeneratePayload {
     targetAudience: state.campaign.targetAudience,
   });
 
+  // Sub-project C: when section 1 picks a use_case, build the new
+  // outputTarget shape. Server (GenerationApi.buildPlan) looks up the
+  // use_case row and uses its aspect_ratio as authoritative.
+  const useCaseTarget = state.selectedUseCase
+    ? {
+        kind: "social" as const,
+        useCaseCode: state.selectedUseCase.code,
+        width: state.selectedUseCase.width,
+        height: state.selectedUseCase.height,
+        aspectRatio: state.selectedUseCase.aspectRatio,
+      }
+    : null;
+
   return {
     mode: state.mode,
     creationType: state.creationType,
     ...(state.brandId ? { brandId: state.brandId } : {}),
     moodId: state.moodId,
     brief: state.brief.trim(),
+    ...(useCaseTarget ? { outputTarget: useCaseTarget } : {}),
     productRefs: state.selectedProducts.map((product) => ({
       ...(product.productId ? { productId: product.productId } : {}),
       ...(product.uploadId ? { uploadId: product.uploadId } : {}),
@@ -208,6 +290,10 @@ export function GenerateShell(props: {
   moods: MoodLite[];
   products: ProductLite[];
   credits: number;
+  // Sub-project A + C lookups for the new section 1 / section 7.
+  useCases: UseCaseLite[];
+  tierOptions: TierOptionsLite;
+  strengths: StrengthLite[];
 }) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, props.brands, initialState);
@@ -368,6 +454,9 @@ export function GenerateShell(props: {
               brands={props.brands}
               moods={props.moods}
               products={props.products}
+              useCases={props.useCases}
+              tierOptions={props.tierOptions}
+              strengths={props.strengths}
               onBriefChange={(brief) => dispatch({ type: "brief", brief })}
               onCampaignChange={(patch) => dispatch({ type: "campaign", patch })}
               onAddProduct={(product) => dispatch({ type: "addProduct", product })}
@@ -378,6 +467,10 @@ export function GenerateShell(props: {
               onFlagsChange={(flags) => dispatch({ type: "flags", flags })}
               onBrandLogoAssetIdsChange={(ids) => dispatch({ type: "brandLogoAssetIds", ids })}
               onOutputsChange={(outputs) => dispatch({ type: "outputs", outputs })}
+              onUseCaseChange={(payload) => dispatch({ type: "useCase", payload })}
+              onTierChange={(tier) => dispatch({ type: "tier", tier })}
+              onStrengthChange={(strength) => dispatch({ type: "strength", strength })}
+              onCompareModelsChange={(codes) => dispatch({ type: "selectedModelCodes", codes })}
             />
           ) : (
             <CampaignBuilder

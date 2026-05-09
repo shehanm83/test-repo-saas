@@ -1,5 +1,14 @@
 import { Ledger } from "@vyora/billing";
-import { createDb, listAvailableMoods, listBrandAssets, listBrands, listProducts } from "@vyora/db";
+import {
+  createDb,
+  getTierOptions,
+  listAvailableMoods,
+  listBrandAssets,
+  listBrands,
+  listProducts,
+  listStrengths,
+  listUseCases,
+} from "@vyora/db";
 import { loadConfig } from "@vyora/shared/config";
 import { S3StorageAdapter } from "@vyora/storage";
 
@@ -17,6 +26,22 @@ export default async function GeneratePage() {
   const brands = session.workspaceId ? await listBrands(userDb, session.workspaceId) : [];
   const products = session.workspaceId ? await listProducts(userDb, session.workspaceId) : [];
   const moods = await listAvailableMoods(userDb);
+  // Sub-project A + C lookups for the new section 1 / section 7.
+  const [useCaseRows, tierOptions, strengthRows] = await Promise.all([
+    listUseCases(adminDb, { activeOnly: true }),
+    getTierOptions(adminDb),
+    listStrengths(adminDb),
+  ]);
+  const useCases = useCaseRows.map((u) => ({
+    code: u.code,
+    label: u.label,
+    platform: u.platform,
+    targetWidth: u.targetWidth,
+    targetHeight: u.targetHeight,
+    aspectRatio: u.aspectRatio,
+    icon: u.icon,
+  }));
+  const strengths = strengthRows.map((s) => ({ code: s.code, label: s.label }));
   const moodPreviewStorage = createStorage(config, config.storage.bucketGlobal);
   const appStorage = createStorage(config, config.storage.bucketApp);
 
@@ -75,7 +100,17 @@ export default async function GeneratePage() {
   }));
 
   void workspace;
-  return <Generate brands={brandPayload} moods={moodPayload} products={productPayload} credits={credits} />;
+  return (
+    <Generate
+      brands={brandPayload}
+      moods={moodPayload}
+      products={productPayload}
+      credits={credits}
+      useCases={useCases}
+      tierOptions={tierOptions}
+      strengths={strengths}
+    />
+  );
 }
 
 function createStorage(config: ReturnType<typeof loadConfig>, bucket: string) {
