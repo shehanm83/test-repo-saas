@@ -38,7 +38,7 @@ interface InspectorData {
   generation: {
     id: string;
     workspaceId: string;
-    brandId: string;
+    brandId: string | null;
     moodId: string | null;
     brief: string;
     status: string;

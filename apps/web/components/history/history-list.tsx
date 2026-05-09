@@ -9,7 +9,7 @@ import { I } from "@/components/icons";
 interface Item {
   id: string;
   brief: string;
-  brandId: string;
+  brandId: string | undefined;
   brandName: string;
   moodName: string | null;
   status: string;
@@ -194,7 +194,7 @@ export function HistoryList(props: {
                   style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}
                 >
                   <span className="pill">
-                    <span className="dot" style={{ background: dot(g.brandId) }} />
+                    <span className="dot" style={{ background: dot(g.brandId ?? g.id) }} />
                     {g.brandName}
                   </span>
                   {g.moodName ? <span className="pill">{g.moodName}</span> : null}

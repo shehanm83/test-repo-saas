@@ -57,11 +57,14 @@ export default async function AdminGenerationDetailPage(props: {
     .where(eq(workspaces.id, generation.workspaceId))
     .limit(1);
 
-  const [brand] = await db
-    .select({ id: brands.id, name: brands.name })
-    .from(brands)
-    .where(eq(brands.id, generation.brandId))
-    .limit(1);
+  const brandRow = generation.brandId
+    ? await db
+        .select({ id: brands.id, name: brands.name })
+        .from(brands)
+        .where(eq(brands.id, generation.brandId))
+        .limit(1)
+    : [];
+  const [brand] = brandRow;
 
   const moodRow = generation.moodId
     ? await db
