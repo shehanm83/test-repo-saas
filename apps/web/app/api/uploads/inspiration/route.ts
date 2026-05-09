@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { rateLimit, InspirationUploadApi } from "@vyora/api";
+import { rateLimit } from "@vyora/api";
+import { InspirationUploadApi } from "@vyora/api/inspiration";
 import { createDb } from "@vyora/db";
 import { loadConfig } from "@vyora/shared/config";
 import { AppError } from "@vyora/shared/errors/app-error";

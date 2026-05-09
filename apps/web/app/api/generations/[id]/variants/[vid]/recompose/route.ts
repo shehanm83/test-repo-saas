@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { RecomposeService } from "@vyora/api";
+import { RecomposeService } from "@vyora/api/recompose";
 import { loadConfig } from "@vyora/shared/config";
 import { AppError } from "@vyora/shared/errors/app-error";
 
