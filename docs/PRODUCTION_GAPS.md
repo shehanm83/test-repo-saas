@@ -91,12 +91,13 @@ async embedImage(_s3Key: string): Promise<{ vector: number[] }> {
 
 ---
 
-### B3. BFL (Black Forest Labs) provider missing
-**Documented:** `docs/LOCAL_DEV_SETUP.md` § 4e introduces `BFL_API_KEY` as an alternative to Replicate-hosted Flux.
-
-**Missing implementation:** `ls packages/gateway/src/providers/` shows `flux.ts` (Replicate), `bedrock.ts`, `openai-image.ts`, `recraft.ts`, `anthropic-text.ts`, `anthropic-vision.ts`, plus moderation providers — but **no `bfl.ts`**. The env var is declared and accepted, but nothing reads it.
-
-**Severity:** Nice-to-have. The Replicate Flux path works. Direct-from-BFL would lower latency and remove a hop, but it's an optimization, not a requirement.
+### B3. ~~BFL (Black Forest Labs) provider missing~~ — **resolved**
+Sub-project B (image-providers) shipped `packages/gateway/src/providers/bfl.ts`
+serving `photoreal-pro` (Flux 1.1 Pro) and `photoreal-ultra` (Flux 1.1 Pro Ultra)
+direct against `api.bfl.ai/v1`. Routing default for `photoreal-pro` still
+points to the Replicate-hosted Flux entry (`economy`-priced); admins can
+promote the BFL-direct entry through `/admin/routing` whenever lower
+latency wins over Replicate's pricing.
 
 ---
 
@@ -160,14 +161,22 @@ The schema now requires `STRIPE_WEBHOOK_SECRET` whenever `BILLING_MODE != stub`,
 
 `STRIPE_PRICE_*` IDs are still optional and not validated; missing prices will just result in empty plan tiles in `/billing`. Tightening those is a follow-up.
 
-### D5. Model identifiers in `docs/openapi.txt` look invalid
-The user's local dev notes specify:
-- `model for images = gpt-image-2 - gpt-image-2-2026-04-21`
-- `mode for generate caption = GPT-5.4 mini`
+### D5. ~~Model identifiers in `docs/openapi.txt` look invalid~~ — **partially resolved**
+Sub-project B validated the provider matrix against current vendor docs
+(see `docs/superpowers/specs/2026-05-09-image-providers-research-and-wiring-design.md`
+§ 8). Validated identifiers now seeded in `models`:
 
-These don't appear to map to identifiers OpenAI publishes today. The worker boot log echoes them (`ai: real (gpt-image-2, gpt-5.4-mini)`), but the first real generation request will likely 404 on `model not found`. Recommend confirming with `OPENAI_API_KEY` and adjusting either the env or the gateway's hard-coded model codes in `packages/gateway/src/providers/openai-image.ts`.
+- `gemini-2.5-flash-image` (was: `gemini-2.5-image-preview` — never went GA)
+- `gemini-3-pro-image-preview` (was: `gemini-2.5-image-pro` — superseded by Gemini 3 Pro)
+- `flux-pro-1.1` and `flux-pro-1.1-ultra` (BFL direct, replaces vague `bfl-flux-1.1` references)
+- `amazon.nova-canvas-v1:0`, `stability.sd3-large-v1:0` (unchanged)
 
-**Severity:** Important — surfaces only when the first paid generation runs.
+The OpenAI image identifiers (`gpt-image-1` for `text-master`, `gpt-image-2`
+for `text-master-pro`) still need a real-key smoke before the first paid
+generation runs. The provider switches by internal code now, so swapping
+the underlying vendor id is a one-line change in `openai-image.ts`.
+
+**Severity:** Important — surfaces only when the first paid OpenAI generation runs.
 
 ### D6. `scripts/seed.ts` was inserting dev user/workspace under any AUTH_MODE
 Fixed today: the dev user, dev workspace, dev member, and 1000-credit dev-grant inserts are now gated on `config.auth.mode === "dev"`. Under Clerk, running `pnpm db:seed` is now a no-op for that block. Production reference data (templates, price book) remains unconditional.

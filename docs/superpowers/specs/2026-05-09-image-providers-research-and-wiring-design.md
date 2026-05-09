@@ -91,3 +91,29 @@ Each provider's `capabilities.modelCodes` lists the *internal* codes it serves (
 - New providers tested in `AI_MODE=record` mode against fixtures saved to `apps/web/tests/__fixtures__/ai/<provider>/`
 - `Gateway.getSupportedSizes` integration test against seeded data
 - Smoke: end-to-end generation with each newly-wired model_code (one image per, gated on real API keys being present in the running env — skipped otherwise)
+
+## 8. Validated matrix (post-implementation)
+
+Implementer notes from B2 — what actually shipped vs. the original "verify" entries in § 2:
+
+| internal code | llm_model_id (validated) | Notes |
+|---|---|---|
+| `economy` | `flux-1.1-pro` | Unchanged. Stays on Replicate per § 5. |
+| `photoreal-pro` | `flux-1.1-pro` | Unchanged. Routing still points at Replicate. BFL-direct provider is wired and registered for the same internal code; admins can swap via routing UI. |
+| `photoreal-ultra` | `flux-pro-1.1-ultra` | New. BFL direct. Up to 4MP. `allow_custom_size = true`. |
+| `text-master` | `gpt-image-1` | Unchanged. |
+| `text-master-pro` | `gpt-image-2` | New. Same OpenAI provider class, dispatched by internal code. **Pending real-key smoke** — D5 in PRODUCTION_GAPS.md. |
+| `nano-banana` | `gemini-2.5-flash-image` | Original spec proposed `gemini-2.5-image-preview` — that id never went GA. The shipping name is `gemini-2.5-flash-image`. |
+| `nano-banana-pro` | `gemini-3-pro-image-preview` | Original spec proposed `gemini-2.5-image-pro` — superseded. Google's "Nano Banana Pro" tier moved to Gemini 3 Pro. |
+| `design-studio` | `recraft-v3` | Unchanged. |
+| `speed-draft` | `stability.sd3-large-v1:0` | Unchanged. (provider's internal `bedrock-sd35` alias removed; dispatch is now by internal code.) |
+| `nova-canvas` | `amazon.nova-canvas-v1:0` | New seeded `models` row. The Bedrock provider already handled this id; the migration just makes it admin-visible. |
+
+Deferred / out of scope:
+- `imagen-3` (`imagen-3.0-generate-002`) — Vertex AI auth path is distinct from the Gemini API key used by `google-image.ts`. Plan was "one class with model-routing inside, since they share auth" — that's only true for the Gemini-API family. Imagen 3 needs its own provider class with Vertex/service-account auth. Filed for post-launch.
+- BFL `--ultra` raw-mode (`flux_1_1_pro_ultra_raw`) — out of scope per § 5.
+
+Smoke status (B4):
+- BFL: `BFL_API_KEY` present in local `.env.local`; smoke runnable via the standard worker dev path. Real-key fixture not committed (cost) — capture on first manual smoke.
+- Google: `GOOGLE_GENAI_API_KEY` not yet provisioned locally; smoke skipped per plan. The provider has full unit-test coverage (`google-image.test.ts`).
+- OpenAI / Replicate / Bedrock / Recraft: existing real-key paths unchanged by B; covered by their pre-existing provider tests.
