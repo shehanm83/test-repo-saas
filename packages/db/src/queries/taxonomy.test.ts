@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getModel, listActiveModels } from "./taxonomy";
+import { getModel, listActiveModels, getTierOptions } from "./taxonomy";
 import type { Db } from "../client";
 
 function makeFakeDb(rows: unknown): Db {
@@ -41,5 +41,26 @@ describe("listActiveModels", () => {
     } as unknown as Db;
     const rows = await listActiveModels(db);
     expect(rows).toEqual([{ code: "economy" }]);
+  });
+});
+
+describe("getTierOptions", () => {
+  it("groups standard separately from premium-by-strength", async () => {
+    const fakeRows = [
+      { tierCode: "standard", strengthCode: null, modelCode: "economy",
+        isDefault: true, sortOrder: 0, modelDisplayName: "Economy", modelDescription: null, modelStatus: "active" },
+      { tierCode: "premium", strengthCode: "text", modelCode: "text-master",
+        isDefault: true, sortOrder: 0, modelDisplayName: "Text Master", modelDescription: null, modelStatus: "active" },
+      { tierCode: "premium", strengthCode: "text", modelCode: "design-studio",
+        isDefault: false, sortOrder: 1, modelDisplayName: "Design Studio", modelDescription: null, modelStatus: "active" },
+    ];
+    const db = {
+      select: () => ({ from: () => ({ leftJoin: () => ({ where: () => ({ orderBy: async () => fakeRows }) }) }) }),
+    } as unknown as Db;
+
+    const opts = await getTierOptions(db);
+    expect(opts.standard?.modelCode).toBe("economy");
+    expect(opts.premium?.text?.defaultModelCode).toBe("text-master");
+    expect(opts.premium?.text?.eligibleModelCodes).toEqual(["text-master", "design-studio"]);
   });
 });
