@@ -14,7 +14,9 @@ import {
   listActiveModels,
   listRouting,
   listStrengths,
+  listStrengthsForModel,
   listTags,
+  listTagsForModel,
   removeStrength,
   removeTag,
   updateModel,
@@ -99,11 +101,17 @@ export class TaxonomyApi {
   removeStrength(modelCode: string, strengthCode: string) {
     return removeStrength(this.db(), modelCode, strengthCode);
   }
+  listStrengthsForModel(modelCode: string) {
+    return listStrengthsForModel(this.db(), modelCode);
+  }
   assignTag(modelCode: string, tagCode: string) {
     return assignTag(this.db(), modelCode, tagCode);
   }
   removeTag(modelCode: string, tagCode: string) {
     return removeTag(this.db(), modelCode, tagCode);
+  }
+  listTagsForModel(modelCode: string) {
+    return listTagsForModel(this.db(), modelCode);
   }
 
   // Tags

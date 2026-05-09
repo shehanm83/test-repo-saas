@@ -248,6 +248,13 @@ export async function removeStrength(db: Db, modelCode: string, strengthCode: st
     and(eq(modelStrengths.modelCode, modelCode), eq(modelStrengths.strengthCode, strengthCode)),
   );
 }
+export async function listStrengthsForModel(db: Db, modelCode: string): Promise<string[]> {
+  const rows = await db
+    .select({ strengthCode: modelStrengths.strengthCode })
+    .from(modelStrengths)
+    .where(eq(modelStrengths.modelCode, modelCode));
+  return rows.map((r) => r.strengthCode);
+}
 
 // Tags
 export async function listTags(db: Db) {
@@ -271,6 +278,13 @@ export async function removeTag(db: Db, modelCode: string, tagCode: string) {
   await db.delete(modelTags).where(
     and(eq(modelTags.modelCode, modelCode), eq(modelTags.tagCode, tagCode)),
   );
+}
+export async function listTagsForModel(db: Db, modelCode: string): Promise<string[]> {
+  const rows = await db
+    .select({ tagCode: modelTags.tagCode })
+    .from(modelTags)
+    .where(eq(modelTags.modelCode, modelCode));
+  return rows.map((r) => r.tagCode);
 }
 
 // Routing
