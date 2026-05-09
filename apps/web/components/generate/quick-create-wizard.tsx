@@ -65,6 +65,10 @@ interface WizardState {
   customSize: { w: number; h: number } | null;
   estimate: EstimateResponse | null;
   modelSizes: Record<string, ModelSizesResponse>;
+  // True when the user took the "Generate at native size · crop later" path
+  // from step 3's "no native match" branch — D's result page reads
+  // ?cropFirst=1 from the URL and auto-opens the crop editor.
+  cropFirst: boolean;
 }
 
 type Action =
@@ -73,7 +77,7 @@ type Action =
   | { type: "tier"; tier: Tier }
   | { type: "strength"; strength: string }
   | { type: "toggleCompare"; modelCode: string }
-  | { type: "resolution"; w: number; h: number }
+  | { type: "resolution"; w: number; h: number; cropFirst?: boolean }
   | { type: "customSize"; w: number; h: number | null; height?: number }
   | { type: "estimate"; estimate: EstimateResponse | null }
   | { type: "modelSizes"; modelCode: string; payload: ModelSizesResponse }
@@ -89,6 +93,7 @@ const initialState: WizardState = {
   customSize: null,
   estimate: null,
   modelSizes: {},
+  cropFirst: false,
 };
 
 function reducer(state: WizardState, a: Action): WizardState {
@@ -143,7 +148,12 @@ function reducer(state: WizardState, a: Action): WizardState {
       };
     }
     case "resolution":
-      return { ...state, resolution: { w: a.w, h: a.h }, customSize: null };
+      return {
+        ...state,
+        resolution: { w: a.w, h: a.h },
+        customSize: null,
+        cropFirst: a.cropFirst === true,
+      };
     case "customSize":
       return {
         ...state,
@@ -341,7 +351,8 @@ export function QuickCreateWizard(props: Props) {
         throw new Error(json?.error?.message ?? `Request failed: ${res.status}`);
       }
       const json = (await res.json()) as { generationId: string };
-      router.push(`/generations/${json.generationId}`);
+      const cropFirstQs = state.cropFirst ? "?cropFirst=1" : "";
+      router.push(`/generations/${json.generationId}${cropFirstQs}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -402,12 +413,20 @@ export function QuickCreateWizard(props: Props) {
         onTrySwap={() => dispatch({ type: "step", step: 2 })}
         onFallbackToLargest={() => {
           // Pick the largest size among the first model's full set, regardless
-          // of aspect — D's recompose UI will offer the crop afterwards.
+          // of aspect — D's recompose UI will offer the crop afterwards. The
+          // cropFirst flag tags this submit so the result page auto-opens the
+          // crop editor on the first variant after it completes.
           const first = resolvedModelCodes[0];
           if (!first) return;
           const sizes = state.modelSizes[first]?.sizes ?? [];
           const sorted = [...sizes].sort((a, b) => b.width * b.height - a.width * a.height);
-          if (sorted[0]) dispatch({ type: "resolution", w: sorted[0].width, h: sorted[0].height });
+          if (sorted[0])
+            dispatch({
+              type: "resolution",
+              w: sorted[0].width,
+              h: sorted[0].height,
+              cropFirst: true,
+            });
         }}
       />
 

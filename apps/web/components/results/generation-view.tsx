@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { I } from "@/components/icons";
@@ -768,6 +768,9 @@ export function GenerationView(props: {
   const [captionOpen, setCaptionOpen] = useState(false);
   const [zoomVariant, setZoomVariant] = useState<VariantState | null>(null);
   const [activeCrop, setActiveCrop] = useState<string | null>(null);
+  const [autoOpenedCrop, setAutoOpenedCrop] = useState(false);
+  const searchParams = useSearchParams();
+  const cropFirstFlag = searchParams?.get("cropFirst") === "1";
   const [projectPending, setProjectPending] = useState(false);
   const [projectError, setProjectError] = useState<string | null>(null);
 
@@ -804,6 +807,22 @@ export function GenerationView(props: {
       cancelled = true;
     };
   }, [props.generationId, state]);
+
+  // C → D fallback: when the wizard's "Generate at native size · crop later"
+  // path was taken, the wizard appended ?cropFirst=1 to the result-page URL.
+  // Once the first variant lands, expand its crop editor automatically. We
+  // only do this once per page-load — closing the editor and re-clicking is
+  // a deliberate action, no need to re-trigger.
+  useEffect(() => {
+    if (autoOpenedCrop || !cropFirstFlag || !state) return;
+    const first = state.variants.find(
+      (v) => v.status === "completed" && v.backgroundUrl,
+    );
+    if (first) {
+      setActiveCrop(first.id);
+      setAutoOpenedCrop(true);
+    }
+  }, [autoOpenedCrop, cropFirstFlag, state]);
 
   const ar = useMemo(
     () => state?.settings?.output_target?.aspectRatio ?? "1:1",

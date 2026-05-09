@@ -101,6 +101,22 @@ latency wins over Replicate's pricing.
 
 ---
 
+### B5. Manual crop tool — legacy variants are not croppable
+Sub-project D ships an interactive crop & resize editor on the result page,
+backed by `POST /api/generations/[id]/variants/[vid]/recompose` (Sharp inline,
+no SQS). It depends on `generation_variants.background_s3_key` being set —
+the column is populated for every generation post-A's pipeline (~2026-04 onward),
+but legacy rows from before that are null.
+
+**Behaviour:** the variant card hides the **Crop & Resize** action when
+`backgroundS3Key` is null. This is by design (no programmatic crop hints, no
+re-rendering of legacy outputs from the model id alone) and is captured in
+spec § 1.
+
+**Severity:** Informational. No code change recommended; legacy rows age out.
+
+---
+
 ### B4. Reference-image upload doc is stale (no code gap)
 `docs/LOCAL_DEV_SETUP.md:501` claims the onboarding wizard's References step "doesn't yet POST to `/api/brands/[id]/assets` (uploaded files are stored to sessionStorage and discarded)."
 
