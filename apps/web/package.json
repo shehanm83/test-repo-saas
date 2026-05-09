@@ -28,8 +28,10 @@
     "@vyora/shared": "workspace:*",
     "@vyora/storage": "workspace:*",
     "@vyora/worker": "workspace:*",
+    "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.2",
     "next": "^16.2.4",
+    "postgres": "^3.4.9",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-image-crop": "^11.0.10"
