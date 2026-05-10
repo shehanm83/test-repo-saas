@@ -1,7 +1,11 @@
 id: quick.image_only
+# RESPONSIBILITY: a generic image — neither a product asset nor a campaign
+# scene. The user gave only a brief; we render that brief as a single
+# polished frame. No advertising language, no overlay reservation by
+# default unless the user requested overlay slots.
 name: Quick Create Image Only
 category: image_generation
-version: 1
+version: 2
 compatible_models:
   - gpt-image-1
   - flux-1.1-pro
@@ -44,7 +48,10 @@ expected_output:
     negative_prompt: string
     overlay_slots: object
 prompt: |
-  Create a polished image for {{output.platform_label}}.
+  Generate a single image at {{output.platform_label}} based on the user's brief.
+  This is a STANDALONE IMAGE — render the brief literally. Do not add
+  advertising styling, headline space, or product-catalog framing unless
+  the user explicitly asked for it.
 
   User direction:
   {{brief}}
@@ -56,10 +63,9 @@ prompt: |
   {{mood_summary}}
   {{overlay_summary}}
 
-  Make the composition clean, production-ready, and suitable for the selected output size.
-  Do not render readable text, prices, QR codes, URLs, phone numbers, or logos inside the image.
-  If the user requested banner or sign text, leave a clean blank area for renderer-owned text overlay instead.
-  Use original character designs rather than named copyrighted characters.
+  Make the composition clean and production-ready at the requested output size.
+  Do not render readable text, prices, QR codes, URLs, phone numbers, or logos.
+  Use original character designs; do not recreate named copyrighted characters.
 negative_prompt: |
   misspelled text, unreadable text, fake logo, fake QR code, random pricing,
   watermark, UI screenshot, distorted objects, cluttered composition,

@@ -1,7 +1,11 @@
 id: quick.product_campaign
+# RESPONSIBILITY: ad COMPOSITE — product placed in a campaign scene with
+# overlay space for headline/CTA. Three responsibilities are intentionally
+# combined here because the user has both products AND campaign details;
+# the other 3 quick-mode YAMLs handle the cleaner subsets.
 name: Quick Create Product Campaign
 category: image_generation
-version: 1
+version: 2
 compatible_models:
   - gpt-image-1
   - flux-1.1-pro
@@ -50,12 +54,15 @@ overlay_contract:
 expected_output:
   type: image
 prompt: |
-  Create a polished product campaign image for {{output.platform_label}}.
+  Create a product CAMPAIGN COMPOSITE at {{output.platform_label}} — a finished
+  ad-style image that combines: (1) the user's product, (2) a scene that
+  matches the campaign mood, and (3) intentional quiet space for the renderer
+  to overlay headline / offer / CTA / logo on top.
 
   User direction:
   {{brief}}
 
-  Product context:
+  Product context (do not invent unspecified products or branding):
   {{product_summary}}
 
   Campaign context:
@@ -68,8 +75,11 @@ prompt: |
   {{mood_summary}}
   {{overlay_summary}}
 
-  Present the product clearly and reserve clean overlay space for headline, offer, CTA, logo, and legal details.
-  Do not render readable campaign text, prices, QR codes, URLs, phone numbers, or logos inside the image.
+  Compose the product at a believable scale within the scene. Reserve clean,
+  low-detail overlay space for headline, offer, CTA, logo, and legal details
+  (typically one side or one corner — not across the product).
+  Do NOT render readable campaign text, prices, QR codes, URLs, phone numbers,
+  or logos inside the image.
 negative_prompt: |
   distorted product, warped packaging, unreadable label text, fake CTA, fake price,
   fake QR code, fake URL, fake phone number, fake logo, watermark, cluttered layout

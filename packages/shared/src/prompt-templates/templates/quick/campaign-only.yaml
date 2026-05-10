@@ -1,7 +1,10 @@
 id: quick.campaign_only
+# RESPONSIBILITY: campaign SCENE — atmospheric environment for a campaign
+# message, no specific product. Reserve overlay space because the renderer
+# layers the actual headline/CTA/price text on top.
 name: Quick Create Campaign Only
 category: image_generation
-version: 1
+version: 2
 compatible_models:
   - gpt-image-1
   - flux-1.1-pro
@@ -47,7 +50,10 @@ overlay_contract:
 expected_output:
   type: image
 prompt: |
-  Create a polished campaign image for {{output.platform_label}}.
+  Create a campaign SCENE image at {{output.platform_label}}.
+  This is the BACKDROP for a campaign — atmosphere and mood, not a finished ad.
+  No specific product is featured. The renderer adds headline / CTA / price
+  text on top, so leave intentional quiet areas for those overlays.
 
   User direction:
   {{brief}}
@@ -62,8 +68,10 @@ prompt: |
   {{mood_summary}}
   {{overlay_summary}}
 
-  Leave intentional clean, low-detail space for headline, offer, CTA, logo, and legal overlays.
-  Do not render readable campaign text, prices, QR codes, URLs, phone numbers, or logos inside the image.
+  Leave clean, low-detail space (typically one side or one corner) for
+  headline, offer, CTA, logo, and legal overlays.
+  Do NOT render readable campaign text, prices, QR codes, URLs, phone numbers,
+  or logos inside the image.
 negative_prompt: |
   misspelled text, unreadable text, fake CTA, fake price, fake QR code, fake URL,
   fake phone number, fake logo, watermark, cluttered copy space

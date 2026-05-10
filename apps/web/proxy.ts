@@ -122,8 +122,8 @@ export default async function proxy(request: NextRequest, event: NextFetchEvent)
   })(request, event);
 }
 
+// Next 16 proxy.ts always runs in Node runtime; the explicit `runtime`
+// setting from the older middleware era is no longer allowed.
 export const config = {
   matcher: ["/((?!_next|favicon.ico|api/webhooks).*)"],
-  // Node runtime so bcryptjs + postgres can load. Edge can't run pg drivers.
-  runtime: "nodejs",
 };

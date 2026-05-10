@@ -104,11 +104,16 @@ function selectModifiers(input: BuildQuickCreatePromptInput) {
 
 function buildContext(input: BuildQuickCreatePromptInput) {
   const { normalized, outputTarget, brand, mood } = input;
+  // Brand-asset signal: do we have anything to put on the product's label?
+  // Without a brand row AND without uploaded brand logos, the model has
+  // nothing to render — and "label visibility: preserve" pushes it to invent
+  // branding. Audit fix B from the prompt review.
+  const hasBrandArtwork = Boolean(brand?.name) || normalized.brandLogoAssetIds.length > 0;
   return {
     brief: sanitizeUserDirection(normalized.brief),
-    product_summary: summarizeProducts(normalized.productRefs),
+    product_summary: summarizeProducts(normalized.productRefs, { hasBrandArtwork }),
     campaign_summary: summarizeCampaign(normalized.campaign),
-    composition_summary: summarizeComposition(normalized.composition),
+    composition_summary: summarizeComposition(normalized.composition, { hasBrandArtwork }),
     brand_summary: summarizeBrand(brand),
     mood_summary: summarizeMood(mood),
     overlay_summary: summarizeOverlay(buildOverlaySlots(normalized)),
@@ -192,12 +197,29 @@ function hasCampaignDetails(campaign: Campaign) {
   });
 }
 
-function summarizeProducts(products: ProductRef[]) {
+// Heuristic: a name like "project-c04f4ecc-53d45e2a" or empty is a synthetic
+// placeholder, not a real product name. The model can't render it as a
+// readable label and will invent branding. Treat as unbranded.
+function isPlaceholderProductName(name: string | undefined): boolean {
+  if (!name) return true;
+  const trimmed = name.trim();
+  if (trimmed.length === 0) return true;
+  // UUID prefix or "project-<hex>" pattern from upload IDs.
+  if (/^project-[0-9a-f]{4,}/i.test(trimmed)) return true;
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed)) return true;
+  return false;
+}
+
+function summarizeProducts(
+  products: ProductRef[],
+  opts: { hasBrandArtwork: boolean } = { hasBrandArtwork: false },
+) {
   if (products.length === 0) return "No specific product is selected.";
   return products
     .map((ref, index) => {
       const product = ref.commercialFields ?? {};
       const productName = product.title ?? product.name;
+      const isUnbranded = !opts.hasBrandArtwork && isPlaceholderProductName(productName);
       const parts = [
         productName ? `name: ${productName}` : null,
         product.subtitle ? `subtitle: ${product.subtitle}` : null,
@@ -206,6 +228,10 @@ function summarizeProducts(products: ProductRef[]) {
         product.keyFeatures?.length ? `features: ${product.keyFeatures.join(", ")}` : null,
         product.benefits?.length ? `benefits: ${product.benefits.join(", ")}` : null,
         product.targetAudience ? `audience: ${product.targetAudience}` : null,
+        // Audit fix B — when there's no brand artwork and no real product
+        // name, tell the model the packaging is generic. Without this it
+        // hallucinates a label.
+        isUnbranded ? "branding: GENERIC unbranded packaging — no label artwork provided" : null,
       ].filter(Boolean);
       return `Product ${index + 1} (${ref.role}): ${parts.join("; ") || "selected product asset"}`;
     })
@@ -227,13 +253,23 @@ function summarizeCampaign(campaign: Campaign) {
   return parts.length > 0 ? parts.join("; ") : "No campaign details are selected.";
 }
 
-function summarizeComposition(composition: NormalizedCommercialGenerationInput["composition"]) {
+function summarizeComposition(
+  composition: NormalizedCommercialGenerationInput["composition"],
+  opts: { hasBrandArtwork: boolean } = { hasBrandArtwork: false },
+) {
+  // Audit fix B — `label visibility: preserve` tells the model "keep the
+  // existing label readable", which forces it to invent text/logos when no
+  // brand artwork is provided. Downgrade to `hide` for the unbranded case.
+  const labelVisibility =
+    composition.labelVisibility === "preserve" && !opts.hasBrandArtwork
+      ? "hide"
+      : composition.labelVisibility;
   return [
     `background: ${composition.backgroundStyle}`,
     `realism: ${composition.realism}`,
     `product size: ${composition.productSize}`,
     `product position: ${composition.productPosition}`,
-    `label visibility: ${composition.labelVisibility}`,
+    `label visibility: ${labelVisibility}`,
     `packaging: ${composition.packagingVisibility}`,
     `brand blend: ${composition.brandBlend}`,
   ].join("; ");
