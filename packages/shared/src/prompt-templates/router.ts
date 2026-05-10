@@ -105,18 +105,31 @@ function selectModifiers(input: BuildQuickCreatePromptInput) {
 function buildContext(input: BuildQuickCreatePromptInput) {
   const { normalized, outputTarget, brand, mood } = input;
   // Brand-asset signal: do we have anything to put on the product's label?
-  // Without a brand row AND without uploaded brand logos, the model has
-  // nothing to render — and "label visibility: preserve" pushes it to invent
-  // branding. Audit fix B from the prompt review.
   const hasBrandArtwork = Boolean(brand?.name) || normalized.brandLogoAssetIds.length > 0;
+  // Reference-image signal: the user uploaded a product/inspiration image.
+  // The provider passes this to the model as a visual reference, but
+  // without an explicit prompt cue the model treats it as loose inspiration
+  // and invents a different product. Bug B from the prompt review.
+  const hasReferenceImage =
+    normalized.inspirationUploadIds.length > 0 ||
+    normalized.productRefs.some((r) => Boolean(r.uploadId));
   return {
     brief: sanitizeUserDirection(normalized.brief),
-    product_summary: summarizeProducts(normalized.productRefs, { hasBrandArtwork }),
+    product_summary: summarizeProducts(normalized.productRefs, {
+      hasBrandArtwork,
+      hasReferenceImage,
+    }),
     campaign_summary: summarizeCampaign(normalized.campaign),
-    composition_summary: summarizeComposition(normalized.composition, { hasBrandArtwork }),
+    composition_summary: summarizeComposition(normalized.composition, {
+      hasBrandArtwork,
+      hasReferenceImage,
+    }),
     brand_summary: summarizeBrand(brand),
     mood_summary: summarizeMood(mood),
     overlay_summary: summarizeOverlay(buildOverlaySlots(normalized)),
+    reference_summary: hasReferenceImage
+      ? "REFERENCE IMAGE PROVIDED: A product image has been attached. Preserve its silhouette, colour, material, label artwork, and proportions exactly as shown. Do not invent a different product."
+      : "",
     product: normalized.productRefs[0]?.commercialFields ?? {},
     campaign: normalized.campaign,
     composition: normalized.composition,
@@ -212,14 +225,24 @@ function isPlaceholderProductName(name: string | undefined): boolean {
 
 function summarizeProducts(
   products: ProductRef[],
-  opts: { hasBrandArtwork: boolean } = { hasBrandArtwork: false },
+  opts: { hasBrandArtwork: boolean; hasReferenceImage?: boolean } = {
+    hasBrandArtwork: false,
+    hasReferenceImage: false,
+  },
 ) {
   if (products.length === 0) return "No specific product is selected.";
   return products
     .map((ref, index) => {
       const product = ref.commercialFields ?? {};
       const productName = product.title ?? product.name;
-      const isUnbranded = !opts.hasBrandArtwork && isPlaceholderProductName(productName);
+      // Only call it unbranded when there's NOTHING for the model to work
+      // with: no brand row, no logo asset, no reference image upload, and
+      // no real product name. With a reference image, the upload IS the
+      // label artwork — don't tell the model to make it generic.
+      const isUnbranded =
+        !opts.hasBrandArtwork &&
+        !opts.hasReferenceImage &&
+        isPlaceholderProductName(productName);
       const parts = [
         productName ? `name: ${productName}` : null,
         product.subtitle ? `subtitle: ${product.subtitle}` : null,
@@ -255,13 +278,19 @@ function summarizeCampaign(campaign: Campaign) {
 
 function summarizeComposition(
   composition: NormalizedCommercialGenerationInput["composition"],
-  opts: { hasBrandArtwork: boolean } = { hasBrandArtwork: false },
+  opts: { hasBrandArtwork: boolean; hasReferenceImage?: boolean } = {
+    hasBrandArtwork: false,
+    hasReferenceImage: false,
+  },
 ) {
-  // Audit fix B — `label visibility: preserve` tells the model "keep the
-  // existing label readable", which forces it to invent text/logos when no
-  // brand artwork is provided. Downgrade to `hide` for the unbranded case.
+  // `label visibility: preserve` only makes sense when the model has artwork
+  // to preserve — either a brand row, a logo upload, OR a reference product
+  // image. Otherwise the model invents text. Downgrade to `hide` only when
+  // ALL three are missing.
   const labelVisibility =
-    composition.labelVisibility === "preserve" && !opts.hasBrandArtwork
+    composition.labelVisibility === "preserve" &&
+    !opts.hasBrandArtwork &&
+    !opts.hasReferenceImage
       ? "hide"
       : composition.labelVisibility;
   return [

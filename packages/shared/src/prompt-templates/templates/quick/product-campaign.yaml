@@ -65,6 +65,8 @@ prompt: |
   Product context (do not invent unspecified products or branding):
   {{product_summary}}
 
+  {{reference_summary}}
+
   Campaign context:
   {{campaign_summary}}
 
