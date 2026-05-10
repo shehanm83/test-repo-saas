@@ -195,7 +195,13 @@ export function ModelsAdmin({ rows }: { rows: ModelRow[] }) {
               </tr>
             ) : (
               filtered.map((row) => (
-                <tr key={row.code} style={{ borderTop: "1px solid var(--cal-gray-200)" }}>
+                <tr
+                  key={row.code}
+                  style={{
+                    borderTop: "1px solid var(--cal-gray-200)",
+                    cursor: "pointer",
+                  }}
+                >
                   <td
                     style={{
                       padding: "10px 16px",
@@ -203,9 +209,21 @@ export function ModelsAdmin({ rows }: { rows: ModelRow[] }) {
                       fontSize: 13,
                     }}
                   >
-                    {row.code}
+                    <Link
+                      href={`/admin/models/${row.code}`}
+                      style={{ color: "var(--fg-1)", textDecoration: "none" }}
+                    >
+                      {row.code}
+                    </Link>
                   </td>
-                  <td style={{ padding: "10px 16px" }}>{row.displayName}</td>
+                  <td style={{ padding: "10px 16px" }}>
+                    <Link
+                      href={`/admin/models/${row.code}`}
+                      style={{ color: "var(--fg-1)", textDecoration: "none", fontWeight: 500 }}
+                    >
+                      {row.displayName}
+                    </Link>
+                  </td>
                   <td style={{ padding: "10px 16px" }}>{row.vendor}</td>
                   <td
                     style={{
