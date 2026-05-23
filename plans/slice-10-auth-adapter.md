@@ -2,14 +2,14 @@
 
 **Phase:** 2 — Auth & workspace
 **Depends on:** 06
-**Spec references:** [Architecture § 6.1 (AuthProvider adapter)](../specs/2026-04-25-studio-v1-architecture.md), [Spec § 2 (multi-tenancy)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 3.1 (sign-up flow)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Architecture § 6.1 (AuthProvider adapter)](../specs/2026-04-25-layertone-v1-architecture.md), [Spec § 2 (multi-tenancy)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 3.1 (sign-up flow)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `packages/auth` package with `ClerkAuthProvider` and `DevAuthProvider`
 - Dev provider returns `{ userId: DEV_USER_ID, workspaceId: <picked from dev seed>, role: 'user' }`
 - Clerk provider verifies the JWT against Clerk's JWKS, extracts `current_workspace_id` claim
 - `setActiveWorkspace` either updates Clerk user metadata (clerk) or no-ops (dev)
-- Adapter factory in `@vyora/shared` returns the correct impl based on `AUTH_MODE`
+- Adapter factory in `@layertone/shared` returns the correct impl based on `AUTH_MODE`
 - Unit tests for both providers (Clerk uses a test JWKS fixture)
 
 ---
@@ -41,7 +41,7 @@ Files mirror the layout of `packages/shared` (slice 01). Add `pnpm-workspace` is
 `packages/auth/package.json`:
 ```json
 {
-  "name": "@vyora/auth",
+  "name": "@layertone/auth",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -51,7 +51,7 @@ Files mirror the layout of `packages/shared` (slice 01). Add `pnpm-workspace` is
     "test": "vitest run"
   },
   "dependencies": {
-    "@vyora/shared": "workspace:*",
+    "@layertone/shared": "workspace:*",
     "@clerk/backend": "^1.13.0",
     "jose": "^5.9.6"
   }
@@ -85,7 +85,7 @@ Update root `tsconfig.json` references to include `packages/auth`.
 `packages/auth/src/dev.ts`:
 
 ```ts
-import type { AuthIdentity, AuthProvider } from "@vyora/shared";
+import type { AuthIdentity, AuthProvider } from "@layertone/shared";
 
 export class DevAuthProvider implements AuthProvider {
   constructor(private readonly devUserId: string) {}
@@ -139,7 +139,7 @@ describe("DevAuthProvider", () => {
 
 ```ts
 import { createClerkClient, verifyToken } from "@clerk/backend";
-import type { AuthIdentity, AuthProvider } from "@vyora/shared";
+import type { AuthIdentity, AuthProvider } from "@layertone/shared";
 
 export interface ClerkAuthOptions {
   publishableKey: string;
@@ -226,17 +226,17 @@ export { ClerkAuthProvider } from "./clerk.js";
 export { DevAuthProvider } from "./dev.js";
 ```
 
-- [ ] **Step 7 — Wire factory in `@vyora/shared`**
+- [ ] **Step 7 — Wire factory in `@layertone/shared`**
 
-Add `@vyora/auth` as a dep:
+Add `@layertone/auth` as a dep:
 ```bash
-pnpm --filter @vyora/shared add @vyora/auth@workspace:*
+pnpm --filter @layertone/shared add @layertone/auth@workspace:*
 ```
 
 Edit `packages/shared/src/adapters/factory.ts`:
 
 ```ts
-import { ClerkAuthProvider, DevAuthProvider } from "@vyora/auth";
+import { ClerkAuthProvider, DevAuthProvider } from "@layertone/auth";
 import { type Config } from "../config.js";
 import type {
   AIProvider, AuthProvider, BillingProvider, EmailProvider, QueueAdapter, StorageAdapter, Telemetry,
@@ -291,7 +291,7 @@ git commit -m "feat(auth): Clerk + dev-bypass auth providers wired through adapt
 ## Verification
 
 ```bash
-pnpm --filter @vyora/auth test
+pnpm --filter @layertone/auth test
 pnpm typecheck
 ```
 

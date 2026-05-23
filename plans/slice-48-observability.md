@@ -2,7 +2,7 @@
 
 **Phase:** 16 — Hardening
 **Depends on:** 35, 30
-**Spec references:** [Architecture § 3.9 (Observability v1)](../specs/2026-04-25-studio-v1-architecture.md), [decision D9 (Sentry + CloudWatch + OTEL placeholder)](../../../C--personal-saas-img-gen/memory/project_decisions.md).
+**Spec references:** [Architecture § 3.9 (Observability v1)](../specs/2026-04-25-layertone-v1-architecture.md), [decision D9 (Sentry + CloudWatch + OTEL placeholder)](../../../C--personal-saas-img-gen/memory/project_decisions.md).
 
 **Definition of done:**
 - Sentry initialized in both `apps/web` and `apps/worker` (server + client)
@@ -31,9 +31,9 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/web add @sentry/nextjs
-pnpm --filter @vyora/worker add @sentry/node @sentry/profiling-node
-pnpm --filter @vyora/observability add @aws-sdk/client-cloudwatch @sentry/node
+pnpm --filter @layertone/web add @sentry/nextjs
+pnpm --filter @layertone/worker add @sentry/node @sentry/profiling-node
+pnpm --filter @layertone/observability add @aws-sdk/client-cloudwatch @sentry/node
 ```
 
 - [ ] **Step 2 — `SentryTelemetry`**
@@ -42,7 +42,7 @@ pnpm --filter @vyora/observability add @aws-sdk/client-cloudwatch @sentry/node
 // packages/observability/src/sentry.ts
 import * as Sentry from "@sentry/node";
 import { CloudWatchClient, PutMetricDataCommand } from "@aws-sdk/client-cloudwatch";
-import type { Telemetry } from "@vyora/shared";
+import type { Telemetry } from "@layertone/shared";
 
 export class SentryTelemetry implements Telemetry {
   private cw?: CloudWatchClient;
@@ -149,7 +149,7 @@ git commit -m "feat(observability): Sentry + CloudWatch metrics + OTEL placehold
 ## Verification
 
 ```bash
-OBSERVABILITY=sentry SENTRY_DSN=... pnpm --filter @vyora/worker dev
+OBSERVABILITY=sentry SENTRY_DSN=... pnpm --filter @layertone/worker dev
 # trigger a generation, observe Sentry transaction + CloudWatch metric appear
 ```
 

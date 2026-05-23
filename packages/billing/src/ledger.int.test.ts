@@ -1,9 +1,9 @@
-import { createDb, users, workspaces } from "@vyora/db";
+import { createDb, users, workspaces } from "@layertone/db";
 import { describe, expect, it } from "vitest";
 
 import { Ledger } from "./ledger";
 
-const databaseUrl = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const databaseUrl = process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/layertone";
 const db = createDb(databaseUrl, "app_admin");
 
 async function setup() {

@@ -11,10 +11,10 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.1037.0
         version: 3.1037.0
-      '@vyora/db':
+      '@layertone/db':
         specifier: workspace:*
         version: link:packages/db
-      '@vyora/shared':
+      '@layertone/shared':
         specifier: workspace:*
         version: link:packages/shared
     devDependencies:
@@ -93,42 +93,42 @@ importers:
       '@clerk/nextjs':
         specifier: ^7.2.7
         version: 7.2.7(next@16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@layertone/api':
+        specifier: workspace:*
+        version: link:../../packages/api
+      '@layertone/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@layertone/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
+      '@layertone/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@layertone/gateway':
+        specifier: workspace:*
+        version: link:../../packages/gateway
+      '@layertone/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
+      '@layertone/queue':
+        specifier: workspace:*
+        version: link:../../packages/queue
+      '@layertone/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      '@layertone/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@layertone/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
+      '@layertone/worker':
+        specifier: workspace:*
+        version: link:../worker
       '@sentry/nextjs':
         specifier: ^10.50.0
         version: 10.50.0(@opentelemetry/core@2.7.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.7.0(@opentelemetry/api@1.9.1))(next@16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(webpack@5.106.2(esbuild@0.27.7))
-      '@vyora/api':
-        specifier: workspace:*
-        version: link:../../packages/api
-      '@vyora/auth':
-        specifier: workspace:*
-        version: link:../../packages/auth
-      '@vyora/billing':
-        specifier: workspace:*
-        version: link:../../packages/billing
-      '@vyora/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@vyora/gateway':
-        specifier: workspace:*
-        version: link:../../packages/gateway
-      '@vyora/observability':
-        specifier: workspace:*
-        version: link:../../packages/observability
-      '@vyora/queue':
-        specifier: workspace:*
-        version: link:../../packages/queue
-      '@vyora/renderer':
-        specifier: workspace:*
-        version: link:../../packages/renderer
-      '@vyora/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@vyora/storage':
-        specifier: workspace:*
-        version: link:../../packages/storage
-      '@vyora/worker':
-        specifier: workspace:*
-        version: link:../worker
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(postgres@3.4.9)
@@ -154,33 +154,33 @@ importers:
 
   apps/worker:
     dependencies:
+      '@layertone/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
+      '@layertone/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@layertone/gateway':
+        specifier: workspace:*
+        version: link:../../packages/gateway
+      '@layertone/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
+      '@layertone/queue':
+        specifier: workspace:*
+        version: link:../../packages/queue
+      '@layertone/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
+      '@layertone/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@layertone/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       '@sentry/node':
         specifier: ^10.50.0
         version: 10.50.0
-      '@vyora/billing':
-        specifier: workspace:*
-        version: link:../../packages/billing
-      '@vyora/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@vyora/gateway':
-        specifier: workspace:*
-        version: link:../../packages/gateway
-      '@vyora/observability':
-        specifier: workspace:*
-        version: link:../../packages/observability
-      '@vyora/queue':
-        specifier: workspace:*
-        version: link:../../packages/queue
-      '@vyora/renderer':
-        specifier: workspace:*
-        version: link:../../packages/renderer
-      '@vyora/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@vyora/storage':
-        specifier: workspace:*
-        version: link:../../packages/storage
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(postgres@3.4.9)
@@ -221,22 +221,22 @@ importers:
 
   packages/api:
     dependencies:
-      '@vyora/auth':
+      '@layertone/auth':
         specifier: workspace:*
         version: link:../auth
-      '@vyora/billing':
+      '@layertone/billing':
         specifier: workspace:*
         version: link:../billing
-      '@vyora/db':
+      '@layertone/db':
         specifier: workspace:*
         version: link:../db
-      '@vyora/observability':
+      '@layertone/observability':
         specifier: workspace:*
         version: link:../observability
-      '@vyora/shared':
+      '@layertone/shared':
         specifier: workspace:*
         version: link:../shared
-      '@vyora/storage':
+      '@layertone/storage':
         specifier: workspace:*
         version: link:../storage
       cheerio:
@@ -266,7 +266,7 @@ importers:
       '@clerk/backend':
         specifier: ^3.4.1
         version: 3.4.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@vyora/db':
+      '@layertone/db':
         specifier: workspace:*
         version: link:../db
       jose:
@@ -278,7 +278,7 @@ importers:
 
   packages/billing:
     dependencies:
-      '@vyora/db':
+      '@layertone/db':
         specifier: workspace:*
         version: link:../db
       drizzle-orm:
@@ -322,7 +322,7 @@ importers:
       '@aws-sdk/client-bedrock-runtime':
         specifier: ^3.1037.0
         version: 3.1037.0
-      '@vyora/shared':
+      '@layertone/shared':
         specifier: workspace:*
         version: link:../shared
       openai:
@@ -353,7 +353,7 @@ importers:
       '@aws-sdk/client-sqs':
         specifier: ^3.1037.0
         version: 3.1037.0
-      '@vyora/shared':
+      '@layertone/shared':
         specifier: workspace:*
         version: link:../shared
 
@@ -381,16 +381,16 @@ importers:
 
   packages/shared:
     dependencies:
-      '@vyora/auth':
+      '@layertone/auth':
         specifier: workspace:*
         version: link:../auth
-      '@vyora/billing':
+      '@layertone/billing':
         specifier: workspace:*
         version: link:../billing
-      '@vyora/observability':
+      '@layertone/observability':
         specifier: workspace:*
         version: link:../observability
-      '@vyora/storage':
+      '@layertone/storage':
         specifier: workspace:*
         version: link:../storage
       yaml:

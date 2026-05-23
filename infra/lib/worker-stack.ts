@@ -20,7 +20,7 @@ export class WorkerStack extends Stack {
     const bucket = Bucket.fromBucketArn(this, "ImportedBucket", props.bucketArn);
 
     const fn = new Function(this, "GenerationWorker", {
-      functionName: `studio-${props.stage}-worker`,
+      functionName: `layertone-${props.stage}-worker`,
       runtime: Runtime.NODEJS_20_X,
       handler: "index.handler",
       code: Code.fromAsset("../apps/worker/dist"),
@@ -50,7 +50,7 @@ export class WorkerStack extends Stack {
     fn.addToRolePolicy(
       new PolicyStatement({
         actions: ["ssm:GetParameter", "ssm:GetParameters"],
-        resources: [`arn:aws:ssm:*:*:parameter/studio/${props.stage}/*`],
+        resources: [`arn:aws:ssm:*:*:parameter/layertone/${props.stage}/*`],
       }),
     );
   }

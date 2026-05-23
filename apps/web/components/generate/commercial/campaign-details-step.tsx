@@ -114,7 +114,7 @@ export function CampaignDetailsStep(props: {
             className="input"
             value={props.campaign.website}
             onChange={(event) => props.onChange({ website: event.target.value })}
-            placeholder="vyora.example"
+            placeholder="layertone.example"
           />
         </label>
         <label>

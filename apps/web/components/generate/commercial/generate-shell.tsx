@@ -405,7 +405,6 @@ export function GenerateShell(props: {
 
         <ReviewRail
           state={state}
-          credits={props.credits}
           preflight={preflight}
           preflightLoading={preflightLoading}
           preflightError={preflightError}

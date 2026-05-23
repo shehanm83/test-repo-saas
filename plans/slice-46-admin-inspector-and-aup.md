@@ -2,7 +2,7 @@
 
 **Phase:** 15
 **Depends on:** 44, 30
-**Spec references:** [UI Prompt 12 — Generation inspector](../specs/2026-04-25-studio-v1-ui-prompts.md), [Spec § 5 (admin tools)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [UI Prompt 12 — Generation inspector](../specs/2026-04-25-layertone-v1-ui-prompts.md), [Spec § 5 (admin tools)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `/admin/generations`: search by ID; full detail view per UI Prompt 12 (summary, brief, prompts per variant, mosaic, ledger entries, operator actions)
@@ -57,7 +57,7 @@ Admin sees a list of generations flagged via `audit_log.action='generation.aup_f
 - [ ] **Step 5 — Commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(admin): generation inspector + user/workspace tools + AUP enforcement"
 ```

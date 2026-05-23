@@ -1,4 +1,4 @@
-import { Ledger } from "@vyora/billing";
+import { Ledger } from "@layertone/billing";
 import {
   createDb,
   getGenerationFull,
@@ -8,18 +8,18 @@ import {
   brands,
   moods,
   templates as templatesTable,
-} from "@vyora/db";
-import { tagSpan } from "@vyora/observability";
-import { render } from "@vyora/renderer";
+} from "@layertone/db";
+import { tagSpan } from "@layertone/observability";
+import { render } from "@layertone/renderer";
 import type {
   Adapters,
   Config,
   AIImageRequest,
   NormalizedCommercialGenerationInput,
   ResolvedOutputTarget,
-} from "@vyora/shared";
-import { buildQuickCreatePrompt, type BuiltPrompt } from "@vyora/shared/prompt-templates";
-import { keys } from "@vyora/storage";
+} from "@layertone/shared";
+import { buildQuickCreatePrompt, type BuiltPrompt } from "@layertone/shared/prompt-templates";
+import { keys } from "@layertone/storage";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 // Backward-compatible: stored as JSON array string or legacy plain s3 key
@@ -159,14 +159,17 @@ function resolveWorkerTarget(
 ): ResolvedOutputTarget {
   if (outputTarget?.kind) return outputTarget;
   if (primaryOutputTarget?.kind) return primaryOutputTarget;
-  return {
-    kind: "image",
-    platform: null,
-    format: null,
-    aspectRatio: outputTarget.aspectRatio,
-    width: outputTarget.width,
-    height: outputTarget.height,
-  };
+  if (outputTarget) {
+    return {
+      kind: "image",
+      platform: null,
+      format: null,
+      aspectRatio: outputTarget.aspectRatio,
+      width: outputTarget.width,
+      height: outputTarget.height,
+    };
+  }
+  return { kind: "image", platform: null, format: null, aspectRatio: "1:1", width: 1080, height: 1080 };
 }
 
 function combineNegativePrompts(...values: Array<string | null | undefined>) {

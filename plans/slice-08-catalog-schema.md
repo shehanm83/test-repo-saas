@@ -2,7 +2,7 @@
 
 **Phase:** 1 — Database schema
 **Depends on:** 06
-**Spec references:** [Spec § 1.2 (moods, mood_template_bindings, templates, stock_assets, price_book_entries)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 4 (Mood system)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 1.2 (moods, mood_template_bindings, templates, stock_assets, price_book_entries)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 4 (Mood system)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - Migration `0003_catalog.sql` creates the four global catalog tables + binding table
@@ -112,7 +112,7 @@ export * from "./catalog.js";
 - [ ] **Step 3 — Generate + edit migration**
 
 ```bash
-pnpm --filter @vyora/db exec drizzle-kit generate --name=catalog
+pnpm --filter @layertone/db exec drizzle-kit generate --name=catalog
 ```
 
 Edit the generated `0003_catalog.sql`. Append:
@@ -154,7 +154,7 @@ GRANT ALL ON moods, templates, mood_template_bindings, stock_assets, price_book_
 - [ ] **Step 4 — Run migration**
 
 ```bash
-pnpm --filter @vyora/db db:migrate
+pnpm --filter @layertone/db db:migrate
 ```
 
 - [ ] **Step 5 — Commit**

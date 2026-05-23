@@ -2,7 +2,7 @@
 
 **Phase:** 13 — Frontend generation
 **Depends on:** 36, 27, 28, 29
-**Spec references:** [UI Prompt 5 — Generation form (with output target picker + inspiration upload)](../specs/2026-04-25-studio-v1-ui-prompts.md), [Spec § 3.3](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [UI Prompt 5 — Generation form (with output target picker + inspiration upload)](../specs/2026-04-25-layertone-v1-ui-prompts.md), [Spec § 3.3](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `/generate` route renders the split-view form per UI Prompt 5
@@ -33,7 +33,7 @@
 // apps/web/src/components/generate/output-target-picker.tsx
 "use client";
 import { useState } from "react";
-import { PLATFORM_FORMATS } from "@vyora/shared";
+import { PLATFORM_FORMATS } from "@layertone/shared";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -204,9 +204,9 @@ export default function GeneratePage() {
 // apps/web/src/app/api/generations/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
-import { GenerationApi } from "@vyora/api";
-import { PricebookApi } from "@vyora/api";
-import { loadConfig, createAdapters } from "@vyora/shared";
+import { GenerationApi } from "@layertone/api";
+import { PricebookApi } from "@layertone/api";
+import { loadConfig, createAdapters } from "@layertone/shared";
 
 export async function POST(req: Request) {
   const session = await getServerSession();
@@ -252,7 +252,7 @@ describe("OutputTargetPicker", () => {
 - [ ] **Step 7 — Commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(web): generation form (output target + inspiration + brief + brand + mood + toggles)"
 ```

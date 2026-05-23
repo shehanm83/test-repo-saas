@@ -2,7 +2,7 @@
 
 **Phase:** 0 — Foundation
 **Depends on:** 04
-**Spec references:** [Architecture § 6.1 (Adapter pattern)](../specs/2026-04-25-studio-v1-architecture.md), [Spec § 10 (Local development)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Architecture § 6.1 (Adapter pattern)](../specs/2026-04-25-layertone-v1-architecture.md), [Spec § 10 (Local development)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `packages/shared/src/config.ts` parses + validates env via Zod and exports a typed `config` singleton
@@ -29,7 +29,7 @@
 - [ ] **Step 1 — Add zod dependency**
 
 ```bash
-pnpm --filter @vyora/shared add zod
+pnpm --filter @layertone/shared add zod
 ```
 
 - [ ] **Step 2 — Write failing test for config parsing**
@@ -96,7 +96,7 @@ describe("parseConfig", () => {
 - [ ] **Step 3 — Run test, expect fail**
 
 ```bash
-pnpm --filter @vyora/shared test
+pnpm --filter @layertone/shared test
 ```
 Expected: error "Cannot find module './config.js'".
 
@@ -461,7 +461,7 @@ export * from "./adapters/index.js";
 - [ ] **Step 7 — Run tests, expect green**
 
 ```bash
-pnpm --filter @vyora/shared test
+pnpm --filter @layertone/shared test
 ```
 Expected: 3 tests pass (sanity + 2 new).
 
@@ -477,7 +477,7 @@ git commit -m "feat(shared): config schema and adapter interfaces"
 ## Verification
 
 ```bash
-pnpm --filter @vyora/shared test
+pnpm --filter @layertone/shared test
 pnpm typecheck
 pnpm lint
 ```

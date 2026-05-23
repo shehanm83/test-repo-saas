@@ -2,57 +2,37 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import React from "react";
 
+import { LayertoneMark } from "@/components/brand/layertone-mark";
 import { I } from "@/components/icons";
-
-const DOT_COLORS = ["#1D3B2A", "#5E5CE6", "#C97A3F", "#7A0E0E", "#1F7A5A", "#B5651D"];
-function dotColor(id: string): string {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return DOT_COLORS[h % DOT_COLORS.length]!;
-}
 
 export function Sidebar(props: {
   brands: Array<{ id: string; name: string }>;
   planCode: string;
 }) {
   const pathname = usePathname() ?? "/";
-  const [brandsOpen, setBrandsOpen] = useState(true);
   const isActive = (path: string): boolean =>
     pathname === path || pathname.startsWith(path + "/");
 
   return (
     <div className="sidebar">
-      <Link
-        href="/"
-        className={`nav-item ${pathname === "/" ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.Home size={16} className="nav-item__icon" />
-        <span>Home</span>
-      </Link>
-
-      <div style={{ height: 8 }} />
-
-      <Link href="/generate" className="nav-item nav-item--cta" style={{ textDecoration: "none" }}>
-        <I.Sparkle size={16} />
-        <span>Generate</span>
-        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
-          <span
-            className="kbd"
-            style={{
-              background: "rgba(255,255,255,0.15)",
-              color: "rgba(255,255,255,0.8)",
-              boxShadow: "none",
-            }}
-          >
-            G
-          </span>
+      <Link href="/" className="sidebar__brand" style={{ textDecoration: "none" }}>
+        <LayertoneMark size={42} />
+        <span>
+          Layer<b>tone</b>
         </span>
       </Link>
 
-      <div style={{ height: 12 }} />
+      <Link
+        href="/generate"
+        className={`nav-item nav-item--cta ${isActive("/generate") ? "is-active" : ""}`}
+        style={{ textDecoration: "none" }}
+      >
+        <I.Sparkle size={18} className="nav-item__icon" />
+        <span>Generate</span>
+        <span className="nav-item__shortcut">G</span>
+      </Link>
 
       <Link
         href="/history"
@@ -63,70 +43,17 @@ export function Sidebar(props: {
         <span>History</span>
       </Link>
 
-      <div className={`nav-group ${brandsOpen ? "is-open" : ""}`}>
-        <div className="nav-group__head" onClick={() => setBrandsOpen((o) => !o)}>
-          <I.ChevronRight
-            size={12}
-            className="nav-group__chev"
-            style={{ transform: brandsOpen ? "rotate(90deg)" : "" }}
-          />
-          <I.Briefcase size={16} style={{ color: "var(--fg-3)" }} />
-          <span>Brands</span>
-          <span className="nav-item__count" style={{ marginLeft: "auto" }}>
-            {props.brands.length}
-          </span>
-          <Link
-            href="/brands/new/identify?new=1"
-            className="nav-item__plus"
-            onClick={(e) => e.stopPropagation()}
-            style={{ textDecoration: "none" }}
-          >
-            <I.Plus size={12} />
-          </Link>
-        </div>
-        {brandsOpen ? (
-          <div className="nav-sub">
-            {props.brands.length === 0 ? (
-              <div className="nav-sub__item" style={{ color: "var(--fg-4)" }}>
-                No brands yet
-              </div>
-            ) : (
-              props.brands.map((b) => {
-                const active = pathname === `/brands/${b.id}`;
-                return (
-                  <Link
-                    key={b.id}
-                    href={`/brands/${b.id}`}
-                    className={`nav-sub__item ${active ? "is-active" : ""}`}
-                    style={
-                      active
-                        ? {
-                            color: "var(--fg-1)",
-                            background: "var(--cal-gray-100)",
-                            textDecoration: "none",
-                          }
-                        : { textDecoration: "none" }
-                    }
-                  >
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: 100,
-                          background: dotColor(b.id),
-                          flexShrink: 0,
-                        }}
-                      />
-                      {b.name}
-                    </span>
-                  </Link>
-                );
-              })
-            )}
-          </div>
-        ) : null}
-      </div>
+      <div className="sidebar__section-title">Assets</div>
+
+      <Link
+        href="/brands"
+        className={`nav-item ${isActive("/brands") ? "is-active" : ""}`}
+        style={{ textDecoration: "none" }}
+      >
+        <I.Briefcase size={16} className="nav-item__icon" />
+        <span>Brands</span>
+        <span className="nav-item__count">{props.brands.length}</span>
+      </Link>
 
       <Link
         href="/projects"
@@ -157,13 +84,7 @@ export function Sidebar(props: {
 
       <div className="grow" />
 
-      <div
-        style={{
-          marginTop: "auto",
-          paddingTop: 16,
-          borderTop: "1px solid var(--cal-gray-200)",
-        }}
-      >
+      <div className="sidebar__bottom">
         <Link
           href="/settings"
           className={`nav-item ${isActive("/settings") ? "is-active" : ""}`}
@@ -178,13 +99,12 @@ export function Sidebar(props: {
         </Link>
         <Link
           href="/billing"
-          className="nav-item"
-          style={{ marginTop: 4, textDecoration: "none" }}
+          className="sidebar__plan"
+          style={{ textDecoration: "none" }}
         >
-          <span className="pill pill--accent" style={{ height: 22, fontSize: 11 }}>
-            <I.Crown size={11} />
-            {props.planCode.charAt(0).toUpperCase() + props.planCode.slice(1)} plan
-          </span>
+          <span className="sidebar__avatar">N</span>
+          <strong>{props.planCode.charAt(0).toUpperCase() + props.planCode.slice(1)} plan</strong>
+          <I.ChevronDown size={14} />
         </Link>
       </div>
     </div>

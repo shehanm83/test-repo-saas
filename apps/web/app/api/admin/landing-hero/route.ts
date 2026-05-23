@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { LandingHeroApi } from "@vyora/api/landing-hero";
-import { loadConfig } from "@vyora/shared/config";
-import { AppError } from "@vyora/shared/errors/app-error";
+import { LandingHeroApi } from "@layertone/api/landing-hero";
+import { loadConfig } from "@layertone/shared/config";
+import { AppError } from "@layertone/shared/errors/app-error";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";

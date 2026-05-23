@@ -7,9 +7,9 @@ import {
   listLandingHeroCardsAll,
   listLandingHeroCardsPublished,
   updateLandingHeroCard,
-} from "@vyora/db";
-import type { Adapters, Config } from "@vyora/shared";
-import { keys } from "@vyora/storage";
+} from "@layertone/db";
+import type { Adapters, Config } from "@layertone/shared";
+import { keys } from "@layertone/storage";
 import { fileTypeFromBuffer } from "file-type";
 import { z } from "zod";
 

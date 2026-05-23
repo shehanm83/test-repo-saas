@@ -2,7 +2,7 @@
 
 **Phase:** 8 — Generation pipeline
 **Depends on:** 25, 26, 29
-**Spec references:** [Spec § 3.4 (Worker pipeline)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 3.5 (Failure handling)](../specs/2026-04-25-studio-v1-spec.md), [Architecture § 4.3 (i2i routing)](../specs/2026-04-25-studio-v1-architecture.md).
+**Spec references:** [Spec § 3.4 (Worker pipeline)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 3.5 (Failure handling)](../specs/2026-04-25-layertone-v1-spec.md), [Architecture § 4.3 (i2i routing)](../specs/2026-04-25-layertone-v1-architecture.md).
 
 **Definition of done:**
 - `apps/worker/src/handler.ts` exposes a Lambda-compatible function that processes one SQS record (or one inline message in dev)
@@ -14,7 +14,7 @@
 - Atomic fan-in: last variant completion marks generation completed; releases unspent reservation
 - Queue adapter wired (SQS / ElasticMQ / inline)
 - Tests cover: happy path, model failure → fallback, all variants fail → reservation released, fan-in
-- Worker dev script: `pnpm --filter @vyora/worker dev` (long-running ElasticMQ poller)
+- Worker dev script: `pnpm --filter @layertone/worker dev` (long-running ElasticMQ poller)
 
 ---
 
@@ -38,15 +38,15 @@
 
 Bootstrap `packages/queue` with:
 ```bash
-pnpm --filter @vyora/queue add @aws-sdk/client-sqs
-pnpm --filter @vyora/queue add @vyora/shared@workspace:*
+pnpm --filter @layertone/queue add @aws-sdk/client-sqs
+pnpm --filter @layertone/queue add @layertone/shared@workspace:*
 ```
 
 `packages/queue/src/sqs.ts`:
 
 ```ts
 import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
-import type { QueueAdapter, QueueMessage } from "@vyora/shared";
+import type { QueueAdapter, QueueMessage } from "@layertone/shared";
 
 export class SqsQueueAdapter implements QueueAdapter {
   client: SQSClient;
@@ -84,7 +84,7 @@ export class SqsQueueAdapter implements QueueAdapter {
 `packages/queue/src/inline.ts`:
 
 ```ts
-import type { QueueAdapter, QueueMessage } from "@vyora/shared";
+import type { QueueAdapter, QueueMessage } from "@layertone/shared";
 
 type Handler = (msg: unknown) => Promise<void>;
 
@@ -112,7 +112,7 @@ export * from "./inline.js";
 
 Wire factory:
 ```ts
-import { SqsQueueAdapter, InlineQueueAdapter } from "@vyora/queue";
+import { SqsQueueAdapter, InlineQueueAdapter } from "@layertone/queue";
 const queue =
   config.queue.mode === "inline" ? new InlineQueueAdapter()
   : new SqsQueueAdapter({ region: config.queue.region, endpoint: config.queue.endpoint });
@@ -126,12 +126,12 @@ const queue =
 import { eq, sql } from "drizzle-orm";
 import {
   createDb, getGenerationFull, generations, generationVariants, brands, brandAssets, moods, templates as templatesTable,
-} from "@vyora/db";
-import { keys } from "@vyora/storage";
-import { Ledger } from "@vyora/billing";
-import { render } from "@vyora/renderer";
-import type { Adapters, Config } from "@vyora/shared";
-import type { AIImageRequest } from "@vyora/shared";
+} from "@layertone/db";
+import { keys } from "@layertone/storage";
+import { Ledger } from "@layertone/billing";
+import { render } from "@layertone/renderer";
+import type { Adapters, Config } from "@layertone/shared";
+import type { AIImageRequest } from "@layertone/shared";
 
 export interface VariantJob { generationId: string; variantId: string; workspaceId: string }
 
@@ -283,7 +283,7 @@ export class GenerationWorker {
 `apps/worker/scripts/dev.ts`:
 
 ```ts
-import { loadConfig, createAdapters } from "@vyora/shared";
+import { loadConfig, createAdapters } from "@layertone/shared";
 import { GenerationWorker } from "../src/handler.js";
 
 const config = loadConfig();
@@ -329,7 +329,7 @@ git commit -m "feat(worker): generation pipeline handler with i2i + vision-fallb
 
 ```bash
 pnpm test:int
-# manual: AI_MODE=mock pnpm --filter @vyora/worker dev   # runs locally
+# manual: AI_MODE=mock pnpm --filter @layertone/worker dev   # runs locally
 ```
 
 ## Commit message

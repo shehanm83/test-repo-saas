@@ -3,7 +3,7 @@ export { InlineQueueAdapter } from "./inline";
 
 import { SqsQueueAdapter } from "./sqs";
 import { InlineQueueAdapter } from "./inline";
-import type { QueueAdapter } from "@vyora/shared";
+import type { QueueAdapter } from "@layertone/shared";
 
 export function createQueueAdapter(config: {
   mode: "sqs" | "elasticmq" | "inline";

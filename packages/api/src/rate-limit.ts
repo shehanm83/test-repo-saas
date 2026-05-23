@@ -1,6 +1,6 @@
-import { sql, type Db } from "@vyora/db";
-import { AppError } from "@vyora/shared/errors/app-error";
-import { CODES } from "@vyora/shared/errors/codes";
+import { sql, type Db } from "@layertone/db";
+import { AppError } from "@layertone/shared/errors/app-error";
+import { CODES } from "@layertone/shared/errors/codes";
 
 export async function rateLimit(db: Db, key: string, limit: number, windowSec: number): Promise<void> {
   const windowStart = new Date(Math.floor(Date.now() / (windowSec * 1000)) * windowSec * 1000).toISOString();

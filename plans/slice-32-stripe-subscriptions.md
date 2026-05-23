@@ -2,7 +2,7 @@
 
 **Phase:** 10 — Stripe billing
 **Depends on:** 19
-**Spec references:** [Spec § 6.1, 6.2, 6.4 (Stripe integration, monthly grant, plan changes)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 6.1, 6.2, 6.4 (Stripe integration, monthly grant, plan changes)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `StripeBillingProvider` wraps Stripe SDK; implements `BillingProvider` (slice 05 interface)
@@ -29,7 +29,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/billing add stripe
+pnpm --filter @layertone/billing add stripe
 ```
 
 - [ ] **Step 2 — Plans**
@@ -67,7 +67,7 @@ export function planFromStripePriceId(env: Record<string, string | undefined>, p
 ```ts
 // packages/billing/src/stripe.ts
 import Stripe from "stripe";
-import type { BillingProvider } from "@vyora/shared";
+import type { BillingProvider } from "@layertone/shared";
 
 export class StripeBillingProvider implements BillingProvider {
   private stripe: Stripe;
@@ -117,10 +117,10 @@ export class StripeBillingProvider implements BillingProvider {
 ```ts
 // packages/billing/src/stripe-webhook.ts
 import { eq } from "drizzle-orm";
-import { createDb, subscriptions, workspaces } from "@vyora/db";
+import { createDb, subscriptions, workspaces } from "@layertone/db";
 import { Ledger } from "./ledger.js";
 import { PLANS, planFromStripePriceId } from "./plans.js";
-import type { Config } from "@vyora/shared";
+import type { Config } from "@layertone/shared";
 import type Stripe from "stripe";
 
 export class StripeWebhookHandler {
@@ -219,7 +219,7 @@ git commit -m "feat(billing): Stripe subscription provider + webhook handler wit
 ## Verification
 
 ```bash
-pnpm --filter @vyora/billing test
+pnpm --filter @layertone/billing test
 ```
 
 ## Commit message

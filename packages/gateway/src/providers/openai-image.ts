@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@layertone/shared";
 
 const GPT_IMAGE_1_SIZE_TO_OPENAI: Record<string, string> = {
   "1:1": "1024x1024",

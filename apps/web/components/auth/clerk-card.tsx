@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import React from "react";
 
-import { VyoraMark, VyoraWordmark } from "@/components/brand/vyora-mark";
+import { LayertoneMark, LayertoneWordmark } from "@/components/brand/layertone-mark";
 
 export function ClerkCard(props: { title: string; subtitle: string; children: ReactNode }) {
   return (
@@ -31,7 +31,7 @@ export function ClerkCard(props: { title: string; subtitle: string; children: Re
           textDecoration: "none",
         }}
       >
-        <VyoraWordmark width={110} />
+        <LayertoneWordmark width={400} />
       </a>
 
       <div
@@ -42,7 +42,7 @@ export function ClerkCard(props: { title: string; subtitle: string; children: Re
           width: "min(460px, 100%)",
         }}
       >
-        <VyoraMark size={40} />
+        <LayertoneMark size={80} />
 
         <h1
           style={{

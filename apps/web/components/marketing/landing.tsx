@@ -1,9 +1,9 @@
 import Link from "next/link";
 import React from "react";
 
-import { PLANS, type PlanCode } from "@vyora/billing";
+import { PLANS, type PlanCode } from "@layertone/billing";
 
-import { VyoraMark, VyoraWordmark } from "@/components/brand/vyora-mark";
+import { LayertoneMark } from "@/components/brand/layertone-mark";
 import { I } from "@/components/icons";
 
 import type { HeroCard } from "./hero-cards";
@@ -69,388 +69,128 @@ export function Landing({
   heroCards: HeroCard[];
 }) {
   const primaryHref = isAuthed ? "/generate" : "/sign-up";
-  const primaryLabel = isAuthed ? "Open Vyora" : "Start free";
+  const primaryLabel = "Open Layertone";
+  const navPrimaryLabel = isAuthed ? "Open Layertone" : "Get Started Free";
   return (
-    <div style={{ background: "var(--cal-white)", minHeight: "100vh", overflow: "hidden" }}>
-      {/* Top-right nav */}
-      <div
-        style={{
-          position: "absolute",
-          top: 24,
-          right: 32,
-          zIndex: 50,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        {isAuthed ? (
-          <>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 13,
-                color: "var(--fg-3)",
-                fontFamily: "var(--font-body)",
-              }}
-            >
-              <span
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  background: "#22c55e",
-                  display: "inline-block",
-                  boxShadow: "0 0 0 2px rgba(34,197,94,0.25)",
-                }}
-              />
-              Logged in
+    <div style={{ background: "#FCF7EE", minHeight: "100vh", overflow: "hidden" }}>
+      <section id="product" className="lt-home-hero">
+        <header className="lt-home-nav" aria-label="Primary navigation">
+          <Link className="lt-home-logo" href="/">
+            <LayertoneMark size={59} />
+            <span>
+              Layer<b>tone</b>
             </span>
-            <Link
-              href="/generate"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 16px",
-                borderRadius: 8,
-                background: "linear-gradient(180deg, #7A65EA 0%, #5743D6 100%)",
-                color: "white",
-                fontFamily: "var(--font-display)",
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: "none",
-                boxShadow: "0 2px 8px rgba(94,76,222,0.3)",
-              }}
-            >
-              Open Vyora
-              <I.ArrowRight size={13} />
-            </Link>
-          </>
-        ) : (
-          <Link
-            href="/sign-in"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: 13,
-              fontWeight: 600,
-              color: "var(--fg-2)",
-              textDecoration: "none",
-              padding: "8px 14px",
-            }}
-          >
-            Sign in
           </Link>
-        )}
-      </div>
+          <nav className="lt-home-nav-links" aria-label="Marketing">
+            <Link href="#features">
+              Features <I.ChevronDown size={15} strokeWidth={2.2} />
+            </Link>
+            <Link href="#templates">Templates</Link>
+            <Link href="#pricing">Pricing</Link>
+            <Link href="#resources">
+              Resources <I.ChevronDown size={15} strokeWidth={2.2} />
+            </Link>
+            <Link href="#enterprise">Enterprise</Link>
+          </nav>
+          <div className="lt-home-actions">
+            <Link className="lt-home-login" href={isAuthed ? "/generate" : "/sign-in"}>
+              {isAuthed ? "Dashboard" : "Log in"}
+            </Link>
+            <Link className="lt-home-nav-cta" href={primaryHref}>
+              {navPrimaryLabel}
+            </Link>
+          </div>
+        </header>
 
-      {/* HERO */}
-      <section
-        id="product"
-        style={{
-          position: "relative",
-          padding: "56px 24px 96px",
-          background:
-            "radial-gradient(ellipse 80% 60% at 0% 0%, #FBEFD8 0%, transparent 60%), radial-gradient(ellipse 70% 60% at 100% 0%, #F4E6D5 0%, transparent 60%), #FCF7EE",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1180,
-            margin: "0 auto",
-            position: "relative",
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-            gap: 56,
-            alignItems: "start",
-          }}
-        >
-          {/* LEFT */}
-          <div style={{ position: "relative", zIndex: 2 }}>
-            <div style={{ marginBottom: 16, marginLeft: 0 }}>
-              <VyoraWordmark width={160} />
-            </div>
-            <h1
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 70,
-                lineHeight: 1.0,
-                margin: 0,
-                letterSpacing: "-2.2px",
-                fontWeight: 800,
-                color: "var(--cal-charcoal)",
-              }}
-            >
+        <div className="lt-home-hero-grid">
+          <div className="lt-home-copy">
+            <h1 className="lt-home-title">
               On-brand images,
               <br />
-              <span style={{ color: "#3F62D9" }}>in</span>{" "}
-              <span style={{ color: "#7A4F8E" }}>a</span>{" "}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(110deg, #C97A3F 0%, #7A0E0E 35%, #5E5CE6 70%, #1F7A5A 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                sentence.
-              </span>
+              <span className="lt-home-title-blue">in</span>{" "}
+              <span className="lt-home-title-purple">a</span>{" "}
+              <span className="lt-home-title-gradient">sentence.</span>
             </h1>
-            <p
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: 18,
-                lineHeight: 1.55,
-                color: "var(--fg-2)",
-                marginTop: 22,
-                maxWidth: 460,
-              }}
-            >
-              Describe what you want. Pick your brand. Click generate. Vyora creates stunning,
+            <p className="lt-home-lede">
+              Describe what you want. Pick your brand. Click generate. Layertone creates stunning,
               on-brand content for every platform.
             </p>
-            <div style={{ display: "flex", gap: 12, marginTop: 28, flexWrap: "wrap" }}>
-              <Link
-                href={primaryHref}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "14px 28px",
-                  borderRadius: 10,
-                  background:
-                    "linear-gradient(180deg, #7A65EA 0%, #5743D6 100%)",
-                  color: "white",
-                  fontFamily: "var(--font-display)",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  textDecoration: "none",
-                  boxShadow:
-                    "0 6px 16px rgba(94,76,222,0.34), 0 1px 0 rgba(255,255,255,0.22) inset",
-                  letterSpacing: -0.2,
-                }}
-              >
+            <div className="lt-home-ctas">
+              <Link className="lt-home-main-cta" href={primaryHref}>
                 {primaryLabel}
-                <I.ArrowRight size={16} />
+                <I.ArrowRight size={18} strokeWidth={2.2} />
               </Link>
-              <a
-                href="#showcase"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "14px 26px",
-                  borderRadius: 10,
-                  background: "white",
-                  color: "var(--cal-charcoal)",
-                  fontFamily: "var(--font-display)",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  textDecoration: "none",
-                  border: "1px solid var(--cal-gray-300)",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-                  letterSpacing: -0.2,
-                }}
-              >
-                <I.Play size={13} />
+              <a className="lt-home-video-cta" href="#showcase">
+                <I.Play size={16} strokeWidth={2} />
                 See it in action &middot; 90s
               </a>
             </div>
-            <div
-              style={{
-                marginTop: 20,
-                display: "flex",
-                gap: 22,
-                fontSize: 13,
-                color: "var(--fg-3)",
-                fontFamily: "var(--font-body)",
-                flexWrap: "wrap",
-              }}
-            >
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                <I.Check size={12} style={{ color: "var(--studio-violet)" }} />
+            <div className="lt-home-proof">
+              <span>
+                <I.Check size={14} strokeWidth={2.4} />
                 Free for one brand
               </span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                <I.Check size={12} style={{ color: "var(--studio-violet)" }} />
+              <span>
+                <I.Check size={14} strokeWidth={2.4} />
                 No card required
               </span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                <I.Check size={12} style={{ color: "var(--studio-violet)" }} />
+              <span>
+                <I.Check size={14} strokeWidth={2.4} />
                 Cancel anytime
               </span>
             </div>
 
-            {/* Brief / Brand / Mood card — anchors the bottom of left column,
-                vertically aligned with the bottom row of hero cards on the right. */}
-            <div style={{ marginTop: 56 }}>
-              <div
-                style={{
-                  maxWidth: 460,
-              background: "white",
-              borderRadius: 14,
-              padding: 16,
-              boxShadow:
-                "0 18px 48px rgba(20,20,40,0.10), 0 2px 6px rgba(20,20,40,0.06), 0 0 0 1px rgba(34,42,53,0.05)",
-              pointerEvents: "auto",
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 14,
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "var(--fg-3)",
-                  marginBottom: 6,
-                }}
-              >
-                Brief
+            <div className="lt-home-prompt-card">
+              <div className="lt-home-brief">
+                <span>Brief</span>
+                <p>
+                  &ldquo;Christmas sale, cozy living
+                  <br />
+                  room with a glowing tree, 30%
+                  <br />
+                  off&rdquo;
+                </p>
               </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  lineHeight: 1.4,
-                  color: "var(--fg-1)",
-                  background: "var(--cal-gray-50)",
-                  border: "1px solid var(--cal-gray-200)",
-                  borderRadius: 8,
-                  padding: "8px 10px",
-                }}
-              >
-                &ldquo;Christmas sale, cozy living
-                <br />
-                room with a glowing tree, 30% off&rdquo;
-              </div>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "var(--fg-3)",
-                  marginBottom: 6,
-                }}
-              >
-                Brand
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 10,
-                }}
-              >
-                <div
-                  style={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: 6,
-                    background: "#2A1F18",
-                    color: "#E8DCC4",
-                    display: "grid",
-                    placeItems: "center",
-                    fontFamily: "var(--font-display)",
-                    fontSize: 10,
-                    fontWeight: 700,
-                  }}
-                >
-                  NW
+              <div className="lt-home-brand">
+                <span>Brand</span>
+                <div className="lt-home-brand-row">
+                  <div className="lt-home-brand-badge">NW</div>
+                  <strong>Your Brand</strong>
+                  <div className="lt-home-swatches">
+                    {["#06122f", "#534660", "#b9a39a", "#d9ceb7"].map((c) => (
+                      <i key={c} style={{ background: c }} />
+                    ))}
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-1)" }}>
-                  Your Brand
+                <span>Mood</span>
+                <div className="lt-home-mood">
+                  <div>
+                    <I.Snowflake size={12} strokeWidth={2.2} />
+                  </div>
+                  <strong>Christmas</strong>
                 </div>
-                <div style={{ display: "flex", gap: 3, marginLeft: "auto" }}>
-                  {["#2A1F18", "#7C5232", "#E8DCC4", "#C9A86A"].map((c) => (
-                    <span
-                      key={c}
-                      style={{
-                        width: 9,
-                        height: 9,
-                        borderRadius: 2,
-                        background: c,
-                        boxShadow: "0 0 0 1px rgba(0,0,0,0.06)",
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "var(--fg-3)",
-                  marginBottom: 6,
-                }}
-              >
-                Mood
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "6px 10px",
-                  borderRadius: 8,
-                  background: "linear-gradient(135deg, #FCE5C5, #F8D8D8)",
-                }}
-              >
-                <div
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 4,
-                    background: "#7A0E0E",
-                    display: "grid",
-                    placeItems: "center",
-                    color: "#E8C66B",
-                  }}
-                >
-                  <I.Snowflake size={11} />
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-1)" }}>
-                  Christmas
-                </div>
-              </div>
-            </div>
               </div>
             </div>
           </div>
 
-          {/* RIGHT — bigger staggered polaroid cards */}
-          <div
-            style={{
-              position: "relative",
-              width: 620,
-              height: 800,
-              marginLeft: "auto",
-            }}
-          >
+          <div className="lt-home-card-collage" aria-hidden="true">
+            <div className="lt-home-dots" />
             {heroCards.slice(0, 4).map((card, i) => {
               const slots = [
-                { top: 90, left: 0, rotate: -4, z: 2 },
-                { top: 60, left: 300, rotate: 5, z: 3 },
-                { top: 440, left: 30, rotate: -5, z: 1 },
-                { top: 440, left: 320, rotate: 3, z: 2 },
+                { top: 20, left: 12, width: 314, rotate: -4, z: 2 },
+                { top: 10, left: 368, width: 318, rotate: 4, z: 3 },
+                { top: 392, left: 70, width: 308, rotate: -5, z: 1 },
+                { top: 399, left: 392, width: 320, rotate: 3, z: 2 },
               ];
               const slot = slots[i]!;
               return (
                 <div
                   key={card.id}
+                  className="lt-home-card-slot"
                   style={{
-                    position: "absolute",
                     top: slot.top,
                     left: slot.left,
-                    width: 290,
+                    width: slot.width,
                     transform: `rotate(${slot.rotate}deg)`,
                     zIndex: slot.z,
                   }}
@@ -462,43 +202,21 @@ export function Landing({
           </div>
         </div>
 
-        {/* Trust strip */}
-        <div
-          style={{
-            maxWidth: 1180,
-            margin: "80px auto 0",
-            padding: "20px 0",
-            borderTop: "1px solid var(--cal-gray-200)",
-            display: "flex",
-            alignItems: "center",
-            gap: 32,
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}
-        >
-          <span
-            style={{
-              fontSize: 11,
-              textTransform: "uppercase",
-              letterSpacing: 1.5,
-              color: "var(--fg-3)",
-              fontFamily: "var(--font-body)",
-            }}
-          >
+        <div className="lt-home-trust">
+          <span>
             Trusted by 1,400+ teams
           </span>
-          {["NORTHWIND", "LUMEN", "ATLAS", "KESTREL", "PALOMA", "HEMLOCK"].map((n) => (
-            <div
-              key={n}
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 14,
-                letterSpacing: 2,
-                color: "var(--fg-3)",
-              }}
-            >
+          {[
+            ["NORTHWIND", "#00568f"],
+            ["LUMEN", "#06a348"],
+            ["ATLAS", "#1265ff"],
+            ["KESTREL", "#151925"],
+            ["PALOMA", "#7856d8"],
+            ["HEMLOCK", "#00a158"],
+          ].map(([n, color]) => (
+            <strong key={n} style={{ color }}>
               {n}
-            </div>
+            </strong>
           ))}
         </div>
       </section>
@@ -635,7 +353,7 @@ export function Landing({
         }}
       >
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div className="t-eyebrow" style={{ color: "var(--studio-violet)" }}>
+          <div className="t-eyebrow" style={{ color: "var(--layertone-violet)" }}>
             How it works
           </div>
           <h2 className="t-h1" style={{ marginTop: 8, maxWidth: 720 }}>
@@ -901,7 +619,7 @@ export function Landing({
                 <div
                   key={code}
                   style={{
-                    background: popular ? "var(--studio-violet)" : "rgba(255,255,255,0.06)",
+                    background: popular ? "var(--layertone-violet)" : "rgba(255,255,255,0.06)",
                     border: popular ? "0" : "1px solid rgba(255,255,255,0.1)",
                     borderRadius: 12,
                     padding: 20,
@@ -915,7 +633,7 @@ export function Landing({
                         top: -10,
                         left: 16,
                         background: "white",
-                        color: "var(--studio-violet-700)",
+                        color: "var(--layertone-violet-700)",
                         fontSize: 11,
                         fontWeight: 600,
                         padding: "3px 8px",
@@ -1051,7 +769,7 @@ export function Landing({
                 marginBottom: 12,
               }}
             >
-              <VyoraMark size={24} /> Vyora
+              <LayertoneMark size={48} /> Layertone
             </div>
             <p className="t-small" style={{ maxWidth: 280 }}>
               Brand-correct image generation for SMBs, marketers, and creators. © 2026.

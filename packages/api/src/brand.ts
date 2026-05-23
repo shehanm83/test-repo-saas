@@ -9,10 +9,10 @@ import {
   listBrandAssets,
   listBrands,
   updateBrand,
-} from "@vyora/db";
-import type { Adapters } from "@vyora/shared/adapters";
-import type { Config } from "@vyora/shared/config";
-import { keys } from "@vyora/storage";
+} from "@layertone/db";
+import type { Adapters } from "@layertone/shared/adapters";
+import type { Config } from "@layertone/shared/config";
+import { keys } from "@layertone/storage";
 import { z } from "zod";
 import type { UrlExtraction } from "./url-extract";
 

@@ -6,9 +6,9 @@ import {
   createDb,
   listAvailableMoods,
   setBindings,
-} from "@vyora/db";
-import { ASPECT_RATIOS } from "@vyora/shared/templates/schema";
-import type { Config } from "@vyora/shared/config";
+} from "@layertone/db";
+import { ASPECT_RATIOS } from "@layertone/shared/templates/schema";
+import type { Config } from "@layertone/shared/config";
 import { z } from "zod";
 
 const AspectRatioSchema = z.enum(ASPECT_RATIOS.options);

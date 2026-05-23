@@ -1,5 +1,5 @@
-import { StockApi } from "@vyora/api/stock";
-import { loadConfig } from "@vyora/shared/config";
+import { StockApi } from "@layertone/api/stock";
+import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
 
@@ -12,7 +12,7 @@ export default async function StockPage() {
         <div>
           <div
             className="t-eyebrow"
-            style={{ color: "var(--studio-violet)", marginBottom: 6 }}
+            style={{ color: "var(--layertone-violet)", marginBottom: 6 }}
           >
             <I.Image size={11} style={{ verticalAlign: "-1px" }} /> Reference assets
           </div>

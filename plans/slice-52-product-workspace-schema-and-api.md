@@ -64,9 +64,9 @@ Recommended columns:
 ## Verification
 
 ```bash
-pnpm --filter @vyora/db test
-pnpm --filter @vyora/api test -- product
-pnpm --filter @vyora/web typecheck
+pnpm --filter @layertone/db test
+pnpm --filter @layertone/api test -- product
+pnpm --filter @layertone/web typecheck
 ```
 
 ## Commit Message

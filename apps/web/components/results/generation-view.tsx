@@ -178,7 +178,7 @@ function VariantCard({
               inset: 0,
               display: "grid",
               placeItems: "center",
-              color: "var(--studio-red)",
+              color: "var(--layertone-red)",
             }}
           >
             <div style={{ textAlign: "center" }}>
@@ -462,15 +462,15 @@ function EditTextDrawer({
             className="card"
             style={{
               padding: 12,
-              background: "var(--studio-violet-50)",
+              background: "var(--layertone-violet-50)",
               boxShadow: "none",
-              border: "1px solid var(--studio-violet-100)",
+              border: "1px solid var(--layertone-violet-100)",
               marginBottom: 20,
             }}
           >
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <I.Info size={14} style={{ color: "var(--studio-violet)", marginTop: 2 }} />
-              <div className="t-small" style={{ color: "var(--studio-violet-700)" }}>
+              <I.Info size={14} style={{ color: "var(--layertone-violet)", marginTop: 2 }} />
+              <div className="t-small" style={{ color: "var(--layertone-violet-700)" }}>
                 Editing text doesn&apos;t use credits — only regenerating the background does.
               </div>
             </div>
@@ -681,7 +681,7 @@ function CaptionModal({
         {error ? (
           <div
             className="t-small"
-            style={{ color: "var(--studio-red)", marginTop: 16 }}
+            style={{ color: "var(--layertone-red)", marginTop: 16 }}
           >
             {error}
           </div>

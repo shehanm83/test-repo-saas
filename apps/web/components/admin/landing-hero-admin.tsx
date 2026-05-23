@@ -329,7 +329,7 @@ export function LandingHeroAdmin({ rows }: { rows: Row[] }) {
                   fontSize: 10,
                   fontWeight: 600,
                   background:
-                    row.status === "published" ? "var(--studio-violet)" : "#aaa",
+                    row.status === "published" ? "var(--layertone-violet)" : "#aaa",
                   color: "white",
                 }}
               >

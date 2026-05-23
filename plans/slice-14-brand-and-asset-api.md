@@ -2,10 +2,10 @@
 
 **Phase:** 3 — Storage + brand kit
 **Depends on:** 07, 13
-**Spec references:** [Spec § 3.2 (Brand setup wizard)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 7 (Security — logo SVG XSS, EXIF strip)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 3.2 (Brand setup wizard)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 7 (Security — logo SVG XSS, EXIF strip)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
-- Brand CRUD endpoints in `@vyora/api`
+- Brand CRUD endpoints in `@layertone/api`
 - Logo upload pipeline: SVG sanitized via DOMPurify-svg + svgo; PNG re-encoded via sharp + EXIF stripped
 - Reference image upload pipeline: re-encoded, embedded via embedding API, stored as `brand_assets`
 - Embedding via `AIProvider.describeImage` followed by text embedding through OpenAI/Anthropic embed endpoint
@@ -31,7 +31,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/api add isomorphic-dompurify svgo sharp
+pnpm --filter @layertone/api add isomorphic-dompurify svgo sharp
 ```
 
 - [ ] **Step 2 — SVG sanitizer**
@@ -217,9 +217,9 @@ export async function listBrandAssets(db: Db, workspaceId: string, brandId: stri
 ```ts
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
-import { createDb, listBrands, getBrand, createBrand, updateBrand, addBrandAsset, listBrandAssets } from "@vyora/db";
-import { keys } from "@vyora/storage";
-import type { Adapters, Config } from "@vyora/shared";
+import { createDb, listBrands, getBrand, createBrand, updateBrand, addBrandAsset, listBrandAssets } from "@layertone/db";
+import { keys } from "@layertone/storage";
+import type { Adapters, Config } from "@layertone/shared";
 import { sanitizeSvg } from "./sanitize/svg.js";
 import { reencodeImage } from "./sanitize/image.js";
 
@@ -326,7 +326,7 @@ export class BrandApi {
 ```ts
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: () => ({}),
   listBrands: vi.fn(async () => [{ id: "b1", name: "Acme" }]),
   getBrand: vi.fn(async () => ({ id: "b1", name: "Acme" })),
@@ -336,7 +336,7 @@ vi.mock("@vyora/db", () => ({
   listBrandAssets: vi.fn(async () => []),
 }));
 
-vi.mock("@vyora/storage", () => ({ keys: { brandLogo: () => "k", brandAsset: () => "k2" } }));
+vi.mock("@layertone/storage", () => ({ keys: { brandLogo: () => "k", brandAsset: () => "k2" } }));
 
 import { BrandApi } from "./brand.js";
 
@@ -371,7 +371,7 @@ git commit -m "feat(api): brand CRUD + asset upload with SVG/EXIF sanitization"
 ## Verification
 
 ```bash
-pnpm --filter @vyora/api test
+pnpm --filter @layertone/api test
 ```
 
 ## Commit message

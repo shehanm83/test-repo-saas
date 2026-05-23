@@ -238,7 +238,7 @@ export function BrandEditor(props: BrandEditorProps) {
         <div
           className={`tab ${tab === "danger" ? "is-active" : ""}`}
           onClick={() => setTab("danger")}
-          style={{ color: "var(--studio-red)" }}
+          style={{ color: "var(--layertone-red)" }}
         >
           Danger zone
         </div>
@@ -528,9 +528,9 @@ export function BrandEditor(props: BrandEditorProps) {
       {tab === "danger" ? (
         <div
           className="card"
-          style={{ padding: 24, maxWidth: 640, borderTop: "3px solid var(--studio-red)" }}
+          style={{ padding: 24, maxWidth: 640, borderTop: "3px solid var(--layertone-red)" }}
         >
-          <h3 className="t-h4" style={{ margin: 0, color: "var(--studio-red)" }}>
+          <h3 className="t-h4" style={{ margin: 0, color: "var(--layertone-red)" }}>
             Delete this brand
           </h3>
           <p className="t-small" style={{ marginTop: 6 }}>
@@ -587,7 +587,7 @@ export function BrandEditor(props: BrandEditorProps) {
                 type="button"
                 className="btn btn--accent"
                 disabled={confirmText !== props.brand.name}
-                style={{ background: "var(--studio-red)" }}
+                style={{ background: "var(--layertone-red)" }}
                 onClick={() => void deleteBrand()}
               >
                 Delete brand

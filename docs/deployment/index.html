@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layertone — Deployment Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --brand-primary: #2563eb;
+    --brand-accent: #f97316;
+    --brand-teal: #0891b2;
+    --bg: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card2: #162032;
+    --border: #334155;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --purple: #a855f7;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,23,42,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 24px;
+    padding: 0 32px; height: 60px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .nav-logo-icon { width: 32px; height: 32px; }
+  .nav-links { display: flex; gap: 4px; margin-left: auto; }
+  .nav-links a {
+    padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .nav-links a:hover, .nav-links a.active { background: var(--bg-card); color: var(--text); }
+
+  /* HERO */
+  .hero {
+    padding: 140px 32px 80px;
+    max-width: 1100px; margin: 0 auto;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.3);
+    border-radius: 100px; padding: 6px 16px;
+    font-size: 12px; font-weight: 600; color: #60a5fa;
+    margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 6vw, 72px); font-weight: 700; line-height: 1.1;
+    letter-spacing: -0.02em; margin-bottom: 20px;
+    background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero h1 span { background: linear-gradient(135deg, #60a5fa, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto 48px; line-height: 1.7; }
+
+  /* CARDS GRID */
+  .cards-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px; max-width: 1100px; margin: 0 auto; padding: 0 32px 80px;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column; gap: 14px;
+    cursor: pointer;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: var(--brand-primary);
+    box-shadow: 0 8px 32px rgba(37,99,235,0.15);
+  }
+  .card-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .card h3 { font-size: 17px; font-weight: 600; }
+  .card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; flex: 1; }
+  .card-arrow { font-size: 18px; color: var(--text-dim); margin-top: auto; }
+  .card:hover .card-arrow { color: var(--brand-primary); }
+
+  .icon-blue { background: rgba(37,99,235,0.15); }
+  .icon-orange { background: rgba(249,115,22,0.15); }
+  .icon-green { background: rgba(34,197,94,0.15); }
+  .icon-purple { background: rgba(168,85,247,0.15); }
+  .icon-teal { background: rgba(8,145,178,0.15); }
+  .icon-yellow { background: rgba(234,179,8,0.15); }
+
+  /* ARCH MINI PREVIEW */
+  .arch-preview {
+    max-width: 1100px; margin: 0 auto 80px; padding: 0 32px;
+  }
+  .arch-preview h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .arch-preview .sub { color: var(--text-muted); margin-bottom: 32px; }
+  .arch-strip {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px;
+    display: flex; align-items: center; justify-content: center; gap: 0;
+    overflow-x: auto;
+  }
+  .arch-node {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    min-width: 90px;
+  }
+  .arch-node-box {
+    width: 72px; height: 72px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; border: 1px solid;
+  }
+  .arch-node span { font-size: 11px; font-weight: 600; color: var(--text-muted); text-align: center; }
+  .arch-arrow { color: var(--text-dim); font-size: 20px; margin: 0 6px; padding-bottom: 24px; flex-shrink: 0; }
+  .an-blue { background: rgba(37,99,235,0.12); border-color: rgba(37,99,235,0.4); }
+  .an-orange { background: rgba(249,115,22,0.12); border-color: rgba(249,115,22,0.4); }
+  .an-green { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.4); }
+  .an-purple { background: rgba(168,85,247,0.12); border-color: rgba(168,85,247,0.4); }
+  .an-teal { background: rgba(8,145,178,0.12); border-color: rgba(8,145,178,0.4); }
+  .an-yellow { background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.4); }
+  .an-red { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.4); }
+
+  /* STATUS BAR */
+  .status-bar {
+    max-width: 1100px; margin: 0 auto 60px; padding: 0 32px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+  }
+  .status-item {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .status-label { font-size: 12px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .status-value { font-size: 22px; font-weight: 700; }
+  .status-desc { font-size: 12px; color: var(--text-muted); }
+  .s-green { color: var(--green); }
+  .s-yellow { color: var(--yellow); }
+  .s-blue { color: #60a5fa; }
+  .s-purple { color: #c084fc; }
+
+  footer { border-top: 1px solid var(--border); padding: 32px; text-align: center; color: var(--text-dim); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <svg class="nav-logo-icon" viewBox="0 0 64 64" fill="none">
+      <defs>
+        <linearGradient id="n1" x1="10" y1="6" x2="54" y2="28"><stop stop-color="#FF7B7B"/><stop offset="1" stop-color="#FF9A5C"/></linearGradient>
+        <linearGradient id="n2" x1="6" y1="24" x2="58" y2="40"><stop stop-color="#6C6FFF"/><stop offset="1" stop-color="#4DAFFF"/></linearGradient>
+        <linearGradient id="n3" x1="6" y1="42" x2="58" y2="58"><stop stop-color="#26C6DA"/><stop offset="1" stop-color="#00ACC1"/></linearGradient>
+      </defs>
+      <path d="M32 6 L54 18 L32 28 L10 18 Z" fill="url(#n1)"/>
+      <path d="M10 26 L32 36 L54 26 L54 30 L32 42 L10 30 Z" fill="url(#n2)"/>
+      <path d="M10 38 L32 48 L54 38 L54 44 L32 58 L10 44 Z" fill="url(#n3)"/>
+    </svg>
+    Layertone Docs
+  </div>
+  <div class="nav-links">
+    <a href="index.html" class="active">Home</a>
+    <a href="local-dev.html">Local Dev</a>
+    <a href="aws-cloud.html">AWS Cloud</a>
+    <a href="data-flow.html">Data Flow</a>
+    <a href="packages.html">Packages</a>
+    <a href="serverless-analysis.html">Analysis</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">📐 Architecture Documentation</div>
+  <h1>Layertone <span>Deployment</span><br>Architecture</h1>
+  <p>Comprehensive deployment documentation for the Layertone image generation platform — local development, AWS serverless cloud, data flows, and provider analysis.</p>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-item">
+    <div class="status-label">Deployment Model</div>
+    <div class="status-value s-green">Serverless</div>
+    <div class="status-desc">AWS Lambda + SQS + S3 + CloudFront</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">CDK Stacks</div>
+    <div class="status-value s-blue">4</div>
+    <div class="status-desc">Storage · Queues · Worker · Web</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">Web Lambda</div>
+    <div class="status-value s-blue">1024 MB / 30s</div>
+    <div class="status-desc">OpenNext · Response Streaming</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">Worker Lambda</div>
+    <div class="status-value s-purple">1536 MB / 120s</div>
+    <div class="status-desc">SQS triggered · Chromium included</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">Est. Monthly Cost</div>
+    <div class="status-value s-green">$15–31</div>
+    <div class="status-desc">At 10k jobs / 50k req per day</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">AWS Free Credit</div>
+    <div class="status-value s-yellow">$200</div>
+    <div class="status-desc">6–13 months runway for new accounts</div>
+  </div>
+</div>
+
+<!-- ARCH STRIP PREVIEW -->
+<div class="arch-preview">
+  <h2>Architecture at a Glance</h2>
+  <p class="sub">Request path from user browser to AI provider and back</p>
+  <div class="arch-strip">
+    <div class="arch-node">
+      <div class="arch-node-box an-blue">🌐</div>
+      <span>User<br>Browser</span>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-node-box an-orange">☁️</div>
+      <span>CloudFront<br>CDN</span>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-node-box an-purple">λ</div>
+      <span>Web Lambda<br>Next.js</span>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-node-box an-yellow">📬</div>
+      <span>SQS<br>Queue</span>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-node-box an-purple">λ</div>
+      <span>Worker<br>Lambda</span>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-node-box an-green">🤖</div>
+      <span>AI<br>Provider</span>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-node-box an-teal">🗄️</div>
+      <span>S3<br>Storage</span>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE CARDS -->
+<div class="cards-grid">
+  <a href="local-dev.html" class="card">
+    <div class="card-icon icon-green">🐳</div>
+    <h3>Local Development</h3>
+    <p>Docker Compose setup with PostgreSQL, MinIO, ElasticMQ, and Mailpit. Full offline-AI mode with mock providers.</p>
+    <div class="card-arrow">→</div>
+  </a>
+  <a href="aws-cloud.html" class="card">
+    <div class="card-icon icon-orange">☁️</div>
+    <h3>AWS Cloud Architecture</h3>
+    <p>Four CDK stacks: StorageStack, QueueStack, WorkerStack, and WebStack. Fully serverless — no EC2, no containers.</p>
+    <div class="card-arrow">→</div>
+  </a>
+  <a href="data-flow.html" class="card">
+    <div class="card-icon icon-blue">🔄</div>
+    <h3>Data Flow Diagrams</h3>
+    <p>Step-by-step request lifecycle from image generation POST to final polling and variant delivery to the browser.</p>
+    <div class="card-arrow">→</div>
+  </a>
+  <a href="packages.html" class="card">
+    <div class="card-icon icon-purple">📦</div>
+    <h3>Monorepo Packages</h3>
+    <p>pnpm workspace with 12 packages. Which packages run in which Lambda, and how they depend on each other.</p>
+    <div class="card-arrow">→</div>
+  </a>
+  <a href="serverless-analysis.html" class="card">
+    <div class="card-icon icon-teal">⚖️</div>
+    <h3>Serverless Analysis</h3>
+    <p>AWS CDK vs Vercel + QStash. Cost comparison, complexity trade-offs, and migration effort estimates.</p>
+    <div class="card-arrow">→</div>
+  </a>
+</div>
+
+<footer>Layertone Deployment Documentation · Updated 2026-05-22 · AWS CDK / Node.js 20 / Next.js 16</footer>
+
+</body>
+</html>

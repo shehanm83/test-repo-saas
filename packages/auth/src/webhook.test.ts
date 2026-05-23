@@ -7,11 +7,11 @@ const mocks = vi.hoisted(() => ({
   verify: vi.fn<(rawBody: string, headers: Record<string, string>) => unknown>(),
 }));
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: mocks.createDb,
 }));
 
-vi.mock("@vyora/db/queries/identity", () => ({
+vi.mock("@layertone/db/queries/identity", () => ({
   bootstrapNewUser: mocks.bootstrapNewUser,
   softDeleteWorkspaceForUser: mocks.softDeleteWorkspaceForUser,
 }));
@@ -33,7 +33,7 @@ const config = {
     secretKey: "sk_test",
     webhookSecret: "whsec_test",
   },
-  db: { url: "postgres://example.test/studio" },
+  db: { url: "postgres://example.test/layertone" },
 };
 
 describe("ClerkWebhookHandler", () => {
@@ -53,7 +53,7 @@ describe("ClerkWebhookHandler", () => {
       status: 200,
       body: { userId: "u_1", workspaceId: "w_1" },
     });
-    expect(mocks.createDb).toHaveBeenCalledWith("postgres://example.test/studio", "app_admin");
+    expect(mocks.createDb).toHaveBeenCalledWith("postgres://example.test/layertone", "app_admin");
     expect(mocks.bootstrapNewUser).toHaveBeenCalledWith(
       {},
       expect.objectContaining({

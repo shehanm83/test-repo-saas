@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Development — Layertone Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --brand-primary: #2563eb;
+    --brand-accent: #f97316;
+    --brand-teal: #0891b2;
+    --bg: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card2: #162032;
+    --border: #334155;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --purple: #a855f7;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.07); padding: 2px 7px; border-radius: 5px; font-size: 0.88em; }
+  pre { background: #0a1020; border: 1px solid var(--border); border-radius: 10px; padding: 20px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #cbd5e1; }
+  pre .c { color: #64748b; }
+  pre .k { color: #7dd3fc; }
+  pre .s { color: #86efac; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,23,42,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 24px;
+    padding: 0 32px; height: 60px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .nav-logo-icon { width: 32px; height: 32px; }
+  .nav-links { display: flex; gap: 4px; margin-left: auto; }
+  .nav-links a { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: all 0.15s; }
+  .nav-links a:hover, .nav-links a.active { background: var(--bg-card); color: var(--text); }
+
+  .page-hero {
+    padding: 100px 32px 60px;
+    max-width: 1100px; margin: 0 auto;
+  }
+  .page-hero .breadcrumb { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+  .page-hero .breadcrumb a { color: var(--text-muted); }
+  .page-hero .breadcrumb span { margin: 0 8px; }
+  .page-hero h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .page-hero h1 span { color: #4ade80; }
+  .page-hero p { font-size: 17px; color: var(--text-muted); line-height: 1.7; max-width: 680px; }
+
+  .section { max-width: 1100px; margin: 0 auto 60px; padding: 0 32px; }
+  .section h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .section .sub { color: var(--text-muted); margin-bottom: 28px; font-size: 15px; }
+
+  /* DOCKER COMPOSE DIAGRAM */
+  .compose-diagram {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 36px;
+  }
+  .compose-outer-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-dim); margin-bottom: 20px;
+    border-left: 3px solid #60a5fa; padding-left: 10px;
+  }
+  .compose-machine {
+    border: 2px dashed #334155; border-radius: 14px; padding: 28px;
+    display: grid; gap: 20px;
+  }
+  .compose-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .compose-group {
+    border: 1px solid #334155; border-radius: 12px; padding: 20px;
+    background: var(--bg-card2);
+  }
+  .compose-group-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .compose-services { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .compose-services.cols1 { grid-template-columns: 1fr; }
+  .service-box {
+    border-radius: 10px; padding: 14px;
+    display: flex; flex-direction: column; gap: 6px;
+    border: 1px solid;
+  }
+  .service-name { font-weight: 700; font-size: 14px; }
+  .service-image { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .service-port {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.06); border-radius: 4px;
+    padding: 2px 7px; font-size: 11px; font-family: 'JetBrains Mono', monospace; margin-top: 2px;
+    width: fit-content;
+  }
+  .sb-blue { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.35); }
+  .sb-green { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.35); }
+  .sb-yellow { background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.35); }
+  .sb-purple { background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.35); }
+  .sb-orange { background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.35); }
+  .sb-teal { background: rgba(8,145,178,0.1); border-color: rgba(8,145,178,0.35); }
+
+  .browser-box {
+    background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.35);
+    border-radius: 10px; padding: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .browser-icon { font-size: 28px; }
+  .browser-text { font-weight: 600; font-size: 14px; }
+  .browser-sub { font-size: 12px; color: var(--text-muted); }
+
+  .arrows-legend {
+    display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .arrow-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .arrow-line {
+    width: 32px; height: 2px;
+    display: flex; align-items: center; justify-content: flex-end;
+    font-size: 10px;
+  }
+
+  /* MODE TABLE */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+  th { background: var(--bg-card2); font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  td code { font-size: 12px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
+  }
+  .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .badge-blue { background: rgba(37,99,235,0.15); color: #60a5fa; }
+  .badge-yellow { background: rgba(234,179,8,0.15); color: #fbbf24; }
+  .badge-purple { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+  /* SETUP STEPS */
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: flex; gap: 20px; align-items: flex-start;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(37,99,235,0.2); border: 1px solid rgba(37,99,235,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; color: #60a5fa; flex-shrink: 0;
+  }
+  .step-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .step-content p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+
+  /* INFO CARDS */
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .info-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .info-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .info-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .info-card ul li { font-size: 13px; color: var(--text-muted); padding-left: 16px; position: relative; }
+  .info-card ul li::before { content: '•'; position: absolute; left: 0; color: var(--text-dim); }
+
+  footer { border-top: 1px solid var(--border); padding: 32px; text-align: center; color: var(--text-dim); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <svg class="nav-logo-icon" viewBox="0 0 64 64" fill="none">
+      <defs>
+        <linearGradient id="n1" x1="10" y1="6" x2="54" y2="28"><stop stop-color="#FF7B7B"/><stop offset="1" stop-color="#FF9A5C"/></linearGradient>
+        <linearGradient id="n2" x1="6" y1="24" x2="58" y2="40"><stop stop-color="#6C6FFF"/><stop offset="1" stop-color="#4DAFFF"/></linearGradient>
+        <linearGradient id="n3" x1="6" y1="42" x2="58" y2="58"><stop stop-color="#26C6DA"/><stop offset="1" stop-color="#00ACC1"/></linearGradient>
+      </defs>
+      <path d="M32 6 L54 18 L32 28 L10 18 Z" fill="url(#n1)"/>
+      <path d="M10 26 L32 36 L54 26 L54 30 L32 42 L10 30 Z" fill="url(#n2)"/>
+      <path d="M10 38 L32 48 L54 38 L54 44 L32 58 L10 44 Z" fill="url(#n3)"/>
+    </svg>
+    Layertone Docs
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="local-dev.html" class="active">Local Dev</a>
+    <a href="aws-cloud.html">AWS Cloud</a>
+    <a href="data-flow.html">Data Flow</a>
+    <a href="packages.html">Packages</a>
+    <a href="serverless-analysis.html">Analysis</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="breadcrumb"><a href="index.html">Home</a> <span>›</span> Local Development</div>
+  <h1>Local <span>Development</span> Environment</h1>
+  <p>Full-stack local environment using Docker Compose for infrastructure services and pnpm dev processes for the apps. Runs completely offline with mock AI providers.</p>
+</div>
+
+<!-- ARCHITECTURE DIAGRAM -->
+<div class="section">
+  <h2>Environment Architecture</h2>
+  <div class="sub">All services run on the developer machine — no cloud dependencies required</div>
+
+  <div class="compose-diagram">
+    <div class="compose-outer-label">Developer Machine</div>
+    <div class="compose-machine">
+
+      <div class="compose-row">
+        <!-- Docker Compose -->
+        <div class="compose-group">
+          <div class="compose-group-title">
+            <span>🐳</span> Docker Compose <code style="font-size:10px;margin-left:4px">compose.yaml</code>
+          </div>
+          <div class="compose-services">
+            <div class="service-box sb-blue">
+              <div class="service-name">PostgreSQL</div>
+              <div class="service-image">pgvector/pgvector:pg16</div>
+              <div class="service-port">:5432</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">pgvector extension · persistent volume</div>
+            </div>
+            <div class="service-box sb-green">
+              <div class="service-name">MinIO</div>
+              <div class="service-image">minio/minio:latest</div>
+              <div class="service-port">:9000 API</div>
+              <div class="service-port">:9001 Console</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">S3-compatible local storage</div>
+            </div>
+            <div class="service-box sb-yellow">
+              <div class="service-name">ElasticMQ</div>
+              <div class="service-image">softwaremill/elasticmq-native</div>
+              <div class="service-port">:9324 SQS API</div>
+              <div class="service-port">:9325 UI</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">SQS-compatible queue</div>
+            </div>
+            <div class="service-box sb-purple">
+              <div class="service-name">Mailpit</div>
+              <div class="service-image">axllent/mailpit:latest</div>
+              <div class="service-port">:1025 SMTP</div>
+              <div class="service-port">:8025 UI</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Email SMTP trap</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- pnpm dev -->
+        <div class="compose-group">
+          <div class="compose-group-title">
+            <span>⚡</span> pnpm dev processes
+          </div>
+          <div class="compose-services cols1">
+            <div class="service-box sb-orange">
+              <div class="service-name">apps/web</div>
+              <div class="service-image">Next.js dev server</div>
+              <div class="service-port">:3000</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Hot reload · API routes · UI</div>
+            </div>
+            <div class="service-box sb-teal">
+              <div class="service-name">apps/worker</div>
+              <div class="service-image">Node.js SQS consumer</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Long-poll loop on ElasticMQ · Processes generation jobs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Browser -->
+      <div class="browser-box">
+        <div class="browser-icon">🌐</div>
+        <div>
+          <div class="browser-text">Browser</div>
+          <div class="browser-sub">HTTP → localhost:3000 · Full app experience identical to production</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Legend -->
+    <div class="arrows-legend">
+      <div class="arrow-item"><div class="arrow-line" style="background:rgba(37,99,235,0.6)"></div> Browser → Web (HTTP)</div>
+      <div class="arrow-item"><div class="arrow-line" style="background:rgba(34,197,94,0.6)"></div> Web/Worker → PostgreSQL (Drizzle ORM)</div>
+      <div class="arrow-item"><div class="arrow-line" style="background:rgba(234,179,8,0.6)"></div> Web → ElasticMQ (SQS SendMessage)</div>
+      <div class="arrow-item"><div class="arrow-line" style="background:rgba(8,145,178,0.6)"></div> Web/Worker → MinIO (S3 presign/read/write)</div>
+      <div class="arrow-item"><div class="arrow-line" style="background:rgba(168,85,247,0.6)"></div> Worker → ElasticMQ (SQS ReceiveMessage)</div>
+      <div class="arrow-item"><div class="arrow-line" style="background:rgba(249,115,22,0.5);border-style:dashed"></div> Worker → Mock AI (no external calls)</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODE FLAGS -->
+<div class="section">
+  <h2>Environment Mode Flags</h2>
+  <div class="sub">Three combinations of <code>AI_MODE</code> and <code>QUEUE_MODE</code> for different local workflows</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>AI_MODE</th>
+          <th>QUEUE_MODE</th>
+          <th>Use Case</th>
+          <th>AI Cost</th>
+          <th>External Calls</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>mock</code></td>
+          <td><code>elasticmq</code></td>
+          <td>UI, flow, and storage testing — default dev mode</td>
+          <td><span class="badge badge-green">$0</span></td>
+          <td><span class="badge badge-green">None</span></td>
+        </tr>
+        <tr>
+          <td><code>real</code></td>
+          <td><code>elasticmq</code></td>
+          <td>Real OpenAI / Replicate calls with local infra</td>
+          <td><span class="badge badge-yellow">Paid</span></td>
+          <td><span class="badge badge-yellow">OpenAI / Replicate</span></td>
+        </tr>
+        <tr>
+          <td><code>mock</code></td>
+          <td><code>inline</code></td>
+          <td>Unit / integration tests — in-process, no queue daemon</td>
+          <td><span class="badge badge-green">$0</span></td>
+          <td><span class="badge badge-blue">None (in-process)</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- DOCKER SERVICES DETAIL -->
+<div class="section">
+  <h2>Service Details</h2>
+  <div class="sub">Docker Compose services with healthchecks and persistent volumes</div>
+  <div class="info-grid">
+    <div class="info-card">
+      <h4>🐘 PostgreSQL (pgvector:pg16)</h4>
+      <ul>
+        <li>User: <code>layertone</code> / Pass: <code>dev</code></li>
+        <li>Database: <code>layertone</code></li>
+        <li>Port: <code>5432</code></li>
+        <li>pgvector extension for brand asset embeddings</li>
+        <li>Healthcheck: <code>pg_isready</code> every 5s</li>
+        <li>Volume: <code>pgdata</code> (persistent)</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h4>🪣 MinIO (S3-compatible)</h4>
+      <ul>
+        <li>Root user: <code>minio</code> / Pass: <code>minio12345</code></li>
+        <li>API Port: <code>9000</code></li>
+        <li>Console UI: <code>9001</code></li>
+        <li>S3-compatible — same SDK as AWS</li>
+        <li>Volume: <code>miniodata</code> (persistent)</li>
+        <li>Healthcheck: <code>curl /minio/health/live</code></li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h4>📬 ElasticMQ (SQS-compatible)</h4>
+      <ul>
+        <li>SQS API Port: <code>9324</code></li>
+        <li>Management UI: <code>9325</code></li>
+        <li>In-memory — resets on container restart</li>
+        <li>Queues bootstrap via <code>queue:bootstrap</code> script</li>
+        <li>Generations queue + Captions queue + DLQ</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h4>📧 Mailpit (SMTP trap)</h4>
+      <ul>
+        <li>SMTP Port: <code>1025</code></li>
+        <li>Web UI: <code>8025</code></li>
+        <li>Catches all outgoing emails</li>
+        <li>No emails delivered externally</li>
+        <li>Useful for Clerk auth emails in dev</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP STEPS -->
+<div class="section">
+  <h2>Quick Start</h2>
+  <div class="sub">Get the full local environment running in under 5 minutes</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Start Docker Compose infrastructure</h4>
+        <p>Starts PostgreSQL, MinIO, ElasticMQ, and Mailpit. Wait for healthchecks to pass before continuing.</p>
+        <pre>docker compose up -d</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Install dependencies</h4>
+        <p>pnpm workspace installs all packages across the monorepo.</p>
+        <pre>pnpm install</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Run database migrations</h4>
+        <p>Applies Drizzle ORM migrations to the local PostgreSQL instance.</p>
+        <pre>pnpm --filter @layertone/db db:migrate</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Bootstrap queues and storage buckets</h4>
+        <p>Creates SQS queues in ElasticMQ and S3 buckets in MinIO with the correct configuration.</p>
+        <pre>pnpm run queue:bootstrap
+pnpm run storage:bootstrap</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Configure environment variables</h4>
+        <p>Copy <code>.env.example</code> to <code>.env.local</code> (web) and <code>apps/worker/.env</code> (worker). Set <code>AI_MODE=mock</code> and <code>QUEUE_MODE=elasticmq</code> for offline development.</p>
+        <pre>cp .env.example apps/web/.env.local
+cp .env.example apps/worker/.env</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <h4>Start dev servers</h4>
+        <p>Run in separate terminals or use a process manager. The web server starts on :3000, worker begins polling ElasticMQ.</p>
+        <pre><span class="c"># Terminal 1</span>
+pnpm --filter @layertone/web dev
+
+<span class="c"># Terminal 2</span>
+pnpm --filter @layertone/worker dev</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOCK AI -->
+<div class="section">
+  <h2>Mock AI Provider</h2>
+  <div class="sub">Zero-cost offline image generation for UI and pipeline testing</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Behavior in mock mode</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Image generation</td>
+          <td>Returns a sample PNG from <code>sample_images/</code> directory after a configurable delay</td>
+        </tr>
+        <tr>
+          <td>Text generation (captions)</td>
+          <td>Returns a hardcoded caption string immediately</td>
+        </tr>
+        <tr>
+          <td>Text embeddings</td>
+          <td>Returns a random unit vector (brand grounding is skipped gracefully)</td>
+        </tr>
+        <tr>
+          <td>Content moderation</td>
+          <td>Always returns <code>flagged: false</code> — all content passes</td>
+        </tr>
+        <tr>
+          <td>Simulated latency</td>
+          <td>Configurable delay (default 2s) to simulate real AI response times</td>
+        </tr>
+        <tr>
+          <td>Provider selection</td>
+          <td>Set via <code>AI_MODE=mock</code> in worker <code>.env</code> — wired via <code>MockImageProvider</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer>Layertone Deployment Documentation · Local Development · Updated 2026-05-22</footer>
+
+</body>
+</html>

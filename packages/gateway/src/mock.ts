@@ -6,7 +6,7 @@ import sharp from "sharp";
 
 import { promptFingerprint } from "./gateway.js";
 import type { ImageProvider, TextProvider, VisionProvider, ModerationProvider } from "./types.js";
-import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@layertone/shared";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SAMPLES_DIR = resolve(__dirname, "../samples");

@@ -1,10 +1,10 @@
-import { Ledger } from "@vyora/billing";
-import { createDb } from "@vyora/db";
+import { Ledger } from "@layertone/billing";
+import { createDb } from "@layertone/db";
 import {
   normalizeCommercialGenerationInput,
   preflightNormalizedCommercialInput,
-} from "@vyora/shared";
-import type { Adapters, Config } from "@vyora/shared";
+} from "@layertone/shared";
+import type { Adapters, Config } from "@layertone/shared";
 
 import { GenerationApi } from "./generation";
 

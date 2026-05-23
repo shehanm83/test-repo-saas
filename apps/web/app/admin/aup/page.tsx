@@ -126,7 +126,7 @@ export default function AdminAupPage() {
                 className="card"
                 style={{
                   padding: 20,
-                  borderTop: "3px solid var(--studio-red)",
+                  borderTop: "3px solid var(--layertone-red)",
                 }}
               >
                 <div
@@ -143,7 +143,7 @@ export default function AdminAupPage() {
                         size={11}
                         style={{
                           verticalAlign: "-1px",
-                          color: "var(--studio-red)",
+                          color: "var(--layertone-red)",
                         }}
                       />{" "}
                       Flagged {new Date(item.flaggedAt).toLocaleString()}

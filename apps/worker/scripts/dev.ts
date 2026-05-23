@@ -7,9 +7,9 @@ import {
   OpenAIImageProvider,
   OpenAIModerationProvider,
   OpenAITextProvider,
-} from "@vyora/gateway";
-import { createQueueAdapter } from "@vyora/queue";
-import { loadConfig, createAdapters } from "@vyora/shared";
+} from "@layertone/gateway";
+import { createQueueAdapter } from "@layertone/queue";
+import { loadConfig, createAdapters } from "@layertone/shared";
 
 import { CaptionWorker } from "../src/caption-handler.js";
 import { GenerationWorker } from "../src/handler.js";

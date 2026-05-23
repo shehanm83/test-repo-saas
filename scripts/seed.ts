@@ -1,4 +1,4 @@
-import { createDb } from "@vyora/db/client";
+import { createDb } from "@layertone/db/client";
 import {
   creditLedgerEntries,
   priceBookEntries,
@@ -6,8 +6,8 @@ import {
   users,
   workspaceMembers,
   workspaces,
-} from "@vyora/db/schema";
-import { loadConfig } from "@vyora/shared/config";
+} from "@layertone/db/schema";
+import { loadConfig } from "@layertone/shared/config";
 
 const config = loadConfig();
 const adminDb = createDb(config.db.url, "app_admin");

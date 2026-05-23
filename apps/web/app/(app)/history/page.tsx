@@ -6,10 +6,10 @@ import {
   listBrands,
   moods,
   withWorkspace,
-} from "@vyora/db";
-import { desc, eq, inArray } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared/config";
-import { S3StorageAdapter } from "@vyora/storage";
+} from "@layertone/db";
+import { desc, eq, inArray } from "@layertone/db/operators";
+import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import { HistoryList } from "@/components/history/history-list";
 import { getSessionWorkspace } from "@/lib/auth/server";

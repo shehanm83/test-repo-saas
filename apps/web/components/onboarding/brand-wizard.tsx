@@ -17,7 +17,7 @@ const DEFAULT_PALETTE = ["#2A1F18", "#7C5232", "#E8DCC4", "#C9A86A", "#F5EFE3"];
 const PALETTE_LABELS  = ["Primary", "Secondary", "Accent", "Extra 1", "Extra 2"];
 const MAX_LOGOS = 5;
 const MAX_REFERENCES = 10;
-const STORAGE_KEY = "studio-onboarding";
+const STORAGE_KEY = "layertone-onboarding";
 
 type UploadedAsset = {
   id: string;
@@ -744,7 +744,7 @@ export function BrandWizard({ step, resetDraft = false }: { step: Step; resetDra
         <div className="page page--narrow" style={{ maxWidth: step === "fonts" ? 980 : 820, padding: 0 }}>
         <div className="page__head">
           <div>
-            <div className="t-eyebrow" style={{ color: "var(--studio-violet)", marginBottom: 6 }}>
+            <div className="t-eyebrow" style={{ color: "var(--layertone-violet)", marginBottom: 6 }}>
               <I.Briefcase size={11} style={{ verticalAlign: "-1px" }} /> Brand kit setup
             </div>
             <h1 className="page__title">New brand</h1>
@@ -754,7 +754,7 @@ export function BrandWizard({ step, resetDraft = false }: { step: Step; resetDra
           </div>
           <span className="pill" style={{
             background: "rgba(99,91,255,0.08)",
-            color: "var(--studio-violet)",
+            color: "var(--layertone-violet)",
             boxShadow: "0 0 0 1px rgba(99,91,255,0.18)",
             fontWeight: 700,
             flexShrink: 0,

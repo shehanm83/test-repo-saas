@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PLANS } from "./plans.js";
 import { StripeWebhookHandler } from "./stripe-webhook.js";
 
-// Mock @vyora/db
-vi.mock("@vyora/db", () => ({
+// Mock @layertone/db
+vi.mock("@layertone/db", () => ({
   createDb: vi.fn(() => ({})),
   subscriptions: {},
   workspaces: {},
@@ -30,7 +30,7 @@ const mockDbInsert = vi.fn(() => ({
   values: vi.fn(() => ({ onConflictDoUpdate: vi.fn() })),
 }));
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: vi.fn(() => ({ update: mockDbUpdate, insert: mockDbInsert })),
   subscriptions: { workspaceId: "ws_col" },
   workspaces: {},

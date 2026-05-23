@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import type { Adapters, Config } from "@vyora/shared";
-import { keys } from "@vyora/storage";
+import type { Adapters, Config } from "@layertone/shared";
+import { keys } from "@layertone/storage";
 import { fileTypeFromBuffer } from "file-type";
 
 const MAX_BYTES = 10 * 1024 * 1024;

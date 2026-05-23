@@ -1,7 +1,7 @@
-import { Ledger, PLANS, TOPUP_PACKS } from "@vyora/billing";
-import { createDb, creditLedgerEntries, subscriptions } from "@vyora/db";
-import { and, desc, eq, gte } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared/config";
+import { Ledger, PLANS, TOPUP_PACKS } from "@layertone/billing";
+import { createDb, creditLedgerEntries, subscriptions } from "@layertone/db";
+import { and, desc, eq, gte } from "@layertone/db/operators";
+import { loadConfig } from "@layertone/shared/config";
 
 import { BillingPage } from "@/components/billing/billing-page";
 import { getSessionWorkspace } from "@/lib/auth/server";

@@ -55,8 +55,8 @@ function Sparkline({ values }: { values: number[] }) {
   const polygon = values.length ? `0,${h} ${points} ${w},${h}` : `0,${h} ${w},${h}`;
   return (
     <svg width="100%" height="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
-      <polyline points={points} fill="none" stroke="var(--studio-violet)" strokeWidth={2} />
-      <polygon points={polygon} fill="var(--studio-violet)" opacity={0.08} />
+      <polyline points={points} fill="none" stroke="var(--layertone-violet)" strokeWidth={2} />
+      <polygon points={polygon} fill="var(--layertone-violet)" opacity={0.08} />
     </svg>
   );
 }
@@ -164,7 +164,7 @@ export function BillingPage(props: Props) {
             </span>
           </div>
           <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
-            <Stat label="Brands included" value={currentPlan?.brands ?? "—"} />
+            <Stat label="Brand limit" value={currentPlan?.brands ?? "—"} />
             <Stat label="Seats included" value={currentPlan?.seats ?? "—"} />
             <Stat
               label="Monthly credits"
@@ -452,7 +452,7 @@ export function BillingPage(props: Props) {
                   ))}
                 </tr>
                 <tr>
-                  <td style={{ padding: "8px 0", color: "var(--fg-3)" }}>Brands</td>
+                  <td style={{ padding: "8px 0", color: "var(--fg-3)" }}>Brand limit</td>
                   {props.plans.map((p) => (
                     <td key={p.code} style={{ padding: "8px 16px" }}>
                       {p.brands}

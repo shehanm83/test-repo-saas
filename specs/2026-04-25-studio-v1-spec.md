@@ -5,9 +5,9 @@
 **Owner:** Shehan Fernando
 **Quality bar:** **Production v1 — every feature in this spec is built as production-grade code.** No stubs, no half-implementations, no "we'll fix it after launch." Testing breadth is intentionally trimmed (see § 9), but feature code is full-fidelity.
 **Companion docs:**
-- `2026-04-25-studio-v1-prd.md`
-- `2026-04-25-studio-v1-architecture.md`
-- `2026-04-25-studio-v1-ui-prompts.md`
+- `2026-04-25-layertone-v1-prd.md`
+- `2026-04-25-layertone-v1-architecture.md`
+- `2026-04-25-layertone-v1-ui-prompts.md`
 
 ---
 

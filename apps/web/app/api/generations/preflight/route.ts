@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { GenerationPreflightApi } from "@vyora/api";
-import { loadConfig } from "@vyora/shared/config";
-import { AppError } from "@vyora/shared/errors/app-error";
+import { GenerationPreflightApi } from "@layertone/api";
+import { loadConfig } from "@layertone/shared/config";
+import { AppError } from "@layertone/shared/errors/app-error";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";

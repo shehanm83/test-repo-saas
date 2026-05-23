@@ -1,4 +1,4 @@
-# Vyora Studio
+# Layertone Studio
 
 Generation-driven SaaS for finished, on-brand marketing images.
 
@@ -48,7 +48,7 @@ Local service URLs:
 | MinIO console | `http://localhost:9001` |
 | ElasticMQ | `http://localhost:9324` |
 | Mailpit | `http://localhost:8025` |
-| Postgres | `postgres://studio:dev@localhost:5432/studio` |
+| Postgres | `postgres://layertone:dev@localhost:5432/studio` |
 
 Default local MinIO credentials are `minio` / `minio12345`.
 
@@ -75,7 +75,7 @@ AI_MODE=mock
 It also runs MinIO and ElasticMQ bootstrap scripts before starting:
 
 - `apps/web` at `http://localhost:3000`
-- `apps/worker` consuming `studio-generations` and `studio-captions`
+- `apps/worker` consuming `layertone-generations` and `layertone-captions`
 - mock image/text/moderation providers
 - MinIO storage for generated PNGs
 
@@ -126,8 +126,8 @@ pnpm minio:bootstrap
 pnpm queue:bootstrap
 set -a; source .env.local; set +a; pnpm db:migrate
 
-pnpm --filter @vyora/web dev
-pnpm --filter @vyora/worker dev
+pnpm --filter @layertone/web dev
+pnpm --filter @layertone/worker dev
 ```
 
 ## Quick Create Generation Flow
@@ -193,7 +193,7 @@ Final rendered image size is controlled by the selected output target and render
 
 ## Where Generated Images Are Stored
 
-Local generated files are stored in MinIO bucket `studio-app`.
+Local generated files are stored in MinIO bucket `layertone-app`.
 
 Typical keys:
 
@@ -270,7 +270,7 @@ Useful local inspection:
 
 ```bash
 set -a; source .env.local; set +a
-pnpm --filter @vyora/db exec tsx -e "import postgres from 'postgres'; (async()=>{ const sql=postgres(process.env.DATABASE_URL!,{max:1}); console.log(await sql\`select id,status,created_at from generations order by created_at desc limit 5\`); await sql.end(); })();"
+pnpm --filter @layertone/db exec tsx -e "import postgres from 'postgres'; (async()=>{ const sql=postgres(process.env.DATABASE_URL!,{max:1}); console.log(await sql\`select id,status,created_at from generations order by created_at desc limit 5\`); await sql.end(); })();"
 ```
 
 ## Testing And Verification
@@ -278,10 +278,10 @@ pnpm --filter @vyora/db exec tsx -e "import postgres from 'postgres'; (async()=>
 Focused checks used during generation work:
 
 ```bash
-pnpm --filter @vyora/shared test -- --run router.test.ts
-pnpm --filter @vyora/gateway test -- --run openai-image.test.ts
-pnpm --filter @vyora/renderer test -- --run render.test.ts
-pnpm --filter @vyora/worker typecheck
+pnpm --filter @layertone/shared test -- --run router.test.ts
+pnpm --filter @layertone/gateway test -- --run openai-image.test.ts
+pnpm --filter @layertone/renderer test -- --run render.test.ts
+pnpm --filter @layertone/worker typecheck
 ```
 
 Broader checks:
@@ -325,7 +325,7 @@ Run:
 
 ```bash
 pnpm queue:bootstrap
-pnpm --filter @vyora/worker dev
+pnpm --filter @layertone/worker dev
 ```
 
 Make sure `.env.local` has:
@@ -333,8 +333,8 @@ Make sure `.env.local` has:
 ```env
 QUEUE_MODE=elasticmq
 SQS_ENDPOINT=http://localhost:9324
-SQS_QUEUE_GENERATIONS=http://localhost:9324/000000000000/studio-generations
-SQS_QUEUE_CAPTIONS=http://localhost:9324/000000000000/studio-captions
+SQS_QUEUE_GENERATIONS=http://localhost:9324/000000000000/layertone-generations
+SQS_QUEUE_CAPTIONS=http://localhost:9324/000000000000/layertone-captions
 ```
 
 ### Plan Limit Blocks New Generation
@@ -343,7 +343,7 @@ This usually means a generation row is still `pending` or `running`. Check recen
 
 ```bash
 set -a; source .env.local; set +a
-pnpm --filter @vyora/db exec tsx -e "import postgres from 'postgres'; (async()=>{ const sql=postgres(process.env.DATABASE_URL!,{max:1}); console.log(await sql\`select id,status,created_at from generations order by created_at desc limit 10\`); await sql.end(); })();"
+pnpm --filter @layertone/db exec tsx -e "import postgres from 'postgres'; (async()=>{ const sql=postgres(process.env.DATABASE_URL!,{max:1}); console.log(await sql\`select id,status,created_at from generations order by created_at desc limit 10\`); await sql.end(); })();"
 ```
 
 Start the worker and let it finish jobs. In local dev only, you can mark stuck rows failed after confirming the worker is not processing them.

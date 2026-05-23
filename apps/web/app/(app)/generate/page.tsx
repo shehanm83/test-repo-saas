@@ -1,7 +1,7 @@
-import { Ledger } from "@vyora/billing";
-import { createDb, listAvailableMoods, listBrandAssets, listBrands, listProducts } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
-import { S3StorageAdapter } from "@vyora/storage";
+import { Ledger } from "@layertone/billing";
+import { createDb, listAvailableMoods, listBrandAssets, listBrands, listProducts } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import { Generate } from "@/components/generate/generate";
 import { getSessionWorkspace } from "@/lib/auth/server";

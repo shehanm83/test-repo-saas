@@ -407,8 +407,8 @@ export function WorkspaceDetail(props: {
                         fontFamily: "var(--font-mono)",
                         color:
                           entry.amount >= 0
-                            ? "var(--studio-green)"
-                            : "var(--studio-red)",
+                            ? "var(--layertone-green)"
+                            : "var(--layertone-red)",
                       }}
                     >
                       {entry.amount >= 0 ? "+" : ""}

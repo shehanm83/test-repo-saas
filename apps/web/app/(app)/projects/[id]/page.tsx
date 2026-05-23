@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { createDb, getProjectWithGenerations } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
-import { S3StorageAdapter } from "@vyora/storage";
+import { createDb, getProjectWithGenerations } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import { I } from "@/components/icons";
 import { ProjectCaptionActions, ProjectImageActions } from "@/components/projects/project-actions";
@@ -208,7 +208,7 @@ export default async function ProjectDetailPage(props: {
         </div>
         <div>
           <div>
-            <div className="t-eyebrow" style={{ color: "var(--studio-violet)", marginBottom: 6 }}>
+            <div className="t-eyebrow" style={{ color: "var(--layertone-violet)", marginBottom: 6 }}>
               <I.Folder size={11} style={{ verticalAlign: "-1px" }} /> Project
             </div>
             <h1 className="t-h2" style={{ margin: 0 }}>

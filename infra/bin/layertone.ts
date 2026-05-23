@@ -14,15 +14,15 @@ const account = process.env.CDK_DEFAULT_ACCOUNT;
 const stackEnv = account ? { account, region } : { region };
 const suffix = env === "prod" ? "Prod" : "Staging";
 
-const storage = new StorageStack(app, `Studio${suffix}Storage`, { env: stackEnv, stage: env });
-const queues = new QueueStack(app, `Studio${suffix}Queues`, { env: stackEnv, stage: env });
-new WorkerStack(app, `Studio${suffix}Worker`, {
+const storage = new StorageStack(app, `Layertone${suffix}Storage`, { env: stackEnv, stage: env });
+const queues = new QueueStack(app, `Layertone${suffix}Queues`, { env: stackEnv, stage: env });
+new WorkerStack(app, `Layertone${suffix}Worker`, {
   env: stackEnv,
   stage: env,
   queueArn: queues.mainQueue.queueArn,
   bucketArn: storage.appBucket.bucketArn,
 });
-new WebStack(app, `Studio${suffix}Web`, {
+new WebStack(app, `Layertone${suffix}Web`, {
   env: stackEnv,
   stage: env,
   bucketArn: storage.appBucket.bucketArn,

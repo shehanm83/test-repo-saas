@@ -14,7 +14,7 @@ export class StorageStack extends Stack {
     super(scope, id, props);
 
     this.appBucket = new Bucket(this, "AppAssets", {
-      bucketName: `studio-app-${props.stage}-assets`,
+      bucketName: `layertone-app-${props.stage}-assets`,
       encryption: BucketEncryption.S3_MANAGED,
       versioned: true,
       removalPolicy: RemovalPolicy.RETAIN,
@@ -39,7 +39,7 @@ export class StorageStack extends Stack {
     });
 
     this.globalBucket = new Bucket(this, "GlobalAssets", {
-      bucketName: `studio-app-${props.stage}-global`,
+      bucketName: `layertone-app-${props.stage}-global`,
       encryption: BucketEncryption.S3_MANAGED,
       versioned: true,
       removalPolicy: RemovalPolicy.RETAIN,

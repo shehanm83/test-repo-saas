@@ -1,6 +1,6 @@
-import { createQueueAdapter } from "@vyora/queue";
-import { createAdapters } from "@vyora/shared/adapters";
-import { loadConfig } from "@vyora/shared/config";
+import { createQueueAdapter } from "@layertone/queue";
+import { createAdapters } from "@layertone/shared/adapters";
+import { loadConfig } from "@layertone/shared/config";
 
 export function createServerAdapters() {
   const config = loadConfig();

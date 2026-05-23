@@ -2,7 +2,7 @@
 
 **Phase:** 4 — Catalogs
 **Depends on:** 08
-**Spec references:** [Spec § 4 (Mood system)](../specs/2026-04-25-studio-v1-spec.md), [UI Prompt 11 (Mood Studio)](../specs/2026-04-25-studio-v1-ui-prompts.md).
+**Spec references:** [Spec § 4 (Mood system)](../specs/2026-04-25-layertone-v1-spec.md), [UI Prompt 11 (Mood Studio)](../specs/2026-04-25-layertone-v1-ui-prompts.md).
 
 **Definition of done:**
 - `MoodApi` (admin-only) supports CRUD on moods + mood-template-bindings + lifecycle (draft → publish → archive)
@@ -84,8 +84,8 @@ export async function setBindings(db: Db, moodId: string, items: { templateId: s
 
 ```ts
 import { z } from "zod";
-import { createDb, listAvailableMoods, adminListMoods, adminCreateMood, adminUpdateMood, adminBindings, setBindings } from "@vyora/db";
-import type { Config } from "@vyora/shared";
+import { createDb, listAvailableMoods, adminListMoods, adminCreateMood, adminUpdateMood, adminBindings, setBindings } from "@layertone/db";
+import type { Config } from "@layertone/shared";
 
 const ASPECT_RATIOS = z.enum(["1:1","4:5","9:16","16:9","1.91:1","2:3"]);
 
@@ -153,7 +153,7 @@ export class MoodApi {
 ```ts
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: () => ({}),
   listAvailableMoods: vi.fn(async () => [{ id: "m1", name: "Christmas" }]),
   adminListMoods: vi.fn(async () => []),
@@ -200,7 +200,7 @@ git commit -m "feat(api): mood admin CRUD + user-facing mood listing with availa
 ## Verification
 
 ```bash
-pnpm --filter @vyora/api test
+pnpm --filter @layertone/api test
 ```
 
 ## Commit message

@@ -6,7 +6,7 @@ import { withWorkspace } from "../with-workspace";
 
 import { brands, users, workspaces } from "./index";
 
-const databaseUrl = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const databaseUrl = process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/layertone";
 
 describe("brand RLS", () => {
   it("brand of workspace B not visible from workspace A scope", async () => {

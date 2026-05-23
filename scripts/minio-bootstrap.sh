@@ -4,8 +4,8 @@ set -euo pipefail
 ENDPOINT="${S3_ENDPOINT:-http://localhost:9000}"
 ACCESS_KEY="${S3_ACCESS_KEY_ID:-minio}"
 SECRET_KEY="${S3_SECRET_ACCESS_KEY:-minio12345}"
-APP_BUCKET="${S3_BUCKET_APP:-studio-app}"
-GLOBAL_BUCKET="${S3_BUCKET_GLOBAL:-studio-global}"
+APP_BUCKET="${S3_BUCKET_APP:-layertone-app}"
+GLOBAL_BUCKET="${S3_BUCKET_GLOBAL:-layertone-global}"
 
 until curl -fsS "$ENDPOINT/minio/health/live" >/dev/null; do
   sleep 1

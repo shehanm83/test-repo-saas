@@ -8,7 +8,7 @@
 
 ## Goal
 
-Redesign the Quick Create tab so it looks pixel-close to `vyora_image_generation_page.html` — numbered section cards, option cards with hover lift, platform pills — while keeping all current functionality (multi-product picker, inline product editor, brand/mood, output settings) and adding three targeted changes:
+Redesign the Quick Create tab so it looks pixel-close to `layertone_image_generation_page.html` — numbered section cards, option cards with hover lift, platform pills — while keeping all current functionality (multi-product picker, inline product editor, brand/mood, output settings) and adding three targeted changes:
 
 1. New **Choose media** step (section 1) that drives `outputs.formats`.
 2. **Promotion/campaign toggle** in section 2: checkbox collapses/expands all `CampaignDetails` fields.
@@ -123,6 +123,6 @@ const [promotionEnabled, setPromotionEnabled] = useState(false)
 ## Verification
 
 ```bash
-pnpm --filter @vyora/web typecheck
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web typecheck
+pnpm --filter @layertone/web test
 ```

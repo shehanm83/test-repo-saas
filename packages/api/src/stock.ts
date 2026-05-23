@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 
-import { adminInsertStock, adminListStock, createDb, deleteStock } from "@vyora/db";
-import type { Adapters } from "@vyora/shared/adapters";
-import type { Config } from "@vyora/shared/config";
-import { keys } from "@vyora/storage";
+import { adminInsertStock, adminListStock, createDb, deleteStock } from "@layertone/db";
+import type { Adapters } from "@layertone/shared/adapters";
+import type { Config } from "@layertone/shared/config";
+import { keys } from "@layertone/storage";
 import { z } from "zod";
 
 const UploadInput = z.object({

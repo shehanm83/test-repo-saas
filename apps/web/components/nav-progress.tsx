@@ -121,7 +121,7 @@ export function NavProgress() {
           height: "100%",
           width: `${progress}%`,
           background:
-            "linear-gradient(90deg, var(--studio-violet) 0%, #B5B4F2 100%)",
+            "linear-gradient(90deg, var(--layertone-violet) 0%, #B5B4F2 100%)",
           boxShadow: "0 0 12px rgba(94,92,230,0.6)",
           transition:
             progress === 100

@@ -1,9 +1,9 @@
 import React from "react";
 
-import { createDb, generations, getBrand, listBrandAssets } from "@vyora/db";
-import { count, eq } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared/config";
-import { S3StorageAdapter } from "@vyora/storage";
+import { createDb, generations, getBrand, listBrandAssets } from "@layertone/db";
+import { count, eq } from "@layertone/db/operators";
+import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import { I } from "@/components/icons";
 import { BrandEditor } from "@/components/brands/brand-editor";

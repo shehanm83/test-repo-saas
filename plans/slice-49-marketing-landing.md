@@ -2,12 +2,12 @@
 
 **Phase:** 17 — Marketing & deployment
 **Depends on:** 35
-**Spec references:** [UI Prompt 1 — Marketing landing page](../specs/2026-04-25-studio-v1-ui-prompts.md).
+**Spec references:** [UI Prompt 1 — Marketing landing page](../specs/2026-04-25-layertone-v1-ui-prompts.md).
 
 **Definition of done:**
 - `/` (root) renders a marketing landing page (separate route group from authenticated app)
 - Sections per UI Prompt 1: Hero, How it works (3 steps), Differentiator, Pricing, Footer
-- Pricing section reuses `PLANS` from `@vyora/billing` (single source of truth)
+- Pricing section reuses `PLANS` from `@layertone/billing` (single source of truth)
 - "Start free" CTA → `/sign-up`
 - "See it work" → modal with embedded video (use a placeholder URL — replace later)
 - Lighthouse ≥ 95 on Performance / Accessibility / Best Practices
@@ -82,7 +82,7 @@ export function Hero() {
 
 ```tsx
 // apps/web/src/components/marketing/pricing.tsx
-import { PLANS } from "@vyora/billing";
+import { PLANS } from "@layertone/billing";
 
 export function Pricing() {
   return (
@@ -137,7 +137,7 @@ Authenticated landing was `/`; redirect to `/generate` in app layout when sessio
 - [ ] **Step 9 — Commit**
 
 ```bash
-pnpm --filter @vyora/web build
+pnpm --filter @layertone/web build
 git add -A
 git commit -m "feat(web): public marketing landing page"
 ```
@@ -147,7 +147,7 @@ git commit -m "feat(web): public marketing landing page"
 ## Verification
 
 ```bash
-pnpm --filter @vyora/web build && pnpm --filter @vyora/web start
+pnpm --filter @layertone/web build && pnpm --filter @layertone/web start
 # Visit / and confirm Lighthouse ≥ 95 across Perf / A11y / Best Practices
 ```
 

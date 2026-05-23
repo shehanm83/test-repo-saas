@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 
-import { InsufficientCredits, Ledger } from "@vyora/billing";
-import { createDb, getGenerationFull, insertCaption } from "@vyora/db";
-import { AppError } from "@vyora/shared/errors/app-error";
-import { CODES } from "@vyora/shared/errors/codes";
-import type { Adapters, Config } from "@vyora/shared";
+import { InsufficientCredits, Ledger } from "@layertone/billing";
+import { createDb, getGenerationFull, insertCaption } from "@layertone/db";
+import { AppError } from "@layertone/shared/errors/app-error";
+import { CODES } from "@layertone/shared/errors/codes";
+import type { Adapters, Config } from "@layertone/shared";
 import { z } from "zod";
 
 import { assertBriefAllowed } from "./aup";

@@ -31,7 +31,7 @@
 - [ ] **Step 1 — Template form** with a code editor (Monaco or CodeMirror) for `jsx_source` and JSON editors for `slots` + `text_safe_zones`. Live preview uses the `test-render` endpoint similar to mood editor.
 
 ```bash
-pnpm --filter @vyora/web add @uiw/react-codemirror @codemirror/lang-javascript @codemirror/lang-json
+pnpm --filter @layertone/web add @uiw/react-codemirror @codemirror/lang-javascript @codemirror/lang-json
 ```
 
 - [ ] **Step 2 — Stock uploader** with drag-drop multi-file, tag input per file, license dropdown.
@@ -43,7 +43,7 @@ pnpm --filter @vyora/web add @uiw/react-codemirror @codemirror/lang-javascript @
 - [ ] **Step 5 — Commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(admin): Template Studio + Stock library + Pricebook editor"
 ```

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Flow — Layertone Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f172a; --bg-card: #1e293b; --bg-card2: #162032;
+    --border: #334155; --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.07); padding: 2px 7px; border-radius: 5px; font-size: 0.88em; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,23,42,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 24px;
+    padding: 0 32px; height: 60px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .nav-logo-icon { width: 32px; height: 32px; }
+  .nav-links { display: flex; gap: 4px; margin-left: auto; }
+  .nav-links a { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: all 0.15s; }
+  .nav-links a:hover, .nav-links a.active { background: var(--bg-card); color: var(--text); }
+
+  .page-hero { padding: 100px 32px 60px; max-width: 1200px; margin: 0 auto; }
+  .page-hero .breadcrumb { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+  .page-hero .breadcrumb a { color: var(--text-muted); }
+  .page-hero .breadcrumb span { margin: 0 8px; }
+  .page-hero h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .page-hero h1 span { color: #38bdf8; }
+  .page-hero p { font-size: 17px; color: var(--text-muted); line-height: 1.7; max-width: 680px; }
+
+  .section { max-width: 1200px; margin: 0 auto 60px; padding: 0 32px; }
+  .section h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .section .sub { color: var(--text-muted); margin-bottom: 28px; font-size: 15px; }
+
+  /* ==============================================
+     SWIM-LANE SEQUENCE DIAGRAM
+  ============================================== */
+  .swimlane-wrap {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; overflow-x: auto;
+  }
+
+  /* Header row with actor names */
+  .sl-actors {
+    display: grid;
+    background: #0d1829; border-bottom: 2px solid var(--border);
+    min-width: 900px;
+  }
+  .sl-actor {
+    padding: 16px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .sl-actor:last-child { border-right: none; }
+  .sl-actor-emoji { font-size: 24px; }
+  .sl-actor-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sl-actor-sub { font-size: 10px; color: var(--text-dim); }
+
+  /* Body of the diagram */
+  .sl-body {
+    position: relative; min-width: 900px;
+    /* vertical lifelines drawn via background */
+  }
+
+  /* A single message row */
+  .sl-row {
+    display: grid; align-items: center;
+    min-height: 52px; border-bottom: 1px solid rgba(51,65,85,0.5);
+    position: relative;
+  }
+  .sl-row:last-child { border-bottom: none; }
+  .sl-row.phase-row {
+    min-height: 36px;
+    background: rgba(15,23,42,0.7);
+  }
+
+  /* Each cell in the grid keeps a lifeline visible */
+  .sl-cell {
+    height: 100%; display: flex; align-items: center; justify-content: center;
+    border-right: 1px solid rgba(51,65,85,0.5); position: relative;
+  }
+  .sl-cell:last-child { border-right: none; }
+  /* the thin lifeline */
+  .sl-cell::after {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+    width: 1px; background: rgba(51,65,85,0.6);
+    z-index: 0;
+  }
+
+  /* Step number badge */
+  .sl-step-badge {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; z-index: 2; flex-shrink: 0;
+  }
+
+  /* Arrow that spans from one column to another */
+  .sl-arrow-row {
+    display: flex; align-items: center; gap: 0;
+    height: 100%;
+  }
+  /* We draw arrows using the label overlay approach */
+  .sl-message {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    display: flex; align-items: center;
+    z-index: 2; pointer-events: none;
+    padding: 0 12px;
+  }
+  .sl-msg-inner {
+    display: flex; align-items: center; gap: 0; width: 100%;
+    position: relative;
+  }
+  .sl-msg-line {
+    flex: 1; height: 2px; position: relative;
+  }
+  .sl-msg-line.solid { }
+  .sl-msg-line.dashed { background: repeating-linear-gradient(90deg, var(--lc) 0, var(--lc) 6px, transparent 6px, transparent 12px); }
+  .sl-msg-arrowhead {
+    font-size: 12px; flex-shrink: 0; margin: 0 -2px;
+  }
+  .sl-msg-label {
+    position: absolute; white-space: nowrap;
+    font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    padding: 2px 6px; border-radius: 4px;
+    top: -20px; left: 50%; transform: translateX(-50%);
+    z-index: 3;
+  }
+  .sl-msg-sublabel {
+    position: absolute; white-space: nowrap;
+    font-size: 10px; color: var(--text-dim);
+    top: 8px; left: 50%; transform: translateX(-50%);
+    z-index: 3;
+  }
+
+  /* Phase header inside the diagram */
+  .sl-phase-label {
+    width: 100%; text-align: center;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  /* ==============================
+   STEP LIST (more readable format)
+  ================================ */
+  .step-list { display: flex; flex-direction: column; gap: 0; }
+  .step-item {
+    display: flex; gap: 0; position: relative;
+  }
+  .step-item::before {
+    content: ''; position: absolute; left: 24px; top: 48px; bottom: -1px; width: 2px;
+    background: var(--border);
+  }
+  .step-item:last-child::before { display: none; }
+  .step-left {
+    width: 48px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding-top: 16px;
+  }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%; z-index: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .step-right {
+    flex: 1; padding: 12px 16px 20px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 12px; margin-left: 8px;
+  }
+  .step-actors {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .step-actor-chip {
+    padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;
+  }
+  .step-arrow { font-size: 12px; color: var(--text-dim); }
+  .step-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .step-code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--bg-card2); border-radius: 4px; padding: 2px 8px; margin-top: 4px; display: inline-block; }
+  .step-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag { background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+  .tag-warn { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #f87171; }
+  .tag-ok { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: #4ade80; }
+
+  /* Phase separator */
+  .phase-sep {
+    display: flex; align-items: center; gap: 12px; margin: 20px 0 12px;
+  }
+  .phase-sep-line { flex: 1; height: 1px; background: var(--border); }
+  .phase-sep-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 4px 12px; border-radius: 100px;
+  }
+
+  /* =============================
+   ACTOR CHIPS - color scheme
+  ============================= */
+  .ac-user { background: rgba(99,102,241,0.2); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
+  .ac-cf { background: rgba(249,115,22,0.2); color: #fb923c; border: 1px solid rgba(249,115,22,0.3); }
+  .ac-web { background: rgba(168,85,247,0.2); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+  .ac-db { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+  .ac-sqs { background: rgba(234,179,8,0.2); color: #fbbf24; border: 1px solid rgba(234,179,8,0.3); }
+  .ac-worker { background: rgba(168,85,247,0.2); color: #e879f9; border: 1px solid rgba(168,85,247,0.3); }
+  .ac-ai { background: rgba(6,182,212,0.2); color: #22d3ee; border: 1px solid rgba(6,182,212,0.3); }
+  .ac-s3 { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+
+  /* PIPELINE */
+  .pipeline { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .pipeline-step { display: flex; align-items: flex-start; gap: 20px; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+  .pipeline-step:last-child { border-bottom: none; }
+  .pipeline-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; border: 1px solid; }
+  .pipeline-content { flex: 1; }
+  .pipeline-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .pipeline-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .phase-header { background: var(--bg-card2); padding: 12px 24px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+
+  /* SUMMARY STRIP */
+  .summary-strip {
+    display: flex; gap: 0; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 32px;
+  }
+  .ss-item {
+    flex: 1; padding: 16px 20px; border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .ss-item:last-child { border-right: none; }
+  .ss-label { font-size: 11px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ss-value { font-size: 20px; font-weight: 700; }
+  .ss-detail { font-size: 12px; color: var(--text-muted); }
+
+  /* ERROR GRID */
+  .error-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .error-card { background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-radius: 12px; padding: 20px; }
+  .error-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #f87171; display: flex; align-items: center; gap: 8px; }
+  .error-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+  footer { border-top: 1px solid var(--border); padding: 32px; text-align: center; color: var(--text-dim); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <svg class="nav-logo-icon" viewBox="0 0 64 64" fill="none">
+      <defs>
+        <linearGradient id="n1" x1="10" y1="6" x2="54" y2="28"><stop stop-color="#FF7B7B"/><stop offset="1" stop-color="#FF9A5C"/></linearGradient>
+        <linearGradient id="n2" x1="6" y1="24" x2="58" y2="40"><stop stop-color="#6C6FFF"/><stop offset="1" stop-color="#4DAFFF"/></linearGradient>
+        <linearGradient id="n3" x1="6" y1="42" x2="58" y2="58"><stop stop-color="#26C6DA"/><stop offset="1" stop-color="#00ACC1"/></linearGradient>
+      </defs>
+      <path d="M32 6 L54 18 L32 28 L10 18 Z" fill="url(#n1)"/>
+      <path d="M10 26 L32 36 L54 26 L54 30 L32 42 L10 30 Z" fill="url(#n2)"/>
+      <path d="M10 38 L32 48 L54 38 L54 44 L32 58 L10 44 Z" fill="url(#n3)"/>
+    </svg>
+    Layertone Docs
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="local-dev.html">Local Dev</a>
+    <a href="aws-cloud.html">AWS Cloud</a>
+    <a href="data-flow.html" class="active">Data Flow</a>
+    <a href="packages.html">Packages</a>
+    <a href="serverless-analysis.html">Analysis</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="breadcrumb"><a href="index.html">Home</a> <span>›</span> Data Flow</div>
+  <h1>Request <span>Data Flow</span></h1>
+  <p>End-to-end lifecycle of an image generation request — from browser POST to variant delivery. Includes the complete worker pipeline with retry logic, safety checks, rendering, and credit ledger.</p>
+</div>
+
+<!-- SUMMARY STRIP -->
+<div class="section">
+  <div class="summary-strip">
+    <div class="ss-item"><div class="ss-label">Total steps</div><div class="ss-value" style="color:#38bdf8">16</div><div class="ss-detail">HTTP lifecycle steps</div></div>
+    <div class="ss-item"><div class="ss-label">Worker pipeline</div><div class="ss-value" style="color:#c084fc">10</div><div class="ss-detail">Internal processing steps</div></div>
+    <div class="ss-item"><div class="ss-label">Safety checks</div><div class="ss-value" style="color:#f87171">2</div><div class="ss-detail">Pre-flight text + post-flight image</div></div>
+    <div class="ss-item"><div class="ss-label">AI retries</div><div class="ss-value" style="color:#22d3ee">3</div><div class="ss-detail">Primary × 2 + Bedrock fallback</div></div>
+    <div class="ss-item"><div class="ss-label">SQS DLQ retries</div><div class="ss-value" style="color:#fbbf24">3</div><div class="ss-detail">Max receive count before DLQ</div></div>
+  </div>
+</div>
+
+<!-- SECTION 1: Actors Legend -->
+<div class="section">
+  <h2>Image Generation — Request Lifecycle</h2>
+  <div class="sub">Read left to right: where each message comes from and where it goes</div>
+
+  <!-- Actor Legend -->
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;padding:16px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;">
+    <span class="step-actor-chip ac-user">🌐 User Browser</span>
+    <span class="step-actor-chip ac-cf">☁️ CloudFront</span>
+    <span class="step-actor-chip ac-web">λ Web Lambda</span>
+    <span class="step-actor-chip ac-db">🐘 PostgreSQL</span>
+    <span class="step-actor-chip ac-sqs">📬 SQS</span>
+    <span class="step-actor-chip ac-worker">⚙️ Worker Lambda</span>
+    <span class="step-actor-chip ac-ai">🤖 AI Provider</span>
+    <span class="step-actor-chip ac-s3">🗄️ S3</span>
+  </div>
+
+  <!-- Phase 1: Create Generation -->
+  <div class="phase-sep">
+    <div class="phase-sep-line"></div>
+    <div class="phase-sep-label" style="background:rgba(99,102,241,0.12);color:#818cf8;border:1px solid rgba(99,102,241,0.3)">Phase 1 — Create Generation</div>
+    <div class="phase-sep-line"></div>
+  </div>
+
+  <div class="step-list">
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(99,102,241,0.2);color:#818cf8">1</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-user">🌐 User</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-cf">☁️ CloudFront</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-web">λ Web Lambda</span>
+        </div>
+        <div class="step-body">User clicks <strong>Generate</strong>. Browser sends <code>POST /api/generations</code> with prompt, brand settings, output format, and mode. CloudFront forwards the request to Web Lambda via its response-streaming Function URL.</div>
+        <div class="step-tags"><span class="tag">POST /api/generations</span><span class="tag">response streaming</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(34,197,94,0.2);color:#4ade80">2</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-web">λ Web Lambda</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-db">🐘 PostgreSQL</span>
+        </div>
+        <div class="step-body">Web Lambda validates the request (auth via Clerk JWT, credit balance check via Ledger). Then inserts a <strong>generation row</strong> with <code>status=queued</code> and one <strong>generation_variant row</strong> per requested variant (each variant = one AI image call). Credits are reserved at this point via <code>Ledger.reserve()</code>.</div>
+        <div class="step-tags"><span class="tag">INSERT generations</span><span class="tag">INSERT generation_variants</span><span class="tag">Ledger.reserve()</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(234,179,8,0.2);color:#fbbf24">3</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-web">λ Web Lambda</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-sqs">📬 SQS Generations</span>
+        </div>
+        <div class="step-body">For each variant, Web Lambda sends one SQS message: <code>{ generationId, variantId, workspaceId }</code>. Messages are independent — each variant is processed by a separate Worker Lambda invocation.</div>
+        <div class="step-tags"><span class="tag">SQS SendMessage ×N variants</span><span class="tag">batchSize=1</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(99,102,241,0.2);color:#818cf8">4</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-web">λ Web Lambda</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-cf">☁️ CloudFront</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-user">🌐 User</span>
+        </div>
+        <div class="step-body">Web Lambda returns <code>HTTP 201</code> with the new <code>generationId</code>. The browser receives this immediately — the actual image generation happens asynchronously in the background.</div>
+        <div class="step-code">HTTP 201 { generationId: "gen_abc123" }</div>
+      </div>
+    </div>
+
+    <!-- Phase 2: Polling -->
+    <div class="phase-sep" style="margin-top:8px">
+      <div class="phase-sep-line"></div>
+      <div class="phase-sep-label" style="background:rgba(6,182,212,0.12);color:#22d3ee;border:1px solid rgba(6,182,212,0.3)">Phase 2 — Polling While Worker Runs</div>
+      <div class="phase-sep-line"></div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(6,182,212,0.2);color:#22d3ee">5</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-user">🌐 User</span>
+          <span class="step-arrow">→ polls every ~2s →</span>
+          <span class="step-actor-chip ac-web">λ Web Lambda</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-db">🐘 PostgreSQL</span>
+        </div>
+        <div class="step-body">Browser polls <code>GET /api/generations/{id}</code> every ~2 seconds. Web Lambda reads the generation status from DB. While the worker is still running, it returns <code>status: "queued"</code> or <code>status: "processing"</code>.</div>
+        <div class="step-code">HTTP 200 { status: "queued" | "processing" }</div>
+        <div class="step-tags"><span class="tag">GET /api/generations/:id</span><span class="tag">polling</span></div>
+      </div>
+    </div>
+
+    <!-- Phase 3: Worker processing -->
+    <div class="phase-sep" style="margin-top:8px">
+      <div class="phase-sep-line"></div>
+      <div class="phase-sep-label" style="background:rgba(168,85,247,0.12);color:#c084fc;border:1px solid rgba(168,85,247,0.3)">Phase 3 — Worker Lambda Processes the Job</div>
+      <div class="phase-sep-line"></div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(234,179,8,0.2);color:#fbbf24">6</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-sqs">📬 SQS</span>
+          <span class="step-arrow">→ SqsEventSource trigger →</span>
+          <span class="step-actor-chip ac-worker">⚙️ Worker Lambda</span>
+        </div>
+        <div class="step-body">SQS triggers Worker Lambda (batchSize=1, one message per invocation). The visibility timeout is 180s — the message is hidden from other consumers while the worker processes it. Worker Lambda timeout is 120s, giving a 60s buffer before SQS re-delivers.</div>
+        <div class="step-tags"><span class="tag">SqsEventSource</span><span class="tag">visibility 180s</span><span class="tag">timeout 120s</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(168,85,247,0.2);color:#c084fc">7</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-db">🐘 PostgreSQL</span>
+        </div>
+        <div class="step-body">Worker loads the variant, generation, brand, template, and mood from DB. Updates variant status to <code>running</code>. Builds the AI prompt (Quick Create mode or Legacy mode). Moderates the prompt text before any AI call.</div>
+        <div class="step-tags"><span class="tag">status → running</span><span class="tag">buildPrompt()</span><span class="tag tag-warn">moderateText() — blocks if flagged</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(6,182,212,0.2);color:#22d3ee">8</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+          <span class="step-arrow">→ generateImage() →</span>
+          <span class="step-actor-chip ac-ai">🤖 AI Provider</span>
+          <span class="step-arrow">→ image bytes →</span>
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+        </div>
+        <div class="step-body">Worker calls the AI provider (OpenAI DALL-E 3, Replicate, or Recraft depending on the template's <code>preferredModel</code>). On failure, retries once with the same provider, then falls back to <strong>AWS Bedrock SD3.5</strong>. AI returns raw PNG bytes.</div>
+        <div class="step-tags"><span class="tag">retry ×1</span><span class="tag">Bedrock fallback</span><span class="tag">provider.latency_ms metric</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(6,182,212,0.2);color:#22d3ee">9</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+          <span class="step-arrow">→ moderateImage() →</span>
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+        </div>
+        <div class="step-body">After receiving the image bytes, Worker moderates the generated image. If the image is flagged as unsafe → marks variant <code>failed_safety</code>, releases credits, stops processing. The image is never written to S3.</div>
+        <div class="step-tags"><span class="tag tag-warn">moderateImage() — blocks if flagged</span><span class="tag">image never stored if flagged</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(16,185,129,0.2);color:#34d399">10</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-s3">🗄️ S3</span>
+        </div>
+        <div class="step-body">Worker uploads the raw AI-generated PNG as the <strong>background</strong>. Key pattern: <code>workspaces/{id}/gen/{id}/variant/{id}/background.png</code>. Preserves the unprocessed image separately from the final rendered output.</div>
+        <div class="step-tags"><span class="tag">PUT background.png</span><span class="tag">keys.generationBackground()</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(168,85,247,0.2);color:#c084fc">11</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+          <span class="step-arrow">→ render() →</span>
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+        </div>
+        <div class="step-body">Worker renders the <strong>template overlay</strong> onto the background: brand palette, fonts, logo, mood decorations/colors, text slots (headline, subhead, CTA). Uses <strong>Satori</strong> for most templates (fast, no browser). Switches to <strong>Puppeteer/Chromium</strong> for complex templates flagged <code>requiresBrowserRender=true</code>.</div>
+        <div class="step-tags"><span class="tag">@layertone/renderer</span><span class="tag">Satori (fast path)</span><span class="tag">Puppeteer/Chromium (complex templates)</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(16,185,129,0.2);color:#34d399">12</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-s3">🗄️ S3</span>
+        </div>
+        <div class="step-body">Worker uploads the final rendered PNG. Key: <code>workspaces/{id}/gen/{id}/variant/{id}/output.png</code>. This is the file that will be presigned and delivered to the user.</div>
+        <div class="step-tags"><span class="tag">PUT output.png</span><span class="tag">keys.generationVariant()</span></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(234,179,8,0.2);color:#fbbf24">13</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-worker">⚙️ Worker</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-db">🐘 PostgreSQL</span>
+        </div>
+        <div class="step-body">Worker commits the generation: (a) <code>Ledger.commit()</code> — converts the reserved credits to a permanent debit; (b) UPDATE variant row to <code>completed</code> with <code>outputS3Key</code>, <code>backgroundS3Key</code>, <code>modelUsed</code>, <code>renderMs</code>; (c) Fan-in — UPDATE parent generation to <code>completed</code> if all variants are terminal.</div>
+        <div class="step-tags"><span class="tag tag-ok">Ledger.commit()</span><span class="tag">variant → completed</span><span class="tag">generation fan-in</span></div>
+      </div>
+    </div>
+
+    <!-- Phase 4: Delivery -->
+    <div class="phase-sep" style="margin-top:8px">
+      <div class="phase-sep-line"></div>
+      <div class="phase-sep-label" style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.3)">Phase 4 — Delivery to User</div>
+      <div class="phase-sep-line"></div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(34,197,94,0.2);color:#4ade80">14</div>
+      </div>
+      <div class="step-right">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-user">🌐 User</span>
+          <span class="step-arrow">→ next poll →</span>
+          <span class="step-actor-chip ac-web">λ Web Lambda</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-db">🐘 PostgreSQL</span>
+        </div>
+        <div class="step-body">Browser's next poll hits the API. Web Lambda reads the generation: status is now <code>completed</code>. Web Lambda calls S3 to generate presigned URLs for each variant's output PNG (time-limited download URLs, typically 1 hour).</div>
+        <div class="step-tags"><span class="tag">status: "completed"</span><span class="tag">S3 presign URLs</span></div>
+      </div>
+    </div>
+
+    <div class="step-item" style="margin-bottom:0">
+      <div class="step-left">
+        <div class="step-num" style="background:rgba(34,197,94,0.2);color:#4ade80">15</div>
+      </div>
+      <div class="step-right" style="margin-bottom:0">
+        <div class="step-actors">
+          <span class="step-actor-chip ac-web">λ Web Lambda</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-cf">☁️ CloudFront</span>
+          <span class="step-arrow">→</span>
+          <span class="step-actor-chip ac-user">🌐 User</span>
+        </div>
+        <div class="step-body">Web Lambda returns the generation with variant presigned URLs. Browser displays the generated images. User can download or share them directly via the presigned S3 URLs.</div>
+        <div class="step-code">HTTP 200 { status: "completed", variants: [{ presignedUrl, modelUsed, ... }] }</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKER PIPELINE SUMMARY -->
+<div class="section">
+  <h2>Worker Pipeline — Internal Steps</h2>
+  <div class="sub">10 steps inside the Worker Lambda, each with its own failure/success path</div>
+
+  <div class="pipeline">
+    <div class="phase-header" style="color:#fbbf24">⚡ Initialisation &amp; Idempotency</div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.3)">🔍</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">1 · Idempotency check</div>
+        <div class="pipeline-desc">Load variant from DB. If already <code>completed</code> / <code>failed</code> / <code>failed_safety</code> → return immediately. Prevents SQS at-least-once delivery from re-processing a finished job.</div>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.3)">📋</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">2 · Load full generation context</div>
+        <div class="pipeline-desc">Read generation, brand (palette, fonts, voice notes, logo assets), template (JSX source, textSafeZones, preferredModel, requiresBrowserRender), and mood (promptModifiers, negativePrompts, decorationTags, accentPalette).</div>
+      </div>
+    </div>
+
+    <div class="phase-header" style="color:#60a5fa">🧠 Prompt Construction</div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.3)">🔗</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">3 · Brand grounding via pgvector</div>
+        <div class="pipeline-desc">Embed the generation brief. Use pgvector cosine similarity (<code>&lt;=&gt;</code>) to find top-3 most relevant brand assets. These become image references for the AI (weight: 0.4). Best-effort — failures are silently ignored.</div>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.3)">🎨</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">4 · Build AI prompt</div>
+        <div class="pipeline-desc"><strong>Quick Create mode</strong> (<code>commercial.mode = "quick"</code>): uses <code>buildQuickCreatePrompt()</code> from prompt-templates — structured prompt with overlay slots (headline, subtitle, CTA). <strong>Legacy mode</strong>: concatenates brief + campaign fields + product refs + mood modifiers.</div>
+      </div>
+    </div>
+
+    <div class="phase-header" style="color:#f87171">🛡️ Safety</div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3)">⚠️</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">5 · Pre-flight text moderation</div>
+        <div class="pipeline-desc">Moderate the assembled prompt text before calling AI. If flagged → variant <code>failed_safety</code>, credits released, Lambda exits success (message deleted). No AI call is made.</div>
+      </div>
+    </div>
+
+    <div class="phase-header" style="color:#22d3ee">🤖 AI Generation</div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(8,145,178,0.1);border-color:rgba(8,145,178,0.3)">⚡</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">6 · Generate image with retry + fallback</div>
+        <div class="pipeline-desc">Call AI provider with prompt + image references. Attempt 1: primary provider. Attempt 2: same provider retry. Attempt 3 (if configured): <strong>Bedrock SD3.5 fallback</strong> (without image references). All attempts fail → variant <code>failed</code>, credits released, error sent to Sentry.</div>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3)">🔬</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">7 · Post-flight image moderation</div>
+        <div class="pipeline-desc">Moderate the generated image bytes. If flagged → variant <code>failed_safety</code>, credits released. Image never stored in S3. Prevents harmful AI-generated content from reaching storage or users.</div>
+      </div>
+    </div>
+
+    <div class="phase-header" style="color:#4ade80">🖼️ Rendering &amp; Storage</div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3)">🗄️</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">8 · Upload background PNG to S3</div>
+        <div class="pipeline-desc">Store raw AI output at <code>workspaces/{ws}/gen/{gen}/variant/{var}/background.png</code>. Preserved separately from the rendered output for future use (re-rendering with new templates, quality inspection).</div>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.3)">✨</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">9 · Render template overlay</div>
+        <div class="pipeline-desc">Composite brand palette, fonts, logo, mood decorations, and text overlay slots onto the background via <code>@layertone/renderer</code>. Uses <strong>Satori</strong> (SVG→PNG, no browser, fast) for most templates. Switches to <strong>Puppeteer/Chromium</strong> only when <code>requiresBrowserRender=true</code>.</div>
+      </div>
+    </div>
+
+    <div class="phase-header" style="color:#fbbf24">💳 Commit &amp; Complete</div>
+    <div class="pipeline-step">
+      <div class="pipeline-icon" style="background:rgba(234,179,8,0.1);border-color:rgba(234,179,8,0.3)">💳</div>
+      <div class="pipeline-content">
+        <div class="pipeline-title">10 · Commit credits + fan-in generation</div>
+        <div class="pipeline-desc"><code>Ledger.commit()</code> with idempotency key converts reserved credits to permanent debit. Update variant to <code>completed</code> with output keys + metrics. Fan-in: if all variants are terminal, update parent generation status to <code>completed</code> or <code>failed</code>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ERROR PATHS -->
+<div class="section">
+  <h2>Error &amp; Failure Paths</h2>
+  <div class="sub">How each failure mode is handled — credits are always released or committed, never lost</div>
+  <div class="error-grid">
+    <div class="error-card">
+      <h4>⚠️ Text moderation flag</h4>
+      <p>Variant → <code>failed_safety</code>. <code>Ledger.release()</code> refunds reserved credits. Message deleted from SQS (Lambda exits cleanly). No AI call is made.</p>
+    </div>
+    <div class="error-card">
+      <h4>💥 AI provider failure (all retries)</h4>
+      <p>Retry same provider once → fallback to Bedrock. If all three fail: variant → <code>failed</code>, credits released, exception sent to Sentry with model code and variant ID.</p>
+    </div>
+    <div class="error-card">
+      <h4>⚠️ Image moderation flag</h4>
+      <p>Generated image bytes discarded. Variant → <code>failed_safety</code>, credits released. Image never stored in S3 or shown to users.</p>
+    </div>
+    <div class="error-card">
+      <h4>🔧 Template not found</h4>
+      <p>Variant → <code>failed</code> reason <code>template_not_found</code>. Credits released. Happens when a template is deleted after a generation was queued.</p>
+    </div>
+    <div class="error-card">
+      <h4>⏱️ Lambda timeout (120s)</h4>
+      <p>SQS visibility timeout is 180s. After Lambda times out, SQS waits 60s then re-delivers. Up to 3 receive counts before DLQ. The idempotency check at step 1 prevents double-processing.</p>
+    </div>
+    <div class="error-card">
+      <h4>📨 Dead Letter Queue</h4>
+      <p>After 3 failed receive attempts, message moves to DLQ (14-day retention). Ops can inspect the raw message in AWS console and replay it once the root cause is fixed.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CAPTION FLOW -->
+<div class="section">
+  <h2>Caption Generation Flow</h2>
+  <div class="sub">Social-media caption jobs are processed by the same Worker Lambda via a separate SQS queue</div>
+
+  <div class="step-list">
+    <div class="step-item">
+      <div class="step-left"><div class="step-num" style="background:rgba(234,179,8,0.2);color:#fbbf24">1</div></div>
+      <div class="step-right">
+        <div class="step-actors"><span class="step-actor-chip ac-sqs">📬 SQS Captions</span><span class="step-arrow">→ SqsEventSource →</span><span class="step-actor-chip ac-worker">⚙️ Worker Lambda</span></div>
+        <div class="step-body">The <code>layertone-{stage}-captions</code> queue fires the same Worker Lambda. Message: <code>{ jobId, workspaceId }</code>. Worker routes to <code>CaptionWorker.handle()</code>.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-left"><div class="step-num" style="background:rgba(34,197,94,0.2);color:#4ade80">2</div></div>
+      <div class="step-right">
+        <div class="step-actors"><span class="step-actor-chip ac-worker">⚙️ Worker</span><span class="step-arrow">→</span><span class="step-actor-chip ac-db">🐘 DB</span></div>
+        <div class="step-body">Load caption job. Idempotency: if already <code>completed</code> / <code>failed</code> → return. Otherwise UPDATE status to <code>running</code>.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-left"><div class="step-num" style="background:rgba(6,182,212,0.2);color:#22d3ee">3</div></div>
+      <div class="step-right">
+        <div class="step-actors"><span class="step-actor-chip ac-worker">⚙️ Worker</span><span class="step-arrow">→ generateText() →</span><span class="step-actor-chip ac-ai">🤖 OpenAI Text</span></div>
+        <div class="step-body">Call <code>generateText()</code> with system prompt for social-media captions + job's brief + voice instructions. Max tokens: <code>short=80, medium=200, long=500</code>. Returns markdown caption text.</div>
+        <div class="step-tags"><span class="tag">openaiTextModel</span><span class="tag">lengthTier</span></div>
+      </div>
+    </div>
+    <div class="step-item" style="margin-bottom:0">
+      <div class="step-left"><div class="step-num" style="background:rgba(34,197,94,0.2);color:#4ade80">4</div></div>
+      <div class="step-right" style="margin-bottom:0">
+        <div class="step-actors"><span class="step-actor-chip ac-worker">⚙️ Worker</span><span class="step-arrow">→</span><span class="step-actor-chip ac-db">🐘 DB</span></div>
+        <div class="step-body">Store output text in DB. Call <code>Ledger.commit()</code> to finalise credit deduction. On any error: mark <code>failed</code>, call <code>Ledger.release()</code> to refund the reserved caption credits.</div>
+        <div class="step-tags"><span class="tag tag-ok">Ledger.commit()</span><span class="tag">updateCaption()</span><span class="tag tag-warn">Ledger.release() on error</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Layertone Deployment Documentation · Data Flow · Updated 2026-05-22</footer>
+
+</body>
+</html>

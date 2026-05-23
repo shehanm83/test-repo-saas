@@ -1,7 +1,7 @@
-import { createDb, moods } from "@vyora/db";
-import { eq } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared/config";
-import { S3StorageAdapter } from "@vyora/storage";
+import { createDb, moods } from "@layertone/db";
+import { eq } from "@layertone/db/operators";
+import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import { MoodsBrowser } from "@/components/moods/moods-browser";
 

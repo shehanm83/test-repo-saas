@@ -2,7 +2,7 @@
 
 **Phase:** 8 — Generation pipeline
 **Depends on:** 16
-**Spec references:** [Spec § 1.3 (platform formats)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 3.3 step 3 (output target validation)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 4.3 (mood × aspect-ratio compatibility)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 1.3 (platform formats)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 3.3 step 3 (output target validation)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 4.3 (mood × aspect-ratio compatibility)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `apps/web/lib/output-targets.ts` (or `packages/shared/src/output-targets.ts` — placed in shared so both web and worker can import) lists the static platform-format table from spec § 1.3
@@ -167,7 +167,7 @@ git commit -m "feat(shared): static platform-formats lookup + output-target reso
 ## Verification
 
 ```bash
-pnpm --filter @vyora/shared test
+pnpm --filter @layertone/shared test
 ```
 
 ## Commit message

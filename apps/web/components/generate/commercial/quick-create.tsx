@@ -17,40 +17,38 @@ import type {
   SelectedProduct,
 } from "./types";
 
-type MediaType = "social" | "image" | "story" | "portrait" | "custom";
+type PlatformId = "instagram" | "facebook" | "linkedin" | "tiktok";
 
-const MEDIA_OPTIONS: Array<{ id: MediaType; icon: string; label: string; sub: string; color: string }> = [
-  { id: "social", icon: "◎", label: "For social", sub: "Perfect for posts", color: "#E4405F" },
-  { id: "image", icon: "▧", label: "Just an image", sub: "General purpose", color: "#1F7A5A" },
-  { id: "story", icon: "▯", label: "Story / Reel", sub: "9:16 vertical", color: "#0E0E10" },
-  { id: "portrait", icon: "◫", label: "Portrait", sub: "4:5 portrait", color: "#B5651D" },
-  { id: "custom", icon: "⌗", label: "Custom size", sub: "Set your size", color: "#5E5CE6" },
+const PLATFORM_OPTIONS: Array<{ id: PlatformId; label: string; icon: string; color: string }> = [
+  { id: "instagram", label: "Instagram", icon: "◎", color: "#E4405F" },
+  { id: "facebook", label: "Facebook", icon: "f", color: "#1877F2" },
+  { id: "linkedin", label: "LinkedIn", icon: "in", color: "#0A66C2" },
+  { id: "tiktok", label: "TikTok", icon: "♪", color: "#0E0E10" },
 ];
 
-const SOCIAL_FORMATS: Array<{ id: OutputFormat; label: string; icon: string; color: string; sub: string }> = [
-  { id: "instagram_square", label: "Instagram - Square", icon: "IG", color: "#E4405F", sub: "Post image: 1080 × 1080" },
-  { id: "instagram_portrait", label: "Instagram - Portrait", icon: "IG", color: "#E4405F", sub: "Post image: 1080 × 1350" },
-  { id: "instagram_landscape", label: "Instagram - Landscape", icon: "IG", color: "#E4405F", sub: "Post image: 1080 × 566" },
-  { id: "instagram_story", label: "Instagram - Story", icon: "IG", color: "#E4405F", sub: "Story: 1080 × 1920 (9:16)" },
-  { id: "instagram_reel", label: "Instagram - Reel", icon: "IG", color: "#E4405F", sub: "Reel: 1080 × 1920 (9:16)" },
-  { id: "instagram_feed_video_portrait", label: "Instagram - Feed video", icon: "IG", color: "#E4405F", sub: "Portrait: 1080 × 1350" },
-  { id: "instagram_feed_video_square", label: "Instagram - Feed video", icon: "IG", color: "#E4405F", sub: "Square: 1080 × 1080" },
-  { id: "facebook_square", label: "Facebook - Square", icon: "f", color: "#1877F2", sub: "Post image: 1080 × 1080" },
-  { id: "facebook_portrait", label: "Facebook - Portrait", icon: "f", color: "#1877F2", sub: "Post image: 1080 × 1350" },
-  { id: "facebook_landscape", label: "Facebook - Landscape", icon: "f", color: "#1877F2", sub: "Post image: 1080 × 566" },
-  { id: "facebook_link_preview", label: "Facebook - Link preview", icon: "f", color: "#1877F2", sub: "Link image: 1200 × 630" },
-  { id: "facebook_profile_photo", label: "Facebook - Profile", icon: "f", color: "#1877F2", sub: "Profile photo: 320 × 320" },
-  { id: "facebook_cover_photo", label: "Facebook - Cover", icon: "f", color: "#1877F2", sub: "Cover photo: 820 × 360" },
-  { id: "facebook_story", label: "Facebook - Story", icon: "f", color: "#1877F2", sub: "Story: 1080 × 1920" },
-  { id: "linkedin_feed", label: "LinkedIn - Standard post", icon: "in", color: "#0A66C2", sub: "1200 × 627" },
-  { id: "tiktok_vertical", label: "TikTok - Vertical", icon: "TT", color: "#0E0E10", sub: "Video/image: 1080 × 1920 (9:16)" },
-];
-
-const MEDIA_FORMAT: Record<Exclude<MediaType, "social">, OutputFormat> = {
-  image: "product_card",
-  story: "instagram_story",
-  portrait: "instagram_portrait",
-  custom: "website_banner",
+const CONTENT_BY_PLATFORM: Record<
+  PlatformId,
+  Array<{ id: OutputFormat; label: string; sub: string; icon: string }>
+> = {
+  instagram: [
+    { id: "instagram_square", label: "Post", sub: "Square", icon: "▣" },
+    { id: "instagram_portrait", label: "Portrait", sub: "4:5", icon: "▥" },
+    { id: "instagram_landscape", label: "Landscape", sub: "Wide", icon: "▭" },
+    { id: "instagram_story", label: "Story", sub: "9:16", icon: "▯" },
+    { id: "instagram_reel", label: "Reel", sub: "Vertical", icon: "▶" },
+    { id: "instagram_feed_video_square", label: "Feed video", sub: "Square", icon: "◉" },
+  ],
+  facebook: [
+    { id: "facebook_square", label: "Square", sub: "Post", icon: "▣" },
+    { id: "facebook_portrait", label: "Portrait", sub: "4:5", icon: "▥" },
+    { id: "facebook_landscape", label: "Landscape", sub: "Wide", icon: "▭" },
+    { id: "facebook_profile_photo", label: "Profile", sub: "Photo", icon: "◌" },
+    { id: "facebook_cover_photo", label: "Cover", sub: "Header", icon: "▰" },
+    { id: "facebook_story", label: "Story", sub: "9:16", icon: "▯" },
+    { id: "facebook_link_preview", label: "Link", sub: "Preview", icon: "↗" },
+  ],
+  linkedin: [{ id: "linkedin_feed", label: "Post", sub: "Feed", icon: "▭" }],
+  tiktok: [{ id: "tiktok_vertical", label: "Vertical", sub: "9:16", icon: "▶" }],
 };
 
 const EMPTY_CAMPAIGN: CampaignDetails = {
@@ -75,27 +73,22 @@ export function QuickCreate(props: {
   onBrandLogoAssetIdsChange: (ids: string[]) => void;
   onOutputsChange: (outputs: OutputSettings) => void;
 }) {
-  const [mediaType, setMediaType] = useState<MediaType>("social");
-  const [platform, setPlatform] = useState<OutputFormat>("instagram_square");
+  const [platform, setPlatform] = useState<PlatformId>("instagram");
+  const [contentType, setContentType] = useState<OutputFormat>("instagram_square");
   const [promotionEnabled, setPromotionEnabled] = useState(false);
 
   const outputsRef = useRef(props.state.outputs);
   outputsRef.current = props.state.outputs;
 
-  // Sync media/platform selection into shared outputs.formats
+  // Sync platform/content selection into shared outputs.formats.
   useEffect(() => {
-    const format: OutputFormat =
-      mediaType === "social" ? platform : MEDIA_FORMAT[mediaType];
-    props.onOutputsChange({ ...outputsRef.current, formats: [format] });
+    props.onOutputsChange({ ...outputsRef.current, formats: [contentType] });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediaType, platform]);
+  }, [contentType]);
 
-  function handleMediaType(type: MediaType) {
-    setMediaType(type);
-  }
-
-  function handlePlatform(fmt: OutputFormat) {
-    setPlatform(fmt);
+  function handlePlatform(nextPlatform: PlatformId) {
+    setPlatform(nextPlatform);
+    setContentType(CONTENT_BY_PLATFORM[nextPlatform][0]!.id);
   }
 
   function handlePromotionToggle() {
@@ -114,57 +107,64 @@ export function QuickCreate(props: {
 
   return (
     <div className="qc-stack">
-      {/* Section 1 — Choose media */}
+      {/* Section 1/2 — Platform and content type */}
       <section className="qc-section">
-        <div className="qc-section-head">
-          <div>
-            <h2 className="qc-step-title">
-              <span className="qc-num">1</span>
-              Choose media
-            </h2>
-            <p className="qc-hint">Pick where this image will be used.</p>
-          </div>
-        </div>
+        <div className="qc-step-block">
+          <h2 className="qc-step-title">
+            <span className="qc-num">1</span>
+            Choose platform
+          </h2>
 
-        <div className="qc-media-grid">
-          {MEDIA_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              className={`qc-option ${mediaType === opt.id ? "is-active" : ""}`}
-              onClick={() => handleMediaType(opt.id)}
-            >
-              <div className="qc-option-icon" style={{ background: opt.color }}>{opt.icon}</div>
-              <strong>{opt.label}</strong>
-              <span>{opt.sub}</span>
-            </button>
-          ))}
-        </div>
-
-        {mediaType === "social" && (
-          <div className="qc-platform-grid">
-            {SOCIAL_FORMATS.map((p) => (
+          <div className="qc-platform-row">
+            {PLATFORM_OPTIONS.map((option) => (
               <button
-                key={p.id}
+                key={option.id}
                 type="button"
-                className={`qc-platform-card ${platform === p.id ? "is-active" : ""}`}
-                onClick={() => handlePlatform(p.id)}
+                className={`qc-platform-tile ${platform === option.id ? "is-active" : ""}`}
+                onClick={() => handlePlatform(option.id)}
               >
-                <span className="qc-platform-icon" style={{ background: p.color }}>{p.icon}</span>
-                <span>
-                  <strong>{p.label}</strong>
-                  <small>{p.sub}</small>
+                <span
+                  className={`qc-platform-logo qc-platform-logo--${option.id}`}
+                  style={{ background: option.color }}
+                >
+                  {option.icon}
                 </span>
+                <strong>{option.label}</strong>
+                {platform === option.id ? <i aria-hidden="true">✓</i> : null}
               </button>
             ))}
           </div>
-        )}
+        </div>
+
+        <div className="qc-section-rule" />
+
+        <div className="qc-step-block">
+          <h2 className="qc-step-title">
+            <span className="qc-num">2</span>
+            Choose content type
+          </h2>
+
+          <div className="qc-content-row">
+            {CONTENT_BY_PLATFORM[platform].map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`qc-content-tile ${contentType === option.id ? "is-active" : ""}`}
+                onClick={() => setContentType(option.id)}
+              >
+                <span>{option.icon}</span>
+                <strong>{option.label}</strong>
+                <small>{option.sub}</small>
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Section 2 — Campaign details */}
+      {/* Section 3 — Campaign details */}
       <section className="qc-section">
         <h2 className="qc-step-title">
-          <span className="qc-num">2</span>
+          <span className="qc-num">3</span>
           Campaign details
           <span style={{ color: "var(--fg-3)", fontSize: 14, fontWeight: 600 }}>optional</span>
         </h2>
@@ -280,7 +280,7 @@ export function QuickCreate(props: {
                   className="input"
                   value={campaign.website}
                   onChange={(e) => props.onCampaignChange({ website: e.target.value })}
-                  placeholder="vyora.example"
+                  placeholder="layertone.example"
                 />
               </label>
               <label>
@@ -306,10 +306,10 @@ export function QuickCreate(props: {
         )}
       </section>
 
-      {/* Section 3 — Product / promotion image */}
+      {/* Section 4 — Product / promotion image */}
       <section className="qc-section">
         <h2 className="qc-step-title">
-          <span className="qc-num">3</span>
+          <span className="qc-num">4</span>
           Product / promotion image
           <span style={{ color: "var(--fg-3)", fontSize: 14, fontWeight: 600 }}>optional</span>
         </h2>
@@ -342,10 +342,10 @@ export function QuickCreate(props: {
         </div>
       </section>
 
-      {/* Section 4 — Describe your image */}
+      {/* Section 5 — Describe your image */}
       <section className="qc-section">
         <h2 className="qc-step-title">
-          <span className="qc-num">4</span>
+          <span className="qc-num">5</span>
           Describe your image
         </h2>
         <p className="qc-hint">Tell us what you want to generate.</p>
@@ -364,10 +364,10 @@ export function QuickCreate(props: {
         </div>
       </section>
 
-      {/* Section 5 — Brand */}
+      {/* Section 6 — Brand */}
       <section className="qc-section">
         <h2 className="qc-step-title">
-          <span className="qc-num">5</span>
+          <span className="qc-num">6</span>
           Brand
         </h2>
         <p className="qc-hint" style={{ marginBottom: 18 }}>Select a brand and choose which identity assets to apply.</p>
@@ -382,10 +382,10 @@ export function QuickCreate(props: {
         />
       </section>
 
-      {/* Section 6 — Mood */}
+      {/* Section 7 — Mood */}
       <section className="qc-section">
         <h2 className="qc-step-title">
-          <span className="qc-num">6</span>
+          <span className="qc-num">7</span>
           Mood
         </h2>
         <p className="qc-hint" style={{ marginBottom: 18 }}>Pick the visual direction and review related references.</p>
@@ -396,10 +396,10 @@ export function QuickCreate(props: {
         />
       </section>
 
-      {/* Section 7 — Generation settings */}
+      {/* Section 8 — Generation settings */}
       <section className="qc-section">
         <h2 className="qc-step-title">
-          <span className="qc-num">7</span>
+          <span className="qc-num">8</span>
           Generation settings
         </h2>
 
@@ -495,6 +495,12 @@ function QuickBrandSection(props: {
           ))}
         </select>
       </label>
+      {props.brands.length === 0 ? (
+        <p className="qc-empty-note">
+          No saved brands yet. <a href="/brands/new/identify?new=1">Create a brand</a> to use brand
+          colors, logos, and fonts.
+        </p>
+      ) : null}
 
       <div className="qc-brand-control-grid">
         <BrandAssetToggle

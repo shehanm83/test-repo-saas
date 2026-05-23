@@ -29,7 +29,7 @@ export function createDb(databaseUrl: string, role: DatabaseRole = "app_user"): 
     max_lifetime: 60 * 30,
     onnotice: () => undefined,
     transform: { undefined: null },
-    connection: { application_name: `studio-${role}` },
+    connection: { application_name: `layertone-${role}` },
   });
 
   const db = drizzle(sql, { schema });

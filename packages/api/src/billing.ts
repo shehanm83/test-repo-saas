@@ -1,6 +1,6 @@
-import { createDb, workspaces } from "@vyora/db";
-import { eq } from "@vyora/db/operators";
-import type { Adapters, Config } from "@vyora/shared";
+import { createDb, workspaces } from "@layertone/db";
+import { eq } from "@layertone/db/operators";
+import type { Adapters, Config } from "@layertone/shared";
 import { z } from "zod";
 
 export class BillingApi {

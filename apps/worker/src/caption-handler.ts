@@ -1,6 +1,6 @@
-import { Ledger } from "@vyora/billing";
-import { createDb, captionJobs, updateCaption } from "@vyora/db";
-import type { Adapters, Config } from "@vyora/shared";
+import { Ledger } from "@layertone/billing";
+import { createDb, captionJobs, updateCaption } from "@layertone/db";
+import type { Adapters, Config } from "@layertone/shared";
 import { eq } from "drizzle-orm";
 
 const TARGET_TOKENS = { short: 80, medium: 200, long: 500 } as const;

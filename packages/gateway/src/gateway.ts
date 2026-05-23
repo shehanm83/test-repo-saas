@@ -6,7 +6,7 @@ import type {
   AITextRequest,
   AITextResponse,
   StorageAdapter,
-} from "@vyora/shared";
+} from "@layertone/shared";
 import type { ImageProvider, TextProvider, VisionProvider, ModerationProvider } from "./types.js";
 import { chooseProvider } from "./routing.js";
 

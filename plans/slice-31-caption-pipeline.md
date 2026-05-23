@@ -2,7 +2,7 @@
 
 **Phase:** 9 — Captions
 **Depends on:** 19, 21
-**Spec references:** [Spec § 3.6 (Caption generation)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 3.6 (Caption generation)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `CaptionApi.create({ workspaceId, userId, input })` reserves credits, inserts `caption_jobs`, enqueues SQS message
@@ -52,9 +52,9 @@ export async function updateCaption(db: Db, workspaceId: string, id: string, pat
 // packages/api/src/caption.ts
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { createDb, insertCaption } from "@vyora/db";
-import { Ledger } from "@vyora/billing";
-import type { Adapters, Config } from "@vyora/shared";
+import { createDb, insertCaption } from "@layertone/db";
+import { Ledger } from "@layertone/billing";
+import type { Adapters, Config } from "@layertone/shared";
 
 const COSTS = { short: 1, medium: 3, long: 5 } as const;
 
@@ -93,10 +93,10 @@ export class CaptionApi {
 ```ts
 // apps/worker/src/caption-handler.ts
 import { eq, sql } from "drizzle-orm";
-import { createDb, captionJobs } from "@vyora/db";
-import { Ledger } from "@vyora/billing";
-import { updateCaption } from "@vyora/db";
-import type { Adapters, Config } from "@vyora/shared";
+import { createDb, captionJobs } from "@layertone/db";
+import { Ledger } from "@layertone/billing";
+import { updateCaption } from "@layertone/db";
+import type { Adapters, Config } from "@layertone/shared";
 
 const TARGET_TOKENS = { short: 80, medium: 200, long: 500 };
 
@@ -143,7 +143,7 @@ git commit -m "feat(api/worker): caption pipeline (Anthropic Haiku) with credit 
 ## Verification
 
 ```bash
-pnpm --filter @vyora/api test
+pnpm --filter @layertone/api test
 ```
 
 ## Commit message

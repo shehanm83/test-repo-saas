@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { createDb, generations, creditLedgerEntries } from "@vyora/db";
+import { createDb, generations, creditLedgerEntries } from "@layertone/db";
 import { eq, and } from "drizzle-orm";
-import { loadConfig } from "@vyora/shared/config";
-import { Ledger } from "@vyora/billing";
+import { loadConfig } from "@layertone/shared/config";
+import { Ledger } from "@layertone/billing";
 
 import { getServerSession } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";
@@ -41,7 +41,7 @@ export async function POST(
   }
 
   const ledger = new Ledger(db);
-  const idempotencyKey = `admin-refund-gen-${id}`;
+  const idempotencyKey = `admin-refund-gen-${id}-${Date.now()}`;
 
   await ledger.adjustment({
     workspaceId: generation.workspaceId,

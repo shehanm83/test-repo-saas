@@ -2,7 +2,7 @@
 
 **Phase:** 3 — Storage + brand kit
 **Depends on:** 05
-**Spec references:** [Architecture § 6.1 (Storage adapter)](../specs/2026-04-25-studio-v1-architecture.md), [Spec § 1.2 (S3 layout)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Architecture § 6.1 (Storage adapter)](../specs/2026-04-25-layertone-v1-architecture.md), [Spec § 1.2 (S3 layout)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `packages/storage` package with `S3StorageAdapter` (works with both AWS S3 and MinIO via `S3_ENDPOINT`)
@@ -31,8 +31,8 @@
 
 ```bash
 # Create package.json/tsconfig like prior packages, then:
-pnpm --filter @vyora/storage add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
-pnpm --filter @vyora/storage add @vyora/shared@workspace:*
+pnpm --filter @layertone/storage add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+pnpm --filter @layertone/storage add @layertone/shared@workspace:*
 ```
 
 - [ ] **Step 2 — `packages/storage/src/keys.ts`**
@@ -64,7 +64,7 @@ export function workspacePrefix(wid: string): string { return `workspaces/${wid}
 ```ts
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import type { SignedUrl, StorageAdapter } from "@vyora/shared";
+import type { SignedUrl, StorageAdapter } from "@layertone/shared";
 
 export interface S3Options {
   endpoint?: string;
@@ -134,7 +134,7 @@ export class S3StorageAdapter implements StorageAdapter {
 
 ```ts
 // packages/shared/src/adapters/factory.ts
-import { S3StorageAdapter } from "@vyora/storage";
+import { S3StorageAdapter } from "@layertone/storage";
 // ... in createAdapters:
 const storage = new S3StorageAdapter({
   endpoint: config.storage.endpoint,
@@ -145,7 +145,7 @@ const storage = new S3StorageAdapter({
 });
 ```
 
-(Add `@vyora/storage` as a dep in `@vyora/shared`.)
+(Add `@layertone/storage` as a dep in `@layertone/shared`.)
 
 - [ ] **Step 5 — Integration test against MinIO**
 
@@ -160,7 +160,7 @@ const adapter = new S3StorageAdapter({
   region: "us-east-1",
   accessKeyId: process.env.S3_ACCESS_KEY_ID ?? "minio",
   secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? "minio12345",
-  bucket: process.env.S3_BUCKET_APP ?? "studio-app",
+  bucket: process.env.S3_BUCKET_APP ?? "layertone-app",
 });
 
 describe("S3StorageAdapter (MinIO int)", () => {
@@ -202,7 +202,7 @@ git commit -m "feat(storage): S3/MinIO adapter with key helpers and signed URLs"
 ## Verification
 
 ```bash
-pnpm --filter @vyora/storage test
+pnpm --filter @layertone/storage test
 pnpm test:int
 ```
 

@@ -1,16 +1,16 @@
 import { headers } from "next/headers";
 
-import { ClerkAuthProvider, DevAuthProvider } from "@vyora/auth";
+import { ClerkAuthProvider, DevAuthProvider } from "@layertone/auth";
 import {
   createDb,
   listWorkspacesForUser,
   users,
   workspaces,
   workspaceMembers,
-} from "@vyora/db";
-import { bootstrapNewUser } from "@vyora/db/queries/identity";
-import { and, eq, isNotNull } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared/config";
+} from "@layertone/db";
+import { bootstrapNewUser } from "@layertone/db/queries/identity";
+import { and, eq, isNotNull } from "@layertone/db/operators";
+import { loadConfig } from "@layertone/shared/config";
 
 export interface ServerSession {
   authUserId: string;

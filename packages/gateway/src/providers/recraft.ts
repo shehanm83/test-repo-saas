@@ -1,5 +1,5 @@
 import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@layertone/shared";
 
 const COST_STD = 8;
 const COST_LARGE = 12;

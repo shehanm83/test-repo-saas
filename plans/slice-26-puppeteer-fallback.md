@@ -2,7 +2,7 @@
 
 **Phase:** 7 — Template renderer
 **Depends on:** 25
-**Spec references:** [Architecture § 5.3 (Browser-render fallback)](../specs/2026-04-25-studio-v1-architecture.md).
+**Spec references:** [Architecture § 5.3 (Browser-render fallback)](../specs/2026-04-25-layertone-v1-architecture.md).
 
 **Definition of done:**
 - `renderTemplateBrowser(args)` uses Puppeteer (or `@sparticuz/chromium` for Lambda) to render templates that need CSS features Resvg doesn't support
@@ -29,7 +29,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/renderer add puppeteer-core @sparticuz/chromium
+pnpm --filter @layertone/renderer add puppeteer-core @sparticuz/chromium
 ```
 
 - [ ] **Step 2 — Browser renderer**
@@ -137,8 +137,8 @@ git commit -m "feat(renderer): Puppeteer browser-render fallback for templates n
 ## Verification
 
 ```bash
-pnpm --filter @vyora/renderer test            # CI=true skips browser test
-CI= pnpm --filter @vyora/renderer test         # local: runs browser test
+pnpm --filter @layertone/renderer test            # CI=true skips browser test
+CI= pnpm --filter @layertone/renderer test         # local: runs browser test
 ```
 
 ## Commit message

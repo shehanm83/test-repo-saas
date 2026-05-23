@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import type { TextProvider } from "../types.js";
-import type { AITextRequest, AITextResponse } from "@vyora/shared";
+import type { AITextRequest, AITextResponse } from "@layertone/shared";
 
 const DEFAULT_TEXT_MODEL = "gpt-5.4-mini";
 const EMBEDDING_MODEL = "text-embedding-3-small";

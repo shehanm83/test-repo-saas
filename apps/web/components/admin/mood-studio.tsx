@@ -234,10 +234,10 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                     borderRadius: 100,
                     background:
                       m.status === "published"
-                        ? "var(--studio-green)"
+                        ? "var(--layertone-green)"
                         : m.status === "draft"
                           ? "var(--cal-gray-400)"
-                          : "var(--studio-amber)",
+                          : "var(--layertone-amber)",
                   }}
                 />
               </button>

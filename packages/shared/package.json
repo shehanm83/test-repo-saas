@@ -1,5 +1,5 @@
 {
-  "name": "@vyora/shared",
+  "name": "@layertone/shared",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -26,10 +26,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@vyora/auth": "workspace:*",
-    "@vyora/billing": "workspace:*",
-    "@vyora/observability": "workspace:*",
-    "@vyora/storage": "workspace:*",
+    "@layertone/auth": "workspace:*",
+    "@layertone/billing": "workspace:*",
+    "@layertone/observability": "workspace:*",
+    "@layertone/storage": "workspace:*",
     "yaml": "^2.8.4",
     "zod": "^4.3.6"
   }

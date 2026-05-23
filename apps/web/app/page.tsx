@@ -1,8 +1,8 @@
 import React from "react";
 
-import { createDb, listLandingHeroCardsPublished } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
-import { S3StorageAdapter } from "@vyora/storage";
+import { createDb, listLandingHeroCardsPublished } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import { Landing } from "@/components/marketing/landing";
 import {

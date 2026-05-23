@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { createDb, createProjectFromGeneration } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
+import { createDb, createProjectFromGeneration } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 

@@ -1,5 +1,5 @@
 {
-  "name": "@vyora/worker",
+  "name": "@layertone/worker",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -19,14 +19,14 @@
   },
   "dependencies": {
     "@sentry/node": "^10.50.0",
-    "@vyora/billing": "workspace:*",
-    "@vyora/db": "workspace:*",
-    "@vyora/gateway": "workspace:*",
-    "@vyora/observability": "workspace:*",
-    "@vyora/queue": "workspace:*",
-    "@vyora/renderer": "workspace:*",
-    "@vyora/shared": "workspace:*",
-    "@vyora/storage": "workspace:*",
+    "@layertone/billing": "workspace:*",
+    "@layertone/db": "workspace:*",
+    "@layertone/gateway": "workspace:*",
+    "@layertone/observability": "workspace:*",
+    "@layertone/queue": "workspace:*",
+    "@layertone/renderer": "workspace:*",
+    "@layertone/shared": "workspace:*",
+    "@layertone/storage": "workspace:*",
     "drizzle-orm": "^0.45.2"
   }
 }

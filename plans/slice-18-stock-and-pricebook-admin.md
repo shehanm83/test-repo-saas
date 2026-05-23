@@ -107,11 +107,11 @@ export async function expirePricebookVersion(db: Db, id: string, expireAt: Date)
 ```ts
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { adminInsertStock, adminListStock, deleteStock, createDb } from "@vyora/db";
-import { keys } from "@vyora/storage";
+import { adminInsertStock, adminListStock, deleteStock, createDb } from "@layertone/db";
+import { keys } from "@layertone/storage";
 import { reencodeImage } from "./sanitize/image.js";
 import { sanitizeSvg } from "./sanitize/svg.js";
-import type { Adapters, Config } from "@vyora/shared";
+import type { Adapters, Config } from "@layertone/shared";
 
 export class StockApi {
   constructor(private readonly config: Config, private readonly adapters: Adapters) {}
@@ -155,8 +155,8 @@ export class StockApi {
 
 ```ts
 import { z } from "zod";
-import { createDb, adminListPricebook, adminInsertPricebookEntry, priceBookLookup, expirePricebookVersion } from "@vyora/db";
-import type { Config } from "@vyora/shared";
+import { createDb, adminListPricebook, adminInsertPricebookEntry, priceBookLookup, expirePricebookVersion } from "@layertone/db";
+import type { Config } from "@layertone/shared";
 
 const Entry = z.object({
   modelCode: z.string(),
@@ -202,7 +202,7 @@ export class PricebookApi {
 ```ts
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: () => ({}),
   adminListPricebook: vi.fn(async () => []),
   adminInsertPricebookEntry: vi.fn(async (_d, v) => ({ id: "p1", ...v })),
@@ -260,7 +260,7 @@ process.exit(0);
 ```
 
 ```bash
-pnpm --filter @vyora/db exec tsx scripts/seed-pricebook.ts
+pnpm --filter @layertone/db exec tsx scripts/seed-pricebook.ts
 ```
 
 - [ ] **Step 7 — Commit**

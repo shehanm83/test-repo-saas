@@ -1,4 +1,4 @@
-import { creditLedgerEntries, type Db, workspaces, withWorkspace } from "@vyora/db";
+import { creditLedgerEntries, type Db, workspaces, withWorkspace } from "@layertone/db";
 import { eq, sql } from "drizzle-orm";
 
 import { InsufficientCredits } from "./errors";
@@ -155,7 +155,7 @@ export class Ledger {
     idempotencyKey: string;
     stripeEventId?: string;
   }) {
-    return this.post({ ...args, kind: "refund", amount: -Math.abs(args.amount) });
+    return this.post({ ...args, kind: "refund", amount: Math.abs(args.amount) });
   }
 
   adjustment(args: {

@@ -1,4 +1,4 @@
-import { Ledger } from "@vyora/billing";
+import { Ledger } from "@layertone/billing";
 import {
   createDb,
   users,
@@ -9,28 +9,28 @@ import {
   generations,
   generationVariants,
   creditLedgerEntries,
-} from "@vyora/db";
+} from "@layertone/db";
 import {
   Gateway,
   MockImageProvider,
   MockTextProvider,
   MockVisionProvider,
   MockModerationProvider,
-} from "@vyora/gateway";
-import type { StorageAdapter, Config } from "@vyora/shared";
+} from "@layertone/gateway";
+import type { StorageAdapter, Config } from "@layertone/shared";
 import { eq } from "drizzle-orm";
 import { describe, it, expect, vi, beforeAll } from "vitest";
 
 import { GenerationWorker } from "./handler.js";
 
-vi.mock("@vyora/renderer", () => ({
+vi.mock("@layertone/renderer", () => ({
   render: vi.fn().mockResolvedValue({
     pngBytes: Buffer.from("FAKEPNG"),
     renderMs: 5,
   }),
 }));
 
-const DATABASE_URL = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const DATABASE_URL = process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/layertone";
 
 class MemStorageAdapter implements StorageAdapter {
   private store = new Map<string, Uint8Array>();
@@ -76,8 +76,8 @@ const FAKE_CONFIG: Config = {
     region: "us-east-1",
     accessKeyId: "minioadmin",
     secretAccessKey: "minioadmin",
-    bucketApp: "studio-app",
-    bucketGlobal: "studio-global",
+    bucketApp: "layertone-app",
+    bucketGlobal: "layertone-global",
     cloudfrontDomain: undefined,
   },
   queue: {

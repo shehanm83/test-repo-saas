@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { createDb, listProjectsWithGenerations } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
-import { S3StorageAdapter } from "@vyora/storage";
+import { createDb, listProjectsWithGenerations } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import { I } from "@/components/icons";
 import { getSessionWorkspace } from "@/lib/auth/server";
@@ -88,7 +88,7 @@ export default async function ProjectsPage() {
     <div className="page">
       <div className="page__head">
         <div>
-          <div className="t-eyebrow" style={{ color: "var(--studio-violet)", marginBottom: 6 }}>
+          <div className="t-eyebrow" style={{ color: "var(--layertone-violet)", marginBottom: 6 }}>
             <I.Folder size={11} style={{ verticalAlign: "-1px" }} /> Saved work
           </div>
           <h1 className="page__title">Projects</h1>

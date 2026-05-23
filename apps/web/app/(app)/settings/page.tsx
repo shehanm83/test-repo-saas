@@ -1,6 +1,6 @@
-import { Ledger, PLANS } from "@vyora/billing";
-import { createDb } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
+import { Ledger, PLANS } from "@layertone/billing";
+import { createDb } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
 import { listWorkspaceMembers, getSessionWorkspace } from "@/lib/auth/server";
@@ -49,7 +49,7 @@ export default async function SettingsPage() {
         <div>
           <div
             className="t-eyebrow"
-            style={{ color: "var(--studio-violet)", marginBottom: 6 }}
+            style={{ color: "var(--layertone-violet)", marginBottom: 6 }}
           >
             <I.Settings size={11} style={{ verticalAlign: "-1px" }} /> Workspace settings
           </div>
@@ -96,7 +96,7 @@ export default async function SettingsPage() {
                   height: 56,
                   borderRadius: 14,
                   background:
-                    "linear-gradient(135deg, var(--studio-violet) 0%, #B5B4F2 100%)",
+                    "linear-gradient(135deg, var(--layertone-violet) 0%, #B5B4F2 100%)",
                   color: "white",
                   display: "grid",
                   placeItems: "center",
@@ -154,10 +154,10 @@ export default async function SettingsPage() {
           }}
         >
           <div style={{ padding: "20px 28px", borderRight: "1px solid var(--cal-gray-200)" }}>
-            <Stat label="Credits" value={balance.toLocaleString()} accent="var(--studio-violet)" />
+            <Stat label="Credits" value={balance.toLocaleString()} accent="var(--layertone-violet)" />
           </div>
           <div style={{ padding: "20px 28px", borderRight: "1px solid var(--cal-gray-200)" }}>
-            <Stat label="Brands" value={`${plan.brandQuota}`} accent="#C97A3F" />
+            <Stat label="Brand limit" value={`${plan.brandQuota}`} accent="#C97A3F" />
           </div>
           <div style={{ padding: "20px 28px", borderRight: "1px solid var(--cal-gray-200)" }}>
             <Stat

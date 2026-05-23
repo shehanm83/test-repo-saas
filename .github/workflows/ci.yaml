@@ -78,17 +78,17 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_USER: studio
+          POSTGRES_USER: layertone
           POSTGRES_PASSWORD: dev
-          POSTGRES_DB: studio
+          POSTGRES_DB: layertone
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U studio"
+          --health-cmd "pg_isready -U layertone"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
     env:
-      DATABASE_URL: postgres://studio:dev@localhost:5432/studio
+      DATABASE_URL: postgres://layertone:dev@localhost:5432/layertone
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -99,7 +99,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @vyora/db db:migrate
+      - run: pnpm --filter @layertone/db db:migrate
       - run: pnpm test:int
 
   e2e:
@@ -110,12 +110,12 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_USER: studio
+          POSTGRES_USER: layertone
           POSTGRES_PASSWORD: dev
-          POSTGRES_DB: studio
+          POSTGRES_DB: layertone
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U studio"
+          --health-cmd "pg_isready -U layertone"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
@@ -133,7 +133,7 @@ jobs:
         image: softwaremill/elasticmq-native
         ports: ["9324:9324"]
     env:
-      DATABASE_URL: postgres://studio:dev@localhost:5432/studio
+      DATABASE_URL: postgres://layertone:dev@localhost:5432/layertone
       AUTH_MODE: dev
       QUEUE_MODE: elasticmq
       SQS_ENDPOINT: http://localhost:9324
@@ -148,8 +148,8 @@ jobs:
       S3_REGION: us-east-1
       S3_ACCESS_KEY_ID: minio
       S3_SECRET_ACCESS_KEY: minio12345
-      S3_BUCKET_APP: studio-app
-      S3_BUCKET_GLOBAL: studio-global
+      S3_BUCKET_APP: layertone-app
+      S3_BUCKET_GLOBAL: layertone-global
       DEV_USER_ID: 00000000-0000-0000-0000-000000000001
       APP_URL: http://localhost:3000
       OBSERVABILITY: none
@@ -163,12 +163,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @vyora/db db:migrate
-      - run: pnpm --filter @vyora/db exec tsx scripts/seed-pricebook.ts
-      - run: pnpm --filter @vyora/web build
-      - run: pnpm --filter @vyora/e2e exec playwright install --with-deps chromium
-      - run: pnpm --filter @vyora/web exec next start &
-      - run: pnpm --filter @vyora/worker exec tsx scripts/dev.ts &
+      - run: pnpm --filter @layertone/db db:migrate
+      - run: pnpm --filter @layertone/db exec tsx scripts/seed-pricebook.ts
+      - run: pnpm --filter @layertone/web build
+      - run: pnpm --filter @layertone/e2e exec playwright install --with-deps chromium
+      - run: pnpm --filter @layertone/web exec next start &
+      - run: pnpm --filter @layertone/worker exec tsx scripts/dev.ts &
       - run: |
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:3000 >/dev/null 2>&1; then
@@ -177,7 +177,7 @@ jobs:
             sleep 1
           done
           echo "web did not start"; exit 1
-      - run: pnpm --filter @vyora/e2e test
+      - run: pnpm --filter @layertone/e2e test
         env:
           E2E_BASE_URL: http://localhost:3000
           CI: "true"

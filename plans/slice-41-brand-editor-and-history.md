@@ -2,7 +2,7 @@
 
 **Phase:** 14 — Frontend brand/history/moods/billing
 **Depends on:** 36, 14
-**Spec references:** [UI Prompts 7 (brand editor) + 8 (history)](../specs/2026-04-25-studio-v1-ui-prompts.md).
+**Spec references:** [UI Prompts 7 (brand editor) + 8 (history)](../specs/2026-04-25-layertone-v1-ui-prompts.md).
 
 **Definition of done:**
 - `/brands/[id]` page renders a brand-edit page with Colors / Fonts / Voice / References / Danger Zone tabs
@@ -78,10 +78,10 @@ export default function HistoryPage() {
 // apps/web/src/app/api/history/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
-import { createDb, generations, generationVariants } from "@vyora/db";
-import { withWorkspace } from "@vyora/db";
+import { createDb, generations, generationVariants } from "@layertone/db";
+import { withWorkspace } from "@layertone/db";
 import { and, desc, eq, ilike, sql } from "drizzle-orm";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@layertone/shared";
 
 export async function GET(req: Request) {
   const session = await getServerSession();
@@ -119,7 +119,7 @@ export async function GET(req: Request) {
 - [ ] **Step 5 — Tests + commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(web): brand kit editor (5 tabs) and history list with filters/search"
 ```

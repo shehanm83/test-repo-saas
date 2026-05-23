@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { createDb, listBrands } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
+import { createDb, listBrands } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
 import { getSessionWorkspace } from "@/lib/auth/server";
@@ -23,7 +23,7 @@ export default async function BrandsPage() {
     <div className="page">
       <div className="page__head">
         <div>
-          <div className="t-eyebrow" style={{ color: "var(--studio-violet)", marginBottom: 6 }}>
+          <div className="t-eyebrow" style={{ color: "var(--layertone-violet)", marginBottom: 6 }}>
             <I.Briefcase size={11} style={{ verticalAlign: "-1px" }} /> Brand kits
           </div>
           <h1 className="page__title">Brands</h1>
@@ -55,7 +55,7 @@ export default async function BrandsPage() {
             <div
               className="empty__art"
               style={{
-                background: "linear-gradient(135deg, var(--studio-violet) 0%, #A8A5F0 100%)",
+                background: "linear-gradient(135deg, var(--layertone-violet) 0%, #A8A5F0 100%)",
                 color: "white",
               }}
             >

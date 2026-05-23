@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS Cloud Architecture — Layertone Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f172a; --bg-card: #1e293b; --bg-card2: #162032;
+    --border: #334155; --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+    --green: #22c55e; --yellow: #eab308; --red: #ef4444;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.07); padding: 2px 7px; border-radius: 5px; font-size: 0.88em; }
+  pre { background: #0a1020; border: 1px solid var(--border); border-radius: 10px; padding: 20px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #cbd5e1; }
+  pre .c { color: #64748b; } pre .k { color: #7dd3fc; } pre .s { color: #86efac; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,23,42,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 24px;
+    padding: 0 32px; height: 60px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .nav-logo-icon { width: 32px; height: 32px; }
+  .nav-links { display: flex; gap: 4px; margin-left: auto; }
+  .nav-links a { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: all 0.15s; }
+  .nav-links a:hover, .nav-links a.active { background: var(--bg-card); color: var(--text); }
+
+  .page-hero { padding: 100px 32px 60px; max-width: 1200px; margin: 0 auto; }
+  .page-hero .breadcrumb { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+  .page-hero .breadcrumb a { color: var(--text-muted); }
+  .page-hero .breadcrumb span { margin: 0 8px; }
+  .page-hero h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .page-hero h1 span { color: #fb923c; }
+  .page-hero p { font-size: 17px; color: var(--text-muted); line-height: 1.7; max-width: 680px; }
+
+  .section { max-width: 1200px; margin: 0 auto 60px; padding: 0 32px; }
+  .section h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .section .sub { color: var(--text-muted); margin-bottom: 28px; font-size: 15px; }
+
+  /* STATS */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 48px; }
+  .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .stat-label { font-size: 11px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-value { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .stat-detail { font-size: 12px; color: var(--text-muted); }
+
+  /* ARCHITECTURE DIAGRAM */
+  .arch-diagram {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .arch-user-row { display: flex; justify-content: center; }
+  .arch-box {
+    border: 1px solid; border-radius: 10px; padding: 12px 18px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+  }
+  .arch-box-name { font-size: 13px; font-weight: 700; }
+  .arch-box-detail { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .arch-arrow-v { text-align: center; color: var(--text-dim); font-size: 18px; margin: -8px 0; }
+
+  .aws-region-box {
+    border: 2px solid rgba(255,153,0,0.3); border-radius: 14px; padding: 24px; position: relative;
+  }
+  .region-tag {
+    position: absolute; top: -12px; left: 20px; background: var(--bg-card);
+    padding: 2px 12px; font-size: 11px; font-weight: 700; color: #fb923c;
+    border: 1px solid rgba(255,153,0,0.3); border-radius: 4px; letter-spacing: 0.06em;
+  }
+  .stacks-4col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+  .stack-box {
+    background: var(--bg-card2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .stack-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px;
+  }
+  .res {
+    border: 1px solid; border-radius: 7px; padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .res-name { font-size: 12px; font-weight: 600; }
+  .res-detail { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .ro { background: rgba(249,115,22,0.08); border-color: rgba(249,115,22,0.3); }
+  .rb { background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.3); }
+  .rg { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); }
+  .rp { background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.3); }
+  .ry { background: rgba(234,179,8,0.08); border-color: rgba(234,179,8,0.3); }
+  .rr { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); }
+  .rt { background: rgba(8,145,178,0.08); border-color: rgba(8,145,178,0.3); }
+
+  .conn-row {
+    background: var(--bg-card2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 16px; font-size: 12px; color: var(--text-muted);
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .conn { display: flex; align-items: center; gap: 5px; }
+  .conn-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .ext-row {
+    border: 1px dashed rgba(100,116,139,0.4); border-radius: 10px; padding: 16px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr)); gap: 10px;
+    position: relative;
+  }
+  .ext-tag {
+    position: absolute; top: -11px; left: 14px; background: var(--bg-card);
+    padding: 1px 10px; font-size: 10px; font-weight: 700; color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 4px;
+  }
+  .ext-item {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 8px; text-align: center;
+  }
+  .ext-item-icon { font-size: 18px; margin-bottom: 4px; }
+  .ext-item-name { font-size: 12px; font-weight: 600; }
+  .ext-item-role { font-size: 10px; color: var(--text-dim); }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+  th { background: var(--bg-card2); font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .badge-blue { background: rgba(37,99,235,0.15); color: #60a5fa; }
+  .badge-yellow { background: rgba(234,179,8,0.15); color: #fbbf24; }
+  .badge-red { background: rgba(239,68,68,0.15); color: #f87171; }
+  .badge-orange { background: rgba(249,115,22,0.15); color: #fb923c; }
+  .badge-purple { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+  /* DETAIL SECTIONS */
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .detail-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .detail-card-header { padding: 14px 20px; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .detail-card-body { padding: 16px 20px; }
+  .detail-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(51,65,85,0.5); font-size: 13px; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-key { color: var(--text-muted); min-width: 130px; }
+  .detail-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: right; }
+
+  /* IAM */
+  .iam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .iam-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .iam-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .iam-policy { background: var(--bg-card2); border-radius: 7px; padding: 10px 14px; margin-bottom: 8px; font-size: 12px; }
+  .iam-action { color: #7dd3fc; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .iam-resource { color: #86efac; font-size: 11px; font-family: 'JetBrains Mono', monospace; margin-top: 3px; }
+  .iam-why { color: var(--text-dim); font-size: 11px; margin-top: 3px; }
+
+  /* OPEN ITEMS */
+  .open-items { display: flex; flex-direction: column; gap: 10px; }
+  .open-item { display: flex; align-items: flex-start; gap: 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .open-item.done { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.04); }
+  .open-item.pending { border-color: rgba(234,179,8,0.3); background: rgba(234,179,8,0.04); }
+  .open-item-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .open-item-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .open-item-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+  /* DEPLOY PIPELINE */
+  .pipeline-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .pipeline-stage { display: flex; gap: 20px; padding: 20px 24px; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .pipeline-stage:last-child { border-bottom: none; }
+  .pipeline-stage-badge { flex-shrink: 0; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; min-width: 90px; text-align: center; }
+  .pipeline-stage-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .pipeline-stage-content p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .pipeline-steps { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .pipeline-step-item { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .pipeline-step-item::before { content: '→'; color: var(--text-dim); flex-shrink: 0; }
+  .pipeline-step-item strong { color: var(--text); }
+
+  /* S3 keys */
+  .s3-keys { display: flex; flex-direction: column; gap: 8px; }
+  .s3-key { background: var(--bg-card2); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+  .s3-key-path { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #86efac; }
+  .s3-key-desc { font-size: 12px; color: var(--text-muted); }
+
+  footer { border-top: 1px solid var(--border); padding: 32px; text-align: center; color: var(--text-dim); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <svg class="nav-logo-icon" viewBox="0 0 64 64" fill="none">
+      <defs>
+        <linearGradient id="n1" x1="10" y1="6" x2="54" y2="28"><stop stop-color="#FF7B7B"/><stop offset="1" stop-color="#FF9A5C"/></linearGradient>
+        <linearGradient id="n2" x1="6" y1="24" x2="58" y2="40"><stop stop-color="#6C6FFF"/><stop offset="1" stop-color="#4DAFFF"/></linearGradient>
+        <linearGradient id="n3" x1="6" y1="42" x2="58" y2="58"><stop stop-color="#26C6DA"/><stop offset="1" stop-color="#00ACC1"/></linearGradient>
+      </defs>
+      <path d="M32 6 L54 18 L32 28 L10 18 Z" fill="url(#n1)"/>
+      <path d="M10 26 L32 36 L54 26 L54 30 L32 42 L10 30 Z" fill="url(#n2)"/>
+      <path d="M10 38 L32 48 L54 38 L54 44 L32 58 L10 44 Z" fill="url(#n3)"/>
+    </svg>
+    Layertone Docs
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="local-dev.html">Local Dev</a>
+    <a href="aws-cloud.html" class="active">AWS Cloud</a>
+    <a href="data-flow.html">Data Flow</a>
+    <a href="packages.html">Packages</a>
+    <a href="serverless-analysis.html">Analysis</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="breadcrumb"><a href="index.html">Home</a> <span>›</span> AWS Cloud Architecture</div>
+  <h1>AWS Cloud <span>Architecture</span></h1>
+  <p>Four independent CDK stacks in <code>infra/</code>. Fully serverless — no EC2, no containers. Web Lambda serves Next.js via CloudFront response streaming; Worker Lambda processes SQS jobs with AI generation and template rendering.</p>
+</div>
+
+<!-- STATS -->
+<div class="section">
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Region</div>
+      <div class="stat-value" style="color:#fb923c">us-east-1</div>
+      <div class="stat-detail">Staging + Production</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">CDK Stacks</div>
+      <div class="stat-value" style="color:#60a5fa">4</div>
+      <div class="stat-detail">Storage · Queues · Worker · Web</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Web Lambda</div>
+      <div class="stat-value" style="color:#c084fc">1024 MB</div>
+      <div class="stat-detail">30s timeout · Response streaming</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Worker Lambda</div>
+      <div class="stat-value" style="color:#c084fc">1536 MB</div>
+      <div class="stat-detail">120s timeout · batchSize=1</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SQS Queues</div>
+      <div class="stat-value" style="color:#fbbf24">3</div>
+      <div class="stat-detail">Generations · Captions · DLQ</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">S3 Buckets</div>
+      <div class="stat-value" style="color:#4ade80">2</div>
+      <div class="stat-detail">App Assets · Global Assets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SSM Params</div>
+      <div class="stat-value" style="color:#60a5fa">9</div>
+      <div class="stat-detail">Per stage — all secrets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Est. Monthly Cost</div>
+      <div class="stat-value" style="color:#4ade80">$15–31</div>
+      <div class="stat-detail">At 10k jobs / 50k req/day</div>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHITECTURE DIAGRAM -->
+<div class="section">
+  <h2>Architecture Overview</h2>
+  <div class="sub">All components and their connections — user request to AI provider to S3 and back</div>
+
+  <div class="arch-diagram">
+    <!-- User -->
+    <div style="display:flex;justify-content:center">
+      <div class="arch-box" style="background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.3);min-width:180px">
+        <div style="font-size:24px;margin-bottom:4px">🌐</div>
+        <div class="arch-box-name">End User Browser</div>
+        <div class="arch-box-detail">HTTPS request</div>
+      </div>
+    </div>
+    <div class="arch-arrow-v">↓ HTTPS</div>
+
+    <!-- AWS Region -->
+    <div class="aws-region-box">
+      <div class="region-tag">AWS · us-east-1 · staging / prod</div>
+
+      <div class="stacks-4col">
+        <!-- Web Stack -->
+        <div class="stack-box">
+          <div class="stack-title" style="color:#fb923c">☁️ WebStack</div>
+          <div class="res ro">
+            <div class="res-name">CloudFront Distribution</div>
+            <div class="res-detail">TLS + CDN + cache disabled</div>
+            <div class="res-detail">WAF-ready entry point</div>
+          </div>
+          <div class="res ro">
+            <div class="res-name">λ Web Lambda</div>
+            <div class="res-detail">layertone-{stage}-web</div>
+            <div class="res-detail">Node 20 · 1024MB · 30s</div>
+            <div class="res-detail">InvokeMode: RESPONSE_STREAM</div>
+            <div class="res-detail">OpenNext wrapper</div>
+          </div>
+          <div class="res rb">
+            <div class="res-name">SSM Parameter Store</div>
+            <div class="res-detail">/layertone/{stage}/*</div>
+            <div class="res-detail">9 secret parameters</div>
+          </div>
+        </div>
+
+        <!-- Worker Stack -->
+        <div class="stack-box">
+          <div class="stack-title" style="color:#c084fc">⚙️ WorkerStack</div>
+          <div class="res rp">
+            <div class="res-name">λ Worker Lambda</div>
+            <div class="res-detail">layertone-{stage}-worker</div>
+            <div class="res-detail">Node 20 · 1536MB · 120s</div>
+            <div class="res-detail">SqsEventSource · batchSize=1</div>
+            <div class="res-detail">Chromium included (900MB+)</div>
+          </div>
+          <div class="res rt">
+            <div class="res-name">Bedrock (optional)</div>
+            <div class="res-detail">SD3.5 fallback model</div>
+            <div class="res-detail">IAM: InvokeModel</div>
+          </div>
+        </div>
+
+        <!-- Queue Stack -->
+        <div class="stack-box">
+          <div class="stack-title" style="color:#fbbf24">📬 QueueStack</div>
+          <div class="res ry">
+            <div class="res-name">SQS Generations</div>
+            <div class="res-detail">layertone-{stage}-generations</div>
+            <div class="res-detail">visibility: 180s</div>
+            <div class="res-detail">maxReceiveCount: 3</div>
+          </div>
+          <div class="res ry">
+            <div class="res-name">SQS Captions</div>
+            <div class="res-detail">layertone-{stage}-captions</div>
+            <div class="res-detail">visibility: 60s</div>
+            <div class="res-detail">maxReceiveCount: 3</div>
+          </div>
+          <div class="res rr">
+            <div class="res-name">SQS DLQ</div>
+            <div class="res-detail">layertone-{stage}-generations-dlq</div>
+            <div class="res-detail">retention: 14 days</div>
+          </div>
+        </div>
+
+        <!-- Storage Stack -->
+        <div class="stack-box">
+          <div class="stack-title" style="color:#4ade80">🗄️ StorageStack</div>
+          <div class="res rg">
+            <div class="res-name">S3 App Assets</div>
+            <div class="res-detail">layertone-app-{stage}-assets</div>
+            <div class="res-detail">SSE-S3 · versioned · RETAIN</div>
+            <div class="res-detail">Lifecycle rules on workspaces/</div>
+          </div>
+          <div class="res rg">
+            <div class="res-name">S3 Global Assets</div>
+            <div class="res-detail">layertone-app-{stage}-global</div>
+            <div class="res-detail">SSE-S3 · versioned · RETAIN</div>
+            <div class="res-detail">Templates, stock images</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connections -->
+      <div class="conn-row">
+        <div class="conn"><div class="conn-dot" style="background:#fb923c"></div>CloudFront → Web Lambda (Lambda URL, response streaming)</div>
+        <div class="conn"><div class="conn-dot" style="background:#fbbf24"></div>Web Lambda → SQS Generations (SendMessage per variant)</div>
+        <div class="conn"><div class="conn-dot" style="background:#4ade80"></div>Web Lambda ↔ S3 App Assets (presign + read)</div>
+        <div class="conn"><div class="conn-dot" style="background:#60a5fa"></div>Web Lambda → SSM (GetParameter at cold start)</div>
+        <div class="conn"><div class="conn-dot" style="background:#c084fc"></div>SQS Generations / Captions → Worker Lambda (SqsEventSource)</div>
+        <div class="conn"><div class="conn-dot" style="background:#4ade80"></div>Worker Lambda ↔ S3 App Assets (read + write images)</div>
+        <div class="conn"><div class="conn-dot" style="background:#22d3ee"></div>Worker Lambda → Bedrock (optional AI fallback)</div>
+        <div class="conn"><div class="conn-dot" style="background:#f87171"></div>SQS → DLQ (after maxReceiveCount exceeded)</div>
+      </div>
+    </div>
+
+    <!-- External SaaS -->
+    <div class="ext-row">
+      <div class="ext-tag">External SaaS (not in AWS region)</div>
+      <div class="ext-item"><div class="ext-item-icon">🔐</div><div class="ext-item-name">Clerk</div><div class="ext-item-role">Auth · JWT verify · webhooks</div></div>
+      <div class="ext-item"><div class="ext-item-icon">💳</div><div class="ext-item-name">Stripe</div><div class="ext-item-role">Billing · subscriptions · webhooks</div></div>
+      <div class="ext-item"><div class="ext-item-icon">🤖</div><div class="ext-item-name">OpenAI</div><div class="ext-item-role">DALL-E 3 · GPT-4o text</div></div>
+      <div class="ext-item"><div class="ext-item-icon">🎨</div><div class="ext-item-name">Replicate</div><div class="ext-item-role">Flux · Recraft image gen</div></div>
+      <div class="ext-item"><div class="ext-item-icon">🔴</div><div class="ext-item-name">Sentry</div><div class="ext-item-role">Error monitoring · traces</div></div>
+      <div class="ext-item"><div class="ext-item-icon">🐘</div><div class="ext-item-name">Neon</div><div class="ext-item-role">Serverless PostgreSQL + pgvector</div></div>
+      <div class="ext-item"><div class="ext-item-icon">📊</div><div class="ext-item-name">CloudWatch</div><div class="ext-item-role">Custom metrics · dashboards</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CDK STACK DEPENDENCY GRAPH -->
+<div class="section">
+  <h2>CDK Stack Dependency Graph</h2>
+  <div class="sub">Stacks must be deployed in order — Worker and Web depend on Storage and Queue outputs</div>
+
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:32px">
+    <div style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap">
+      <!-- Storage -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:150px">
+        <div class="res rg" style="width:140px;text-align:center">
+          <div class="res-name" style="text-align:center">StorageStack</div>
+          <div class="res-detail">S3 buckets</div>
+          <div class="res-detail">Outputs: bucketArn</div>
+        </div>
+      </div>
+      <!-- Queues -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:150px;margin-left:20px">
+        <div class="res ry" style="width:140px;text-align:center">
+          <div class="res-name" style="text-align:center">QueueStack</div>
+          <div class="res-detail">SQS queues</div>
+          <div class="res-detail">Outputs: queueArn, queueUrl</div>
+        </div>
+      </div>
+
+      <div style="font-size:24px;color:var(--text-dim);margin:0 20px;margin-bottom:30px">→</div>
+
+      <!-- Worker -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:150px">
+        <div class="res rp" style="width:140px;text-align:center">
+          <div class="res-name" style="text-align:center">WorkerStack</div>
+          <div class="res-detail">Worker Lambda</div>
+          <div class="res-detail">Needs: bucketArn, queueArn</div>
+        </div>
+      </div>
+
+      <div style="font-size:24px;color:var(--text-dim);margin:0 10px;margin-bottom:30px">+</div>
+
+      <!-- Web -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:150px">
+        <div class="res ro" style="width:140px;text-align:center">
+          <div class="res-name" style="text-align:center">WebStack</div>
+          <div class="res-detail">Web Lambda + CF</div>
+          <div class="res-detail">Needs: bucketArn, queueUrl</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:var(--text-muted);text-align:center">
+      Deploy order: StorageStack → QueueStack → WorkerStack + WebStack (parallel)<br>
+      <code style="font-size:12px">cdk deploy --all</code> resolves the order automatically via CloudFormation cross-stack references.
+    </div>
+  </div>
+</div>
+
+<!-- LAMBDA DETAIL -->
+<div class="section">
+  <h2>Lambda Function Details</h2>
+  <div class="sub">Exact configuration values from CDK stack code in <code>infra/lib/</code></div>
+
+  <div class="detail-grid">
+    <div class="detail-card">
+      <div class="detail-card-header" style="background:rgba(249,115,22,0.08)">
+        🟠 Web Lambda — <code>layertone-{stage}-web</code>
+      </div>
+      <div class="detail-card-body">
+        <div class="detail-row"><span class="detail-key">Runtime</span><span class="detail-val">NODEJS_20_X</span></div>
+        <div class="detail-row"><span class="detail-key">Handler</span><span class="detail-val">index.handler</span></div>
+        <div class="detail-row"><span class="detail-key">Code source</span><span class="detail-val">apps/web/.open-next/server-functions/default</span></div>
+        <div class="detail-row"><span class="detail-key">Memory</span><span class="detail-val">1024 MB</span></div>
+        <div class="detail-row"><span class="detail-key">Timeout</span><span class="detail-val">30 seconds</span></div>
+        <div class="detail-row"><span class="detail-key">Invoke mode</span><span class="detail-val">RESPONSE_STREAM (Lambda streaming)</span></div>
+        <div class="detail-row"><span class="detail-key">Auth type</span><span class="detail-val">NONE (CloudFront is the gatekeeper)</span></div>
+        <div class="detail-row"><span class="detail-key">Env: OBSERVABILITY</span><span class="detail-val">sentry</span></div>
+        <div class="detail-row"><span class="detail-key">Env: SENTRY_ENVIRONMENT</span><span class="detail-val">{stage}</span></div>
+        <div class="detail-row"><span class="detail-key">Env: SQS_QUEUE_GENERATIONS</span><span class="detail-val">{queueUrl from QueueStack}</span></div>
+        <div class="detail-row"><span class="detail-key">IAM: SQS</span><span class="detail-val">sqs:SendMessage *</span></div>
+        <div class="detail-row"><span class="detail-key">IAM: S3</span><span class="detail-val">s3:GetObject/PutObject/DeleteObject on bucket</span></div>
+        <div class="detail-row"><span class="detail-key">IAM: SSM</span><span class="detail-val">ssm:GetParameter(s) on /layertone/{stage}/*</span></div>
+        <div class="detail-row"><span class="detail-key">IAM: CloudWatch</span><span class="detail-val">cloudwatch:PutMetricData *</span></div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-card-header" style="background:rgba(168,85,247,0.08)">
+        🟣 Worker Lambda — <code>layertone-{stage}-worker</code>
+      </div>
+      <div class="detail-card-body">
+        <div class="detail-row"><span class="detail-key">Runtime</span><span class="detail-val">NODEJS_20_X</span></div>
+        <div class="detail-row"><span class="detail-key">Handler</span><span class="detail-val">index.handler</span></div>
+        <div class="detail-row"><span class="detail-key">Code source</span><span class="detail-val">apps/worker/dist/</span></div>
+        <div class="detail-row"><span class="detail-key">Memory</span><span class="detail-val">1536 MB (Chromium needs ~512–900 MB)</span></div>
+        <div class="detail-row"><span class="detail-key">Timeout</span><span class="detail-val">120 seconds</span></div>
+        <div class="detail-row"><span class="detail-key">Trigger</span><span class="detail-val">SqsEventSource (Generations + Captions queues)</span></div>
+        <div class="detail-row"><span class="detail-key">Batch size</span><span class="detail-val">1 (one job per Lambda invocation)</span></div>
+        <div class="detail-row"><span class="detail-key">Env: OBSERVABILITY</span><span class="detail-val">sentry</span></div>
+        <div class="detail-row"><span class="detail-key">Env: SENTRY_ENVIRONMENT</span><span class="detail-val">{stage}</span></div>
+        <div class="detail-row"><span class="detail-key">IAM: S3</span><span class="detail-val">s3:GetObject/PutObject/DeleteObject on bucket</span></div>
+        <div class="detail-row"><span class="detail-key">IAM: Bedrock</span><span class="detail-val">bedrock:InvokeModel/InvokeModelWithResponseStream *</span></div>
+        <div class="detail-row"><span class="detail-key">IAM: SSM</span><span class="detail-val">ssm:GetParameter(s) on /layertone/{stage}/*</span></div>
+        <div class="detail-row"><span class="detail-key">IAM: CloudWatch</span><span class="detail-val">cloudwatch:PutMetricData *</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLOUDFRONT DETAIL -->
+<div class="section">
+  <h2>CloudFront Configuration</h2>
+  <div class="sub">CloudFront sits in front of the Web Lambda Function URL — never expose the Lambda URL directly</div>
+
+  <div class="detail-grid">
+    <div class="detail-card">
+      <div class="detail-card-header">Distribution Settings</div>
+      <div class="detail-card-body">
+        <div class="detail-row"><span class="detail-key">Origin</span><span class="detail-val">Lambda Function URL (via FunctionUrlOrigin)</span></div>
+        <div class="detail-row"><span class="detail-key">Protocol policy</span><span class="detail-val">REDIRECT_TO_HTTPS</span></div>
+        <div class="detail-row"><span class="detail-key">Cache policy</span><span class="detail-val">CACHING_DISABLED (all requests reach Lambda)</span></div>
+        <div class="detail-row"><span class="detail-key">Why no cache?</span><span class="detail-val">API routes are dynamic; Next.js handles its own caching internally</span></div>
+        <div class="detail-row"><span class="detail-key">TLS</span><span class="detail-val">Managed by CloudFront (auto-renewed ACM cert)</span></div>
+      </div>
+    </div>
+    <div class="detail-card">
+      <div class="detail-card-header">Why CloudFront over raw Lambda URL?</div>
+      <div class="detail-card-body">
+        <div class="detail-row"><span class="detail-key">TLS termination</span><span class="detail-val">CloudFront manages the HTTPS certificate</span></div>
+        <div class="detail-row"><span class="detail-key">Custom domain</span><span class="detail-val">Attach a Route53 record to the CF distribution</span></div>
+        <div class="detail-row"><span class="detail-key">WAF integration</span><span class="detail-val">AWS WAF can attach to CF (not to Lambda URL)</span></div>
+        <div class="detail-row"><span class="detail-key">DDoS protection</span><span class="detail-val">AWS Shield Standard included with CloudFront</span></div>
+        <div class="detail-row"><span class="detail-key">Edge caching</span><span class="detail-val">Can cache static assets at CloudFront if needed later</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SQS DETAIL -->
+<div class="section">
+  <h2>SQS Queue Configuration &amp; Timeout Math</h2>
+  <div class="sub">Why visibility timeout (180s) is larger than Lambda timeout (120s) — the 60-second safety buffer</div>
+
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table>
+      <thead>
+        <tr>
+          <th>Queue</th>
+          <th>Name</th>
+          <th>Visibility Timeout</th>
+          <th>Max Receive Count</th>
+          <th>DLQ After</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Generations</td>
+          <td><code>layertone-{stage}-generations</code></td>
+          <td>180s</td>
+          <td>3</td>
+          <td>3 failed attempts → DLQ</td>
+        </tr>
+        <tr>
+          <td>Captions</td>
+          <td><code>layertone-{stage}-captions</code></td>
+          <td>60s</td>
+          <td>3</td>
+          <td>3 failed attempts → DLQ</td>
+        </tr>
+        <tr>
+          <td>DLQ</td>
+          <td><code>layertone-{stage}-generations-dlq</code></td>
+          <td>N/A</td>
+          <td>N/A</td>
+          <td>14-day retention</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px">
+    <div style="font-size:14px;font-weight:700;margin-bottom:12px">Timeout math for Generations queue:</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:13px;color:var(--text-muted)">
+      <div style="background:var(--bg-card2);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px">Lambda timeout</div>
+        <div style="font-size:22px;font-weight:700;color:#c084fc">120s</div>
+        <div>Maximum time the worker can run before Lambda kills the invocation</div>
+      </div>
+      <div style="background:var(--bg-card2);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px">SQS visibility</div>
+        <div style="font-size:22px;font-weight:700;color:#fbbf24">180s</div>
+        <div>Message hidden for 180s after being received — other consumers can't see it</div>
+      </div>
+      <div style="background:var(--bg-card2);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px">Safety buffer</div>
+        <div style="font-size:22px;font-weight:700;color:#4ade80">60s</div>
+        <div>If Lambda times out at 120s, SQS waits 60 more seconds before re-delivering the message</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:var(--text-muted)">
+      The 60s buffer prevents an immediate re-delivery after timeout. Without it, a timed-out job would be re-queued instantly and could spin into DLQ in seconds. The idempotency check at the start of the worker handles the case where a job is re-delivered after a timeout.
+    </div>
+  </div>
+</div>
+
+<!-- SSM PARAMETERS -->
+<div class="section">
+  <h2>SSM Parameter Store</h2>
+  <div class="sub">All secrets stored at <code>/layertone/{stage}/{NAME}</code> — must be set before first deploy</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Parameter Name</th>
+          <th>Full Path (staging)</th>
+          <th>Used By</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>STRIPE_SECRET_KEY</code></td>
+          <td><code>/layertone/staging/STRIPE_SECRET_KEY</code></td>
+          <td><span class="badge badge-orange">Web</span></td>
+          <td>Stripe API secret key for subscription and billing operations</td>
+        </tr>
+        <tr>
+          <td><code>STRIPE_WEBHOOK_SECRET</code></td>
+          <td><code>/layertone/staging/STRIPE_WEBHOOK_SECRET</code></td>
+          <td><span class="badge badge-orange">Web</span></td>
+          <td>Webhook signing secret for validating Stripe webhook events</td>
+        </tr>
+        <tr>
+          <td><code>CLERK_SECRET_KEY</code></td>
+          <td><code>/layertone/staging/CLERK_SECRET_KEY</code></td>
+          <td><span class="badge badge-orange">Web</span></td>
+          <td>Clerk backend secret for JWT verification and API calls</td>
+        </tr>
+        <tr>
+          <td><code>CLERK_WEBHOOK_SECRET</code></td>
+          <td><code>/layertone/staging/CLERK_WEBHOOK_SECRET</code></td>
+          <td><span class="badge badge-orange">Web</span></td>
+          <td>Webhook signing secret for Clerk user lifecycle events</td>
+        </tr>
+        <tr>
+          <td><code>OPENAI_API_KEY</code></td>
+          <td><code>/layertone/staging/OPENAI_API_KEY</code></td>
+          <td><span class="badge badge-purple">Worker</span></td>
+          <td>OpenAI API key for DALL-E 3 image generation and GPT-4o captions</td>
+        </tr>
+        <tr>
+          <td><code>ANTHROPIC_API_KEY</code></td>
+          <td><code>/layertone/staging/ANTHROPIC_API_KEY</code></td>
+          <td><span class="badge badge-purple">Worker</span></td>
+          <td>Anthropic API key (reserved for future Claude integration)</td>
+        </tr>
+        <tr>
+          <td><code>REPLICATE_API_TOKEN</code></td>
+          <td><code>/layertone/staging/REPLICATE_API_TOKEN</code></td>
+          <td><span class="badge badge-purple">Worker</span></td>
+          <td>Replicate token for Flux/Recraft image generation models</td>
+        </tr>
+        <tr>
+          <td><code>RECRAFT_API_KEY</code></td>
+          <td><code>/layertone/staging/RECRAFT_API_KEY</code></td>
+          <td><span class="badge badge-purple">Worker</span></td>
+          <td>Recraft API key for vector-style image generation</td>
+        </tr>
+        <tr>
+          <td><code>SENTRY_DSN</code></td>
+          <td><code>/layertone/staging/SENTRY_DSN</code></td>
+          <td><span class="badge badge-orange">Web</span> <span class="badge badge-purple">Worker</span></td>
+          <td>Sentry DSN for error monitoring and performance tracing</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:12px;font-size:13px;color:var(--text-muted)">
+    Set via: <code>aws ssm put-parameter --name /layertone/staging/OPENAI_API_KEY --value "sk-..." --type SecureString --region us-east-1</code>
+  </p>
+</div>
+
+<!-- S3 OBJECT KEY STRUCTURE -->
+<div class="section">
+  <h2>S3 Object Key Structure</h2>
+  <div class="sub">Canonical key patterns used by <code>@layertone/storage</code> via the <code>keys</code> module</div>
+
+  <div class="s3-keys">
+    <div class="s3-key">
+      <div class="s3-key-path">workspaces/{workspaceId}/brands/{brandId}/assets/{assetId}/{filename}</div>
+      <div class="s3-key-desc">Brand assets (logos, reference images, color swatches). Used for brand grounding via pgvector embedding similarity.</div>
+    </div>
+    <div class="s3-key">
+      <div class="s3-key-path">workspaces/{workspaceId}/gen/{generationId}/variant/{variantId}/background.png</div>
+      <div class="s3-key-desc">Raw AI-generated background image — before template overlay rendering. Preserved for re-rendering with different templates.</div>
+    </div>
+    <div class="s3-key">
+      <div class="s3-key-path">workspaces/{workspaceId}/gen/{generationId}/variant/{variantId}/output.png</div>
+      <div class="s3-key-desc">Final rendered output — background + brand overlay + text slots. This is the URL presigned and delivered to the user.</div>
+    </div>
+    <div class="s3-key">
+      <div class="s3-key-path">workspaces/{workspaceId}/inspiration/{uploadId}/{filename}</div>
+      <div class="s3-key-desc">User-uploaded inspiration images. Tagged <code>ttl:24h</code> → automatically deleted by S3 lifecycle rule after 1 day.</div>
+    </div>
+    <div class="s3-key">
+      <div class="s3-key-path">global/templates/{templateId}/preview.png</div>
+      <div class="s3-key-desc">Template preview images stored in the Global Assets bucket. Long-lived — no lifecycle expiry.</div>
+    </div>
+    <div class="s3-key">
+      <div class="s3-key-path">global/stock/{stockId}/{filename}</div>
+      <div class="s3-key-desc">Stock images available to all workspaces. Stored in Global Assets bucket.</div>
+    </div>
+  </div>
+</div>
+
+<!-- S3 LIFECYCLE RULES -->
+<div class="section">
+  <h2>S3 Lifecycle Rules (App Assets Bucket)</h2>
+  <div class="sub">Automatic cleanup rules on <code>layertone-app-{stage}-assets</code> to control storage costs</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Rule ID</th>
+          <th>Prefix</th>
+          <th>Condition</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>expire-noncurrent</code></td>
+          <td><code>workspaces/</code></td>
+          <td>Object is a noncurrent version (overwritten or deleted)</td>
+          <td>Delete after 30 days — reclaims space from old generation images</td>
+        </tr>
+        <tr>
+          <td><code>abort-mpu</code></td>
+          <td><code>workspaces/</code></td>
+          <td>Incomplete multipart upload</td>
+          <td>Abort after 1 day — prevents abandoned uploads from accumulating</td>
+        </tr>
+        <tr>
+          <td><code>expire-inspiration-stage</code></td>
+          <td><code>workspaces/</code></td>
+          <td>Object has tag <code>ttl=24h</code></td>
+          <td>Delete after 1 day — inspiration uploads are temporary, not stored long-term</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- IAM POLICIES -->
+<div class="section">
+  <h2>IAM Roles &amp; Policies</h2>
+  <div class="sub">Least-privilege policies — each Lambda only has the permissions it actually needs</div>
+
+  <div class="iam-grid">
+    <div class="iam-card">
+      <h4>🟠 Web Lambda Role</h4>
+      <div class="iam-policy">
+        <div class="iam-action">sqs:SendMessage</div>
+        <div class="iam-resource">Resource: * (scoped by queue URL env var at runtime)</div>
+        <div class="iam-why">Web Lambda enqueues one SQS message per generation variant</div>
+      </div>
+      <div class="iam-policy">
+        <div class="iam-action">s3:GetObject, PutObject, DeleteObject, ListBucket</div>
+        <div class="iam-resource">Resource: arn:aws:s3:::layertone-app-{stage}-assets/*</div>
+        <div class="iam-why">Presigns URLs for user downloads; reads brand assets</div>
+      </div>
+      <div class="iam-policy">
+        <div class="iam-action">ssm:GetParameter, ssm:GetParameters</div>
+        <div class="iam-resource">Resource: arn:aws:ssm:*:*:parameter/layertone/{stage}/*</div>
+        <div class="iam-why">Reads Stripe/Clerk/OpenAI secrets at cold start</div>
+      </div>
+      <div class="iam-policy">
+        <div class="iam-action">cloudwatch:PutMetricData</div>
+        <div class="iam-resource">Resource: *</div>
+        <div class="iam-why">Emits request count, latency, and error rate metrics</div>
+      </div>
+    </div>
+
+    <div class="iam-card">
+      <h4>🟣 Worker Lambda Role</h4>
+      <div class="iam-policy">
+        <div class="iam-action">s3:GetObject, PutObject, DeleteObject, ListBucket</div>
+        <div class="iam-resource">Resource: arn:aws:s3:::layertone-app-{stage}-assets/*</div>
+        <div class="iam-why">Reads brand assets; writes background + rendered output PNGs</div>
+      </div>
+      <div class="iam-policy">
+        <div class="iam-action">bedrock:InvokeModel, bedrock:InvokeModelWithResponseStream</div>
+        <div class="iam-resource">Resource: * (Bedrock does not support resource-level scoping)</div>
+        <div class="iam-why">Optional AI fallback to Bedrock SD3.5 when primary providers fail</div>
+      </div>
+      <div class="iam-policy">
+        <div class="iam-action">ssm:GetParameter, ssm:GetParameters</div>
+        <div class="iam-resource">Resource: arn:aws:ssm:*:*:parameter/layertone/{stage}/*</div>
+        <div class="iam-why">Reads OpenAI/Replicate/Recraft API keys at cold start</div>
+      </div>
+      <div class="iam-policy">
+        <div class="iam-action">cloudwatch:PutMetricData</div>
+        <div class="iam-resource">Resource: *</div>
+        <div class="iam-why">Emits provider latency, variant success/failure rate metrics</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEPLOY PIPELINE -->
+<div class="section">
+  <h2>CI/CD Deploy Pipeline</h2>
+  <div class="sub">Automated pipeline in <code>.github/workflows/deploy.yaml</code> — staging gates production</div>
+
+  <div class="pipeline-box">
+    <div class="pipeline-stage">
+      <div class="pipeline-stage-badge" style="background:rgba(37,99,235,0.15);color:#60a5fa">staging</div>
+      <div class="pipeline-stage-content">
+        <h4>Staging Deploy — triggered on push to <code>main</code> or manual dispatch</h4>
+        <p>Uses GitHub OIDC role assumption (<code>AWS_DEPLOY_ROLE_STAGING</code>) — no long-lived AWS keys stored in GitHub secrets.</p>
+        <div class="pipeline-steps">
+          <div class="pipeline-step-item"><strong>Checkout</strong> → pnpm install (frozen lockfile)</div>
+          <div class="pipeline-step-item"><strong>DB Migrate</strong> → <code>pnpm --filter @layertone/db db:migrate</code> using <code>STAGING_DATABASE_URL</code></div>
+          <div class="pipeline-step-item"><strong>Build Web</strong> → <code>pnpm --filter @layertone/web build:lambda</code> — runs OpenNext build, outputs to <code>.open-next/</code></div>
+          <div class="pipeline-step-item"><strong>Build Worker</strong> → <code>pnpm --filter @layertone/worker build</code> — TypeScript compile to <code>apps/worker/dist/</code></div>
+          <div class="pipeline-step-item"><strong>AWS Auth</strong> → <code>aws-actions/configure-aws-credentials@v4</code> with OIDC role assumption, us-east-1</div>
+          <div class="pipeline-step-item"><strong>CDK Deploy</strong> → <code>cdk deploy --all --require-approval never --context env=staging</code></div>
+        </div>
+      </div>
+    </div>
+    <div class="pipeline-stage">
+      <div class="pipeline-stage-badge" style="background:rgba(34,197,94,0.15);color:#4ade80">production</div>
+      <div class="pipeline-stage-content">
+        <h4>Production Deploy — runs after staging succeeds (<code>needs: deploy-staging</code>)</h4>
+        <p>Identical steps to staging but uses <code>AWS_DEPLOY_ROLE_PROD</code> and <code>--context env=prod</code>. Requires manual approval if the GitHub environment is configured with a protection rule.</p>
+        <div class="pipeline-steps">
+          <div class="pipeline-step-item"><strong>Same build steps</strong> as staging (fresh checkout, install, migrate, build)</div>
+          <div class="pipeline-step-item"><strong>AWS Auth</strong> → OIDC role <code>AWS_DEPLOY_ROLE_PROD</code></div>
+          <div class="pipeline-step-item"><strong>CDK Deploy</strong> → <code>cdk deploy --all --require-approval never --context env=prod</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OPEN ITEMS -->
+<div class="section">
+  <h2>Open Items &amp; Readiness Status</h2>
+  <div class="sub">Updated 2026-05-22</div>
+  <div class="open-items">
+    <div class="open-item pending">
+      <div class="open-item-icon">🟡</div>
+      <div>
+        <div class="open-item-title">PostgreSQL host — not yet chosen</div>
+        <div class="open-item-desc">
+          <strong>Recommendation: Neon.</strong> Serverless Postgres with pgvector, scales to zero, not AWS-locked.<br>
+          Alternatives: Aurora Serverless v2 (pgvector ✓, AWS-only, more expensive at low scale) · RDS (pgvector ✓, always-on, cheapest at high load) · PlanetScale (no pgvector, not suitable).<br>
+          The <code>DATABASE_URL</code> must be set as a GitHub Secret (<code>STAGING_DATABASE_URL</code>, <code>PROD_DATABASE_URL</code>) before the first deploy — the pipeline runs migrations at deploy time.
+        </div>
+      </div>
+    </div>
+    <div class="open-item pending">
+      <div class="open-item-icon">🟡</div>
+      <div>
+        <div class="open-item-title">SSM Parameter Store — all 9 values are placeholders</div>
+        <div class="open-item-desc">
+          CDK creates all parameters with value <code>&lt;placeholder — set via aws ssm put-parameter&gt;</code>. Must replace before first deploy or the Lambdas will fail at secret resolution. Use: <code>aws ssm put-parameter --name /layertone/staging/OPENAI_API_KEY --value "sk-..." --type SecureString --region us-east-1 --overwrite</code>
+        </div>
+      </div>
+    </div>
+    <div class="open-item done">
+      <div class="open-item-icon">✅</div>
+      <div>
+        <div class="open-item-title">CI/CD deploy pipeline — complete</div>
+        <div class="open-item-desc"><code>.github/workflows/deploy.yaml</code> fully implemented. Staging on push to main; production after staging. OIDC role assumption — no long-lived keys needed.</div>
+      </div>
+    </div>
+    <div class="open-item done">
+      <div class="open-item-icon">✅</div>
+      <div>
+        <div class="open-item-title">Captions worker — verified and fully implemented</div>
+        <div class="open-item-desc"><code>apps/worker/src/caption-handler.ts</code> — CaptionWorker class is complete. Handles the full lifecycle: load job, call OpenAI text model, store output, commit/release credits via Ledger. The captions SQS queue is wired as a second SqsEventSource on the Worker Lambda.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Layertone Deployment Documentation · AWS Cloud Architecture · Updated 2026-05-22</footer>
+
+</body>
+</html>

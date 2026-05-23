@@ -2,7 +2,7 @@
 
 **Phase:** 10 — Stripe billing
 **Depends on:** 32, 33
-**Spec references:** [Spec § 6.5–6.7](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 6.5–6.7](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `customer.subscription.updated` with `status='unpaid'` flips workspace to `read_only` (already done in slice 32; verify here)
@@ -67,7 +67,7 @@ async refundCharge(args: { chargeId: string; reason?: string }) {
 
 ```ts
 // packages/billing/src/refund.ts
-import type { BillingProvider } from "@vyora/shared";
+import type { BillingProvider } from "@layertone/shared";
 
 export class RefundService {
   constructor(private readonly billing: BillingProvider) {}
@@ -116,7 +116,7 @@ git commit -m "feat(billing): dunning state machine + refund webhook + reconcili
 ## Verification
 
 ```bash
-pnpm --filter @vyora/billing test
+pnpm --filter @layertone/billing test
 ```
 
 ## Commit message

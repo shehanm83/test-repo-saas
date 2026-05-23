@@ -2,7 +2,7 @@
 
 **Phase:** 1 — Database schema
 **Depends on:** 06
-**Spec references:** [Spec § 1.2 (brands, brand_assets, projects)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 1.4 (indexes)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 1.2 (brands, brand_assets, projects)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 1.4 (indexes)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - Migration `0002_brand.sql` creates `brands`, `brand_assets`, `projects`
@@ -83,7 +83,7 @@ export * from "./brand.js";
 - [ ] **Step 3 — Generate migration**
 
 ```bash
-pnpm --filter @vyora/db exec drizzle-kit generate --name=brand
+pnpm --filter @layertone/db exec drizzle-kit generate --name=brand
 ```
 
 - [ ] **Step 4 — Edit generated migration**
@@ -132,7 +132,7 @@ import { createDb } from "../client.js";
 import { brands, workspaces, users } from "./index.js";
 import { withWorkspace } from "../with-workspace.js";
 
-const url = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const url = process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/studio";
 const adminDb = createDb(url, "app_admin");
 const userDb = createDb(url, "app_user");
 
@@ -154,8 +154,8 @@ describe("brand RLS", () => {
 - [ ] **Step 6 — Run migration + tests**
 
 ```bash
-pnpm --filter @vyora/db db:migrate
-pnpm --filter @vyora/db test:int
+pnpm --filter @layertone/db db:migrate
+pnpm --filter @layertone/db test:int
 ```
 Expected: green.
 
@@ -173,7 +173,7 @@ git commit -m "feat(db): brand schema (brands, assets, projects) with RLS + pgve
 ```bash
 psql "$DATABASE_URL" -c "\dt brand*"
 psql "$DATABASE_URL" -c "\d brand_assets" | grep embedding
-pnpm --filter @vyora/db test:int
+pnpm --filter @layertone/db test:int
 ```
 
 ## Commit message

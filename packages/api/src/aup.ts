@@ -1,6 +1,6 @@
-import { auditLog, type Db } from "@vyora/db";
-import { AppError } from "@vyora/shared/errors/app-error";
-import { CODES } from "@vyora/shared/errors/codes";
+import { auditLog, type Db } from "@layertone/db";
+import { AppError } from "@layertone/shared/errors/app-error";
+import { CODES } from "@layertone/shared/errors/codes";
 
 
 const PROHIBITED_PATTERNS: { tag: string; pattern: RegExp }[] = [

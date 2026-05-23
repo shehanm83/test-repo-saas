@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
-import { loadConfig } from "@vyora/shared/config";
+import { loadConfig } from "@layertone/shared/config";
 
 export async function POST() {
   const { workspace } = await getSessionWorkspace();

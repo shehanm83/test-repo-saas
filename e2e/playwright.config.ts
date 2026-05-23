@@ -28,7 +28,7 @@ export default defineConfig({
     ? {}
     : {
         webServer: {
-          command: `AUTH_MODE=dev AI_MODE=mock pnpm --filter @vyora/web exec next dev --port ${devPort}`,
+          command: `AUTH_MODE=dev AI_MODE=mock pnpm --filter @layertone/web exec next dev --port ${devPort}`,
           url: baseURL,
           reuseExistingServer: false,
           timeout: 120_000,

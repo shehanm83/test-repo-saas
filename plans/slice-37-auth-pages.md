@@ -2,7 +2,7 @@
 
 **Phase:** 12 — Frontend onboarding
 **Depends on:** 35, 10
-**Spec references:** [UI Prompt 2 — Sign-up / sign-in](../specs/2026-04-25-studio-v1-ui-prompts.md).
+**Spec references:** [UI Prompt 2 — Sign-up / sign-in](../specs/2026-04-25-layertone-v1-ui-prompts.md).
 
 **Definition of done:**
 - `/sign-up` and `/sign-in` routes render Clerk's hosted components with Studio theming when `AUTH_MODE=clerk`
@@ -32,7 +32,7 @@
 - [ ] **Step 1 — Add Clerk Next.js**
 
 ```bash
-pnpm --filter @vyora/web add @clerk/nextjs
+pnpm --filter @layertone/web add @clerk/nextjs
 ```
 
 - [ ] **Step 2 — Middleware**
@@ -53,7 +53,7 @@ export const config = { matcher: ["/((?!_next|favicon.ico|api/webhooks).*)"] };
 ```tsx
 // apps/web/src/app/sign-in/[[...rest]]/page.tsx
 import { SignIn } from "@clerk/nextjs";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@layertone/shared";
 import { redirect } from "next/navigation";
 
 export default function SignInPage() {
@@ -72,7 +72,7 @@ export default function SignInPage() {
 ```tsx
 // apps/web/src/app/sign-up/[[...rest]]/page.tsx
 import { SignUp } from "@clerk/nextjs";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@layertone/shared";
 import { redirect } from "next/navigation";
 
 export default function SignUpPage() {
@@ -92,8 +92,8 @@ export default function SignUpPage() {
 
 ```ts
 // apps/web/src/app/api/webhooks/clerk/route.ts
-import { ClerkWebhookHandler } from "@vyora/auth";
-import { loadConfig } from "@vyora/shared";
+import { ClerkWebhookHandler } from "@layertone/auth";
+import { loadConfig } from "@layertone/shared";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -112,7 +112,7 @@ export async function POST(req: Request) {
 ```tsx
 // apps/web/src/app/layout.tsx
 import { ClerkProvider } from "@clerk/nextjs";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@layertone/shared";
 
 const config = loadConfig();
 
@@ -129,7 +129,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - [ ] **Step 6 — Commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(web): Clerk-themed sign-up/sign-in pages + webhook route + middleware"
 ```

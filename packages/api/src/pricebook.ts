@@ -4,8 +4,8 @@ import {
   createDb,
   expirePricebookVersion,
   priceBookLookup,
-} from "@vyora/db";
-import type { Config } from "@vyora/shared/config";
+} from "@layertone/db";
+import type { Config } from "@layertone/shared/config";
 import { z } from "zod";
 
 const Entry = z.object({

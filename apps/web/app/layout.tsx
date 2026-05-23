@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import React, { Suspense } from "react";
 
-import { loadConfig } from "@vyora/shared/config";
+import { loadConfig } from "@layertone/shared/config";
 
 import { NavProgress } from "@/components/nav-progress";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.vyora.io"),
-  title: "Vyora",
+  metadataBase: new URL("https://www.layertone.io"),
+  title: "Layertone",
   description: "On-brand images, in a sentence. Create beyond imagination.",
-  applicationName: "Vyora",
+  applicationName: "Layertone",
   icons: { icon: "/brand/logo.png" },
 };
 

@@ -4,9 +4,9 @@ import {
   adminUpdateTemplate,
   createDb,
   listPublishedTemplatesForRouting,
-} from "@vyora/db";
-import { ASPECT_RATIOS, MODEL_CODES, SlotSchema, TextSafeZonesSchema } from "@vyora/shared/templates/schema";
-import type { Config } from "@vyora/shared/config";
+} from "@layertone/db";
+import { ASPECT_RATIOS, MODEL_CODES, SlotSchema, TextSafeZonesSchema } from "@layertone/shared/templates/schema";
+import type { Config } from "@layertone/shared/config";
 import { z } from "zod";
 
 const TemplateInput = z.object({

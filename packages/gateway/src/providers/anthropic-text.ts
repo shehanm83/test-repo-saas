@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { TextProvider } from "../types.js";
-import type { AITextRequest, AITextResponse } from "@vyora/shared";
+import type { AITextRequest, AITextResponse } from "@layertone/shared";
 
 export class AnthropicTextProvider implements TextProvider {
   modelCodes = ["claude-haiku-4-5"];

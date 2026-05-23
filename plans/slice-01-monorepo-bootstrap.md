@@ -2,7 +2,7 @@
 
 **Phase:** 0 — Foundation
 **Depends on:** —
-**Spec references:** [Architecture § 6.1 (Adapter pattern)](../specs/2026-04-25-studio-v1-architecture.md), [Spec § 1.2 (table layout — informs package boundaries)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Architecture § 6.1 (Adapter pattern)](../specs/2026-04-25-layertone-v1-architecture.md), [Spec § 1.2 (table layout — informs package boundaries)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - pnpm monorepo with workspaces configured
@@ -81,7 +81,7 @@ coverage/
 
 ```json
 {
-  "name": "studio-v1",
+  "name": "layertone-v1",
   "private": true,
   "version": "0.0.0",
   "packageManager": "pnpm@9.12.0",
@@ -90,7 +90,7 @@ coverage/
   },
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --filter @vyora/web dev",
+    "dev": "pnpm --filter @layertone/web dev",
     "test": "pnpm -r test",
     "test:unit": "pnpm -r test:unit",
     "test:int": "pnpm -r test:int",
@@ -162,7 +162,7 @@ packages:
 `packages/shared/package.json`:
 ```json
 {
-  "name": "@vyora/shared",
+  "name": "@layertone/shared",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -196,7 +196,7 @@ export {}; // placeholder; populated in later slices
 `packages/db/package.json`:
 ```json
 {
-  "name": "@vyora/db",
+  "name": "@layertone/db",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -205,7 +205,7 @@ export {}; // placeholder; populated in later slices
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@vyora/shared": "workspace:*"
+    "@layertone/shared": "workspace:*"
   }
 }
 ```
@@ -236,7 +236,7 @@ export {};
 `packages/gateway/package.json`:
 ```json
 {
-  "name": "@vyora/gateway",
+  "name": "@layertone/gateway",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -245,7 +245,7 @@ export {};
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@vyora/shared": "workspace:*"
+    "@layertone/shared": "workspace:*"
   }
 }
 ```
@@ -276,7 +276,7 @@ export {};
 `packages/renderer/package.json`:
 ```json
 {
-  "name": "@vyora/renderer",
+  "name": "@layertone/renderer",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -285,7 +285,7 @@ export {};
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@vyora/shared": "workspace:*"
+    "@layertone/shared": "workspace:*"
   }
 }
 ```
@@ -316,7 +316,7 @@ export {};
 `apps/web/package.json`:
 ```json
 {
-  "name": "@vyora/web",
+  "name": "@layertone/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -325,10 +325,10 @@ export {};
     "build": "echo 'web build wired in slice 35'"
   },
   "dependencies": {
-    "@vyora/db": "workspace:*",
-    "@vyora/gateway": "workspace:*",
-    "@vyora/renderer": "workspace:*",
-    "@vyora/shared": "workspace:*"
+    "@layertone/db": "workspace:*",
+    "@layertone/gateway": "workspace:*",
+    "@layertone/renderer": "workspace:*",
+    "@layertone/shared": "workspace:*"
   }
 }
 ```
@@ -364,7 +364,7 @@ export {}; // Next.js bootstrap added in slice 35
 `apps/worker/package.json`:
 ```json
 {
-  "name": "@vyora/worker",
+  "name": "@layertone/worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -373,10 +373,10 @@ export {}; // Next.js bootstrap added in slice 35
     "build": "echo 'worker build wired in slice 30'"
   },
   "dependencies": {
-    "@vyora/db": "workspace:*",
-    "@vyora/gateway": "workspace:*",
-    "@vyora/renderer": "workspace:*",
-    "@vyora/shared": "workspace:*"
+    "@layertone/db": "workspace:*",
+    "@layertone/gateway": "workspace:*",
+    "@layertone/renderer": "workspace:*",
+    "@layertone/shared": "workspace:*"
   }
 }
 ```

@@ -6,7 +6,7 @@
 
 **Architecture:** All plan-change flows route through the Stripe Customer Portal (Option B). The only new API route is `/api/billing/subscription` for first-time subscribers who have never had a plan. The `listPaidInvoices` return type is widened to include `amount`, `date`, and `hostedInvoiceUrl` so the invoice table renders real data. Sparkline aggregation moves to the server component. All UI interactivity stays in the existing `BillingPage` client component.
 
-**Tech Stack:** Next.js 15 App Router, Stripe SDK v22, Drizzle ORM, Zod, React 19, existing `@vyora/billing` / `@vyora/shared` / `@vyora/db` packages.
+**Tech Stack:** Next.js 15 App Router, Stripe SDK v22, Drizzle ORM, Zod, React 19, existing `@layertone/billing` / `@layertone/shared` / `@layertone/db` packages.
 
 ---
 
@@ -123,8 +123,8 @@ With:
 
 ```bash
 cd /home/shehan/aiwork/commercial/noname-img
-pnpm --filter @vyora/shared build 2>&1 | tail -5
-pnpm --filter @vyora/billing build 2>&1 | tail -5
+pnpm --filter @layertone/shared build 2>&1 | tail -5
+pnpm --filter @layertone/billing build 2>&1 | tail -5
 ```
 Expected: no type errors.
 
@@ -157,10 +157,10 @@ git commit -m "feat(billing): widen listPaidInvoices + export gte from db operat
 ```ts
 import { NextResponse } from "next/server";
 
-import { BillingApi } from "@vyora/api/billing";
-import { createDb, workspaces } from "@vyora/db";
-import { eq } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared";
+import { BillingApi } from "@layertone/api/billing";
+import { createDb, workspaces } from "@layertone/db";
+import { eq } from "@layertone/db/operators";
+import { loadConfig } from "@layertone/shared";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
@@ -203,7 +203,7 @@ export async function POST(request: Request) {
 - [ ] **Step 2: Verify TypeScript**
 
 ```bash
-pnpm --filter @vyora/web build 2>&1 | grep "subscription" | head -10
+pnpm --filter @layertone/web build 2>&1 | grep "subscription" | head -10
 ```
 Expected: no errors mentioning subscription route.
 
@@ -224,10 +224,10 @@ git commit -m "feat(web): add /api/billing/subscription route for first-time pla
 - [ ] **Step 1: Replace `apps/web/app/(app)/billing/page.tsx` entirely**
 
 ```tsx
-import { Ledger, PLANS, TOPUP_PACKS } from "@vyora/billing";
-import { createDb, creditLedgerEntries, subscriptions } from "@vyora/db";
-import { and, desc, eq, gte } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared";
+import { Ledger, PLANS, TOPUP_PACKS } from "@layertone/billing";
+import { createDb, creditLedgerEntries, subscriptions } from "@layertone/db";
+import { and, desc, eq, gte } from "@layertone/db/operators";
+import { loadConfig } from "@layertone/shared";
 
 import { BillingPage } from "@/components/billing/billing-page";
 import { getSessionWorkspace } from "@/lib/auth/server";
@@ -347,7 +347,7 @@ export default async function BillingRoutePage() {
 - [ ] **Step 2: Verify build**
 
 ```bash
-pnpm --filter @vyora/web build 2>&1 | tail -10
+pnpm --filter @layertone/web build 2>&1 | tail -10
 ```
 Expected: no errors on billing page.
 
@@ -427,8 +427,8 @@ function Sparkline({ values }: { values: number[] }) {
   const polygon = values.length ? `0,${h} ${points} ${w},${h}` : `0,${h} ${w},${h}`;
   return (
     <svg width="100%" height="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
-      <polyline points={points} fill="none" stroke="var(--studio-violet)" strokeWidth={2} />
-      <polygon points={polygon} fill="var(--studio-violet)" opacity={0.08} />
+      <polyline points={points} fill="none" stroke="var(--layertone-violet)" strokeWidth={2} />
+      <polygon points={polygon} fill="var(--layertone-violet)" opacity={0.08} />
     </svg>
   );
 }
@@ -878,7 +878,7 @@ export function BillingPage(props: Props) {
 - [ ] **Step 2: Verify TypeScript**
 
 ```bash
-pnpm --filter @vyora/web build 2>&1 | grep -i "error\|billing" | head -20
+pnpm --filter @layertone/web build 2>&1 | grep -i "error\|billing" | head -20
 ```
 Expected: no type errors related to billing.
 
@@ -911,7 +911,7 @@ git commit -m "feat(web): production-grade billing page — portal wiring, invoi
 - [ ] **Step 1: Start dev server**
 
 ```bash
-pnpm --filter @vyora/web dev &
+pnpm --filter @layertone/web dev &
 ```
 
 - [ ] **Step 2: Navigate to `/billing`**

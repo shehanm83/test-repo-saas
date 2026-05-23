@@ -1,4 +1,4 @@
-import type { Config } from "@vyora/shared/config";
+import type { Config } from "@layertone/shared/config";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -33,7 +33,7 @@ const mocks = vi.hoisted(() => ({
   putBytes: vi.fn(async () => undefined),
 }));
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: mocks.createDb,
   listProductLines: mocks.listProductLines,
   createProductLine: mocks.createProductLine,
@@ -53,24 +53,24 @@ import { ProductApi } from "./product";
 
 const config = {
   auth: { mode: "dev" as const, devUserId: "00000000-0000-0000-0000-000000000001" },
-  db: { url: "postgres://example.test/studio" },
+  db: { url: "postgres://example.test/layertone" },
   storage: {
     mode: "minio" as const,
     endpoint: "http://localhost:9000",
     region: "us-east-1",
     accessKeyId: "minio",
     secretAccessKey: "minio12345",
-    bucketApp: "studio-app",
-    bucketGlobal: "studio-global",
+    bucketApp: "layertone-app",
+    bucketGlobal: "layertone-global",
     cloudfrontDomain: undefined,
   },
   queue: {
     mode: "elasticmq" as const,
     endpoint: "http://localhost:9324",
     region: "us-east-1",
-    generationsQueue: "studio-generations",
-    captionsQueue: "studio-captions",
-    dlq: "studio-generations-dlq",
+    generationsQueue: "layertone-generations",
+    captionsQueue: "layertone-captions",
+    dlq: "layertone-generations-dlq",
   },
   billing: {
     mode: "stub" as const,

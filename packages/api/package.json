@@ -1,5 +1,5 @@
 {
-  "name": "@vyora/api",
+  "name": "@layertone/api",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -30,12 +30,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@vyora/auth": "workspace:*",
-    "@vyora/billing": "workspace:*",
-    "@vyora/db": "workspace:*",
-    "@vyora/observability": "workspace:*",
-    "@vyora/shared": "workspace:*",
-    "@vyora/storage": "workspace:*",
+    "@layertone/auth": "workspace:*",
+    "@layertone/billing": "workspace:*",
+    "@layertone/db": "workspace:*",
+    "@layertone/observability": "workspace:*",
+    "@layertone/shared": "workspace:*",
+    "@layertone/storage": "workspace:*",
     "cheerio": "^1.2.0",
     "file-type": "^22.0.1",
     "isomorphic-dompurify": "^3.10.0",

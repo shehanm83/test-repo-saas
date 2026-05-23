@@ -11,7 +11,7 @@ vi.mock("./aup", () => ({
   assertBriefAllowed: vi.fn(async () => undefined),
 }));
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: vi.fn(() => ({})),
   getGenerationFull: vi.fn(async () => ({
     brief: "A clean launch image for a skincare serum",
@@ -38,7 +38,7 @@ vi.mock("@vyora/db", () => ({
 
 const mockReserve = vi.fn(async () => undefined);
 
-vi.mock("@vyora/billing", () => {
+vi.mock("@layertone/billing", () => {
   class InsufficientCredits extends Error {
     constructor(
       public readonly balance: number,
@@ -75,7 +75,7 @@ beforeEach(() => {
 
 describe("CaptionApi.create", () => {
   it("reserves fixed credits and enqueues a detailed caption job", async () => {
-    const { insertCaption } = await import("@vyora/db");
+    const { insertCaption } = await import("@layertone/db");
     const api = new CaptionApi(BASE_CONFIG, BASE_ADAPTERS);
     const result = await api.create({
       workspaceId: "ws-1",
@@ -137,7 +137,7 @@ describe("CaptionApi.create", () => {
   });
 
   it("uses standard generation UUIDs for approved context", async () => {
-    const { getGenerationFull, insertCaption } = await import("@vyora/db");
+    const { getGenerationFull, insertCaption } = await import("@layertone/db");
     const generationId = "123e4567-e89b-12d3-a456-426614174000";
     const api = new CaptionApi(BASE_CONFIG, BASE_ADAPTERS);
 
@@ -163,7 +163,7 @@ describe("CaptionApi.create", () => {
   });
 
   it("does not reject malformed generation ids from old clients", async () => {
-    const { getGenerationFull, insertCaption } = await import("@vyora/db");
+    const { getGenerationFull, insertCaption } = await import("@layertone/db");
     const api = new CaptionApi(BASE_CONFIG, BASE_ADAPTERS);
 
     await api.create({
@@ -188,7 +188,7 @@ describe("CaptionApi.create", () => {
   });
 
   it("throws AppError 402 when reserve fails (insufficient credits)", async () => {
-    const { InsufficientCredits } = await import("@vyora/billing");
+    const { InsufficientCredits } = await import("@layertone/billing");
     mockReserve.mockRejectedValueOnce(new InsufficientCredits(0, 3));
 
     const api = new CaptionApi(BASE_CONFIG, BASE_ADAPTERS);

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { Ledger, InsufficientCredits } from "@vyora/billing";
+import { Ledger, InsufficientCredits } from "@layertone/billing";
 import {
   and,
   captionJobs,
@@ -17,8 +17,8 @@ import {
   getProduct,
   updateGenerationInspirationKey,
   priceBookLookup,
-} from "@vyora/db";
-import { tagSpan } from "@vyora/observability";
+} from "@layertone/db";
+import { tagSpan } from "@layertone/observability";
 import {
   AppError,
   CODES,
@@ -26,9 +26,9 @@ import {
   normalizeCommercialGenerationInput,
   resolveOutputTarget,
   assertMoodSupportsOutputAspectRatio,
-} from "@vyora/shared";
-import type { Adapters, Config } from "@vyora/shared";
-import { keys } from "@vyora/storage";
+} from "@layertone/shared";
+import type { Adapters, Config } from "@layertone/shared";
+import { keys } from "@layertone/storage";
 
 import { assertBriefAllowed } from "./aup";
 import { assertWorkspaceCanGenerate } from "./workspace-status";

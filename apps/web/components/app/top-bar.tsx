@@ -1,7 +1,6 @@
 import Link from "next/link";
 import React from "react";
 
-import { VyoraMark } from "@/components/brand/vyora-mark";
 import { I } from "@/components/icons";
 
 import { AvatarMenu } from "./avatar-menu";
@@ -17,17 +16,6 @@ export function TopBar(props: {
 }) {
   return (
     <div className="topbar">
-      <Link
-        href="/generate"
-        className="topbar__brand"
-        style={{ cursor: "pointer", textDecoration: "none" }}
-      >
-        <VyoraMark size={26} />
-        <span>Vyora</span>
-      </Link>
-
-      <div className="divider-y" style={{ height: 24 }} />
-
       <WorkspaceSwitcher
         workspaceId={props.workspaceId}
         workspaces={props.workspaces}
@@ -38,27 +26,11 @@ export function TopBar(props: {
 
       <Link
         href="/billing"
-        className="pill pill--ring"
-        style={{ height: 30, paddingRight: 4, gap: 6, textDecoration: "none" }}
+        className="topbar__credits"
+        style={{ textDecoration: "none" }}
       >
-        <I.Zap size={12} style={{ color: "var(--studio-violet)" }} />
-        <span style={{ color: "var(--fg-1)", fontWeight: 600 }}>
-          {props.balance.toLocaleString()}
-        </span>
-        <span style={{ color: "var(--fg-3)" }}>credits</span>
-        <span
-          style={{
-            width: 22,
-            height: 22,
-            borderRadius: 6,
-            display: "grid",
-            placeItems: "center",
-            background: "var(--cal-gray-100)",
-            marginLeft: 4,
-          }}
-        >
-          <I.Plus size={12} />
-        </span>
+        <I.Zap size={12} style={{ color: "var(--layertone-violet)" }} />
+        <span>{props.balance.toLocaleString()} credits</span>
       </Link>
 
       <button className="btn btn--icon btn--ghost" type="button" title="Notifications">

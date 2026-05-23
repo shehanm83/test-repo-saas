@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { and, brandAssets, createDb, eq } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
+import { and, brandAssets, createDb, eq } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";

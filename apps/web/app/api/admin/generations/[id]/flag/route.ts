@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { createDb, generations } from "@vyora/db";
+import { createDb, generations } from "@layertone/db";
 import { eq } from "drizzle-orm";
-import { loadConfig } from "@vyora/shared/config";
+import { loadConfig } from "@layertone/shared/config";
 
 import { getServerSession } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";

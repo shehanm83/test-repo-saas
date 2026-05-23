@@ -27,8 +27,8 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/gateway add @aws-sdk/client-bedrock-runtime
-pnpm --filter @vyora/gateway add -D msw undici
+pnpm --filter @layertone/gateway add @aws-sdk/client-bedrock-runtime
+pnpm --filter @layertone/gateway add -D msw undici
 ```
 
 - [ ] **Step 2 — Flux provider**
@@ -37,7 +37,7 @@ pnpm --filter @vyora/gateway add -D msw undici
 
 ```ts
 import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@layertone/shared";
 
 const ASPECT_TO_FLUX: Record<string, string> = {
   "1:1": "1:1", "4:5": "4:5", "9:16": "9:16", "16:9": "16:9", "1.91:1": "21:9", "2:3": "2:3",
@@ -116,7 +116,7 @@ export class FluxImageProvider implements ImageProvider {
 ```ts
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse } from "@layertone/shared";
 
 const BEDROCK_SD35_COST_CENTS = 3;
 const NOVA_COST_CENTS = 4;
@@ -230,7 +230,7 @@ git commit -m "feat(gateway): Flux 1.1 Pro + Bedrock SD 3.5 / Nova Canvas provid
 ## Verification
 
 ```bash
-pnpm --filter @vyora/gateway test
+pnpm --filter @layertone/gateway test
 ```
 
 ## Commit message

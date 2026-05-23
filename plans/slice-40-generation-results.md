@@ -2,7 +2,7 @@
 
 **Phase:** 13 — Frontend generation
 **Depends on:** 39, 31
-**Spec references:** [UI Prompt 6 — Generation results](../specs/2026-04-25-studio-v1-ui-prompts.md), [Spec § 3.3 step 5 (long-poll status)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [UI Prompt 6 — Generation results](../specs/2026-04-25-layertone-v1-ui-prompts.md), [Spec § 3.3 step 5 (long-poll status)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `/generations/[id]` page long-polls `GET /api/generations/[id]` every 1.5s until all variants terminal
@@ -157,7 +157,7 @@ Implement the 5 routes listed above using `GenerationApi`, `CaptionApi`, and the
 - [ ] **Step 7 — Commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(web): generation results page with long-poll, variant edit-text, regenerate, caption modal"
 ```

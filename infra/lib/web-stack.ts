@@ -37,7 +37,7 @@ export class WebStack extends Stack {
 
     for (const name of PARAMETER_NAMES) {
       new StringParameter(this, `Param${name}`, {
-        parameterName: `/studio/${props.stage}/${name}`,
+        parameterName: `/layertone/${props.stage}/${name}`,
         stringValue: "<placeholder — set via aws ssm put-parameter>",
         tier: ParameterTier.STANDARD,
       });
@@ -46,7 +46,7 @@ export class WebStack extends Stack {
     const bucket = Bucket.fromBucketArn(this, "ImportedBucket", props.bucketArn);
 
     const serverFn = new LambdaFunction(this, "WebServer", {
-      functionName: `studio-${props.stage}-web`,
+      functionName: `layertone-${props.stage}-web`,
       runtime: Runtime.NODEJS_20_X,
       handler: "index.handler",
       code: Code.fromAsset("../apps/web/.open-next/server-functions/default"),
@@ -69,7 +69,7 @@ export class WebStack extends Stack {
     serverFn.addToRolePolicy(
       new PolicyStatement({
         actions: ["ssm:GetParameter", "ssm:GetParameters"],
-        resources: [`arn:aws:ssm:*:*:parameter/studio/${props.stage}/*`],
+        resources: [`arn:aws:ssm:*:*:parameter/layertone/${props.stage}/*`],
       }),
     );
     serverFn.addToRolePolicy(

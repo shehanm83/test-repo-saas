@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { createDb, generations, workspaces } from "@vyora/db";
+import { createDb, generations, workspaces } from "@layertone/db";
 import { eq, desc } from "drizzle-orm";
-import { loadConfig } from "@vyora/shared/config";
+import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
 
@@ -124,10 +124,10 @@ export default async function AdminGenerationsPage({
           className="card"
           style={{
             padding: 16,
-            background: "var(--studio-violet-50)",
-            color: "var(--studio-violet-700)",
+            background: "var(--layertone-violet-50)",
+            color: "var(--layertone-violet-700)",
             boxShadow: "none",
-            border: "1px solid var(--studio-violet-100)",
+            border: "1px solid var(--layertone-violet-100)",
             marginBottom: 16,
           }}
         >
