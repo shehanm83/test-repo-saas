@@ -34,6 +34,7 @@ export async function AppFrame(props: {
         <TopBar
           balance={balance}
           email={props.session.email}
+          authMode={config.auth.mode}
           isAdmin={props.session.role === "admin"}
           workspaceId={props.session.workspaceId}
           workspaces={props.session.workspaces.map((w) => ({ id: w.id, name: w.name }))}

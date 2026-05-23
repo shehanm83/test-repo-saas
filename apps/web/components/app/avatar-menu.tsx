@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
+import { SignOutButton } from "@clerk/nextjs";
 
 import { I } from "@/components/icons";
 
-export function AvatarMenu(props: { email: string; isAdmin: boolean }) {
+export function AvatarMenu(props: { authMode: "clerk" | "dev"; email: string; isAdmin: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -75,14 +76,22 @@ export function AvatarMenu(props: { email: string; isAdmin: boolean }) {
             </Link>
           ) : null}
           <div className="menu-divider" />
-          <Link
-            href="/"
-            className="menu-item"
-            onClick={() => setOpen(false)}
-            style={{ textDecoration: "none" }}
-          >
-            <I.LogOut size={14} /> Sign out
-          </Link>
+          {props.authMode === "clerk" ? (
+            <SignOutButton redirectUrl="/">
+              <button className="menu-item" onClick={() => setOpen(false)} type="button">
+                <I.LogOut size={14} /> Sign out
+              </button>
+            </SignOutButton>
+          ) : (
+            <Link
+              href="/"
+              className="menu-item"
+              onClick={() => setOpen(false)}
+              style={{ textDecoration: "none" }}
+            >
+              <I.LogOut size={14} /> Sign out
+            </Link>
+          )}
         </div>
       ) : null}
     </div>

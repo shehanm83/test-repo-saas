@@ -3,6 +3,7 @@ import { createDb } from "@layertone/db";
 import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
+import { MemberActions } from "@/components/settings/member-actions";
 import { listWorkspaceMembers, getSessionWorkspace } from "@/lib/auth/server";
 
 function Stat({
@@ -188,7 +189,7 @@ export default async function SettingsPage() {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ background: "var(--cal-gray-50)" }}>
-              {["Email", "Role", "Accepted"].map((h) => (
+              {["Email", "Role", "Accepted", "Actions"].map((h) => (
                 <th
                   key={h}
                   style={{
@@ -207,30 +208,11 @@ export default async function SettingsPage() {
             </tr>
           </thead>
           <tbody>
-            {members.map((member) => (
-              <tr
-                key={member.id}
-                style={{ borderTop: "1px solid var(--cal-gray-200)" }}
-              >
-                <td style={{ padding: "12px 24px" }}>{member.email}</td>
-                <td style={{ padding: "12px 24px" }}>
-                  <span className="pill">{member.role}</span>
-                </td>
-                <td style={{ padding: "12px 24px" }}>
-                  {member.acceptedAt ? (
-                    <span className="pill pill--green">
-                      <I.Check size={11} /> Yes
-                    </span>
-                  ) : (
-                    <span className="pill pill--amber">Pending</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+            <MemberActions members={members} currentUserId={session.userId} />
             {members.length === 0 ? (
               <tr>
                 <td
-                  colSpan={3}
+                  colSpan={4}
                   style={{ padding: 32, color: "var(--fg-3)", textAlign: "center" }}
                 >
                   No members yet.

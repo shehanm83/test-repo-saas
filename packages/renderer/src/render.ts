@@ -1,8 +1,8 @@
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
-import { compileTemplate } from "./sandbox.js";
-import { loadGoogleFont } from "./fonts.js";
-import type { RenderInput, RenderOutput } from "./types.js";
+import { compileTemplate } from "./sandbox";
+import { loadGoogleFont } from "./fonts";
+import type { RenderInput, RenderOutput } from "./types";
 
 export async function renderTemplate(input: RenderInput): Promise<RenderOutput> {
   const start = Date.now();

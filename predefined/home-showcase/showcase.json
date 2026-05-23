@@ -1,0 +1,69 @@
+{
+  "config": {
+    "kicker": "Real work, in seconds",
+    "galleryHeading": "The output, not the canvas.",
+    "differentiatorHeading": "Not a canvas. Not a chatbot. A brand-correct image generator.",
+    "cards": [
+      {
+        "eyebrow": "vs. Canva",
+        "heading": "You don't design. We deliver.",
+        "body": "No layers, no font picker, no manual layout. The image arrives finished - branded, sized, captioned.",
+        "color": "#C97A3F"
+      },
+      {
+        "eyebrow": "vs. Midjourney",
+        "heading": "Brand-correct by construction.",
+        "body": "Your real logo, your real fonts, your real colors. Not an approximation. Not a hallucinated lookalike.",
+        "color": "#5E5CE6"
+      },
+      {
+        "eyebrow": "vs. AdCreative.ai",
+        "heading": "Curated Mood library.",
+        "body": "Blend seasonal and aesthetic style packs with your brand under your control. Christmas without abandoning your palette.",
+        "color": "#1F7A5A"
+      }
+    ]
+  },
+  "images": [
+    {
+      "id": "41000000-0000-4000-8000-000000000001",
+      "asset": "images/01-holiday-sale.jpg",
+      "sortOrder": 0
+    },
+    {
+      "id": "41000000-0000-4000-8000-000000000002",
+      "asset": "images/02-sweet-indulgence.jpg",
+      "sortOrder": 1
+    },
+    {
+      "id": "41000000-0000-4000-8000-000000000003",
+      "asset": "images/03-circuit-board.jpg",
+      "sortOrder": 2
+    },
+    {
+      "id": "41000000-0000-4000-8000-000000000004",
+      "asset": "images/04-seasonal-flatlay.jpg",
+      "sortOrder": 3
+    },
+    {
+      "id": "41000000-0000-4000-8000-000000000005",
+      "asset": "images/05-landscape-tree.jpg",
+      "sortOrder": 4
+    },
+    {
+      "id": "41000000-0000-4000-8000-000000000006",
+      "asset": "images/06-cafe-workspace.jpg",
+      "sortOrder": 5
+    },
+    {
+      "id": "41000000-0000-4000-8000-000000000007",
+      "asset": "images/07-editorial-writing.jpg",
+      "sortOrder": 6
+    },
+    {
+      "id": "41000000-0000-4000-8000-000000000008",
+      "asset": "images/08-street-inspiration.jpg",
+      "sortOrder": 7
+    }
+  ]
+}

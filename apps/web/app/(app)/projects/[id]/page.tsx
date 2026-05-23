@@ -7,6 +7,7 @@ import { S3StorageAdapter } from "@layertone/storage";
 
 import { I } from "@/components/icons";
 import { ProjectCaptionActions, ProjectImageActions } from "@/components/projects/project-actions";
+import { ProjectManage } from "@/components/projects/project-manage";
 import { getSessionWorkspace } from "@/lib/auth/server";
 
 type OutputSettings = {
@@ -234,21 +235,24 @@ export default async function ProjectDetailPage(props: {
             </div>
           </div>
         </div>
-        <div className="row">
-          <Link href="/generate" className="btn btn--secondary" style={{ textDecoration: "none" }}>
-            <I.Sparkle size={14} />
-            New generation
-          </Link>
-          {generations[0] ? (
-            <Link
-              href={`/generations/${generations[0].id}`}
-              className="btn btn--accent"
-              style={{ textDecoration: "none" }}
-            >
-              <I.ExternalLink size={14} />
-              Open latest result
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "flex-end" }}>
+          <div className="row">
+            <Link href="/generate" className="btn btn--secondary" style={{ textDecoration: "none" }}>
+              <I.Sparkle size={14} />
+              New generation
             </Link>
-          ) : null}
+            {generations[0] ? (
+              <Link
+                href={`/generations/${generations[0].id}`}
+                className="btn btn--accent"
+                style={{ textDecoration: "none" }}
+              >
+                <I.ExternalLink size={14} />
+                Open latest result
+              </Link>
+            ) : null}
+          </div>
+          <ProjectManage projectId={data.project.id} currentName={data.project.name} />
         </div>
       </div>
 

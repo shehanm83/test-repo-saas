@@ -8,6 +8,7 @@ import { I } from "@/components/icons";
 
 const items = [
   { href: "/admin/landing-hero", label: "Landing hero", icon: <I.Image size={16} /> },
+  { href: "/admin/home-showcase", label: "Home showcase", icon: <I.Layout size={16} /> },
   { href: "/admin/moods", label: "Moods", icon: <I.Library size={16} /> },
   { href: "/admin/templates", label: "Templates", icon: <I.Layout size={16} /> },
   { href: "/admin/stock", label: "Stock", icon: <I.Image size={16} /> },
@@ -51,8 +52,7 @@ export function AdminShell(props: { children: React.ReactNode }) {
           ADMIN
         </div>
         {items.map((item) => {
-          const active =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+          const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}

@@ -8,31 +8,44 @@ import {
   withWorkspace,
 } from "@layertone/db";
 import { desc, eq, inArray } from "@layertone/db/operators";
+import { and, like } from "drizzle-orm";
 import { loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
 
 import { HistoryList } from "@/components/history/history-list";
 import { getSessionWorkspace } from "@/lib/auth/server";
 
-export default async function HistoryPage() {
+export default async function HistoryPage(props: {
+  searchParams: Promise<{ page?: string; search?: string }>;
+}) {
+  const sp = await props.searchParams;
+  const page = Math.max(0, parseInt(sp.page ?? "0", 10) || 0);
+  const search = (sp.search ?? "").trim();
   const { session } = await getSessionWorkspace();
   const config = loadConfig();
   const db = createDb(config.db.url, "app_user");
 
   if (!session.workspaceId) {
-    return <HistoryList items={[]} brands={[]} />;
+    return <HistoryList items={[]} brands={[]} page={0} search="" hasMore={false} />;
   }
 
   const ws = session.workspaceId;
   const allBrands = await listBrands(db, ws);
 
+  const PAGE_SIZE = 50;
+
   const { rows, brandRows, moodRows, variantRows } = await withWorkspace(db, ws, async (tx) => {
     const rows = await tx
       .select()
       .from(generations)
-      .where(eq(generations.workspaceId, ws))
+      .where(
+        search
+          ? and(eq(generations.workspaceId, ws), like(generations.brief, `%${search}%`))
+          : eq(generations.workspaceId, ws),
+      )
       .orderBy(desc(generations.createdAt))
-      .limit(50);
+      .limit(PAGE_SIZE)
+      .offset(page * PAGE_SIZE);
 
     if (rows.length === 0) {
       return { rows, brandRows: [], moodRows: [], variantRows: [] };
@@ -130,6 +143,9 @@ export default async function HistoryPage() {
     <HistoryList
       items={items}
       brands={allBrands.map((b) => ({ id: b.id, name: b.name }))}
+      page={page}
+      search={search}
+      hasMore={items.length === PAGE_SIZE}
     />
   );
 }

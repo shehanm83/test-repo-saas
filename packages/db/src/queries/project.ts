@@ -104,6 +104,25 @@ export async function listProjectsWithGenerations(db: Db, workspaceId: string) {
   });
 }
 
+export async function renameProject(db: Db, workspaceId: string, projectId: string, name: string) {
+  return withWorkspace(db, workspaceId, async (tx) => {
+    const [updated] = await tx
+      .update(projects)
+      .set({ name })
+      .where(and(eq(projects.id, projectId), eq(projects.workspaceId, workspaceId)))
+      .returning();
+    return updated ?? null;
+  });
+}
+
+export async function deleteProject(db: Db, workspaceId: string, projectId: string) {
+  return withWorkspace(db, workspaceId, async (tx) => {
+    await tx
+      .delete(projects)
+      .where(and(eq(projects.id, projectId), eq(projects.workspaceId, workspaceId)));
+  });
+}
+
 export async function getProjectWithGenerations(
   db: Db,
   workspaceId: string,

@@ -433,15 +433,53 @@ function ImageZoomModal({
 function EditTextDrawer({
   onClose,
   variantIndex,
+  variantId,
+  generationId,
+  onDone,
 }: {
   onClose: () => void;
   variantIndex: number;
+  variantId: string;
+  generationId: string;
+  onDone: (newUrl: string) => void;
 }) {
   const [vals, setVals] = useState({
     headline: "30% off",
     sub: "This week only",
     cta: "Shop the sale",
   });
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleRerender() {
+    setPending(true);
+    setError(null);
+    try {
+      const r = await fetch(
+        `/api/generations/${generationId}/variants/${variantId}/rerender`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ headline: vals.headline, subhead: vals.sub, cta: vals.cta }),
+        },
+      );
+      if (!r.ok) {
+        const json = (await r.json().catch(() => null)) as
+          | { error?: { message?: string } }
+          | null;
+        setError(json?.error?.message ?? "Re-render failed");
+        return;
+      }
+      const payload = (await r.json()) as { url: string };
+      onDone(payload.url);
+      onClose();
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <>
       <div className="scrim" onClick={onClose} />
@@ -491,14 +529,24 @@ function EditTextDrawer({
               />
             </div>
           ))}
+          {error ? (
+            <div className="t-small" style={{ color: "var(--layertone-red)", marginTop: 4 }}>
+              {error}
+            </div>
+          ) : null}
         </div>
         <div className="drawer__foot">
           <button type="button" className="btn btn--ghost" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="btn btn--accent" onClick={onClose}>
+          <button
+            type="button"
+            className="btn btn--accent"
+            onClick={() => void handleRerender()}
+            disabled={pending}
+          >
             <I.Refresh size={14} />
-            Re-render
+            {pending ? "Re-rendering…" : "Re-render"}
           </button>
         </div>
       </div>
@@ -932,8 +980,21 @@ export function GenerationView(props: {
         </div>
       ) : null}
 
-      {editing !== null ? (
-        <EditTextDrawer onClose={() => setEditing(null)} variantIndex={editing} />
+      {editing !== null && editing < variants.length ? (
+        <EditTextDrawer
+          onClose={() => setEditing(null)}
+          variantIndex={editing}
+          variantId={variants[editing]!.id}
+          generationId={props.generationId}
+          onDone={(url) => {
+            setState((s) =>
+              s
+                ? { ...s, variants: s.variants.map((v, i) => i === editing ? { ...v, url } : v) }
+                : s,
+            );
+            setEditing(null);
+          }}
+        />
       ) : null}
       {captionOpen ? (
         <CaptionModal

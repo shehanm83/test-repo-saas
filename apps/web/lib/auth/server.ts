@@ -28,6 +28,13 @@ export interface SessionWorkspace {
   status: string;
 }
 
+function configuredAdminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export async function getServerSession(): Promise<
   | (ServerSession & {
       workspaces: SessionWorkspace[];
@@ -74,12 +81,22 @@ export async function getServerSession(): Promise<
     return null;
   }
 
+  if (configuredAdminEmails().includes(user.email.toLowerCase()) && user.role !== "admin") {
+    const [promoted] = await db
+      .update(users)
+      .set({ role: "admin" })
+      .where(eq(users.id, user.id))
+      .returning();
+    if (promoted) user = promoted;
+  }
+
   const memberWorkspaces = await listWorkspacesForUser(db, user.id);
   const requestedWorkspaceId = requestHeaders.get("x-dev-workspace-id") ?? identity.workspaceId;
   const workspaceId =
-    requestedWorkspaceId && memberWorkspaces.some((workspace) => workspace.id === requestedWorkspaceId)
+    requestedWorkspaceId &&
+    memberWorkspaces.some((workspace) => workspace.id === requestedWorkspaceId)
       ? requestedWorkspaceId
-      : memberWorkspaces[0]?.id ?? null;
+      : (memberWorkspaces[0]?.id ?? null);
 
   return {
     authUserId: identity.userId,
@@ -128,9 +145,6 @@ export async function listWorkspaceMembers(workspaceId: string) {
     .from(workspaceMembers)
     .innerJoin(users, eq(workspaceMembers.userId, users.id))
     .where(
-      and(
-        eq(workspaceMembers.workspaceId, workspaceId),
-        isNotNull(workspaceMembers.acceptedAt),
-      ),
+      and(eq(workspaceMembers.workspaceId, workspaceId), isNotNull(workspaceMembers.acceptedAt)),
     );
 }

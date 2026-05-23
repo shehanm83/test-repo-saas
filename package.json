@@ -25,6 +25,8 @@
     "db:drizzle-studio": "pnpm --filter @layertone/db db:drizzle-studio",
     "db:seed": "tsx scripts/seed.ts",
     "db:seed:pricebook": "pnpm --filter @layertone/db exec tsx scripts/seed-pricebook.ts",
+    "predefined:home-showcase": "tsx predefined/home-showcase/upload.ts",
+    "predefined:landing-hero": "tsx predefined/landing-hero/upload.ts",
     "minio:bootstrap": "./scripts/minio-bootstrap.sh",
     "queue:bootstrap": "./scripts/queue-bootstrap.sh",
     "worker:dev": "pnpm --filter @layertone/worker dev"

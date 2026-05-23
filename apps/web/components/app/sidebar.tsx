@@ -56,6 +56,15 @@ export function Sidebar(props: {
       </Link>
 
       <Link
+        href="/products"
+        className={`nav-item ${isActive("/products") ? "is-active" : ""}`}
+        style={{ textDecoration: "none" }}
+      >
+        <I.Tag size={16} className="nav-item__icon" />
+        <span>Products</span>
+      </Link>
+
+      <Link
         href="/projects"
         className={`nav-item ${isActive("/projects") ? "is-active" : ""}`}
         style={{ textDecoration: "none" }}

@@ -1,59 +1,45 @@
 import React from "react";
 
-import { createDb, listLandingHeroCardsPublished } from "@layertone/db";
+import { HomeShowcaseApi } from "@layertone/api/home-showcase";
+import { LandingHeroApi } from "@layertone/api/landing-hero";
+import { DEFAULT_HOME_SHOWCASE_VIEW } from "@layertone/shared/home-showcase";
+import { DEFAULT_LANDING_HERO_SET } from "@layertone/shared/landing-hero";
 import { loadConfig } from "@layertone/shared/config";
-import { S3StorageAdapter } from "@layertone/storage";
 
 import { Landing } from "@/components/marketing/landing";
-import {
-  DEFAULT_HERO_CARDS,
-  pickRandomHeroCards,
-  type HeroCard,
-} from "@/components/marketing/hero-cards";
 import { getServerSession } from "@/lib/auth/server";
+import { createServerAdapters } from "@/lib/server/adapters";
 
 export const dynamic = "force-dynamic";
 
-async function loadHeroCards(): Promise<HeroCard[]> {
+async function loadHeroSet() {
   try {
-    const config = loadConfig();
-    const rows = await listLandingHeroCardsPublished(createDb(config.db.url, "app_admin"));
-    if (rows.length === 0) return pickRandomHeroCards(DEFAULT_HERO_CARDS, 4);
-    const storage = new S3StorageAdapter({
-      region: config.storage.region,
-      bucket: config.storage.bucketApp,
-      forcePathStyle: config.storage.mode === "minio",
-      ...(config.storage.endpoint ? { endpoint: config.storage.endpoint } : {}),
-      ...(config.storage.accessKeyId ? { accessKeyId: config.storage.accessKeyId } : {}),
-      ...(config.storage.secretAccessKey
-        ? { secretAccessKey: config.storage.secretAccessKey }
-        : {}),
-    });
-
-    const withUrls = await Promise.all(
-      rows.map(async (r) => ({
-        id: r.id,
-        imageUrl: await storage.getSignedUrl(r.s3Key, 3600),
-        headline: r.headline,
-        sub: r.sub,
-        textPosition: r.textPosition,
-        textColor: r.textColor,
-        brandInitials: r.brandInitials,
-        brandColor: r.brandColor,
-        brandTextColor: r.brandTextColor,
-        badgeText: r.badgeText,
-        badgeBg: r.badgeBg,
-        badgeColor: r.badgeColor,
-        rotation: r.rotation,
-      })),
-    );
-    return pickRandomHeroCards(withUrls, 4);
+    const api = new LandingHeroApi(loadConfig(), createServerAdapters() as never);
+    const published = await api.listPublishedSets();
+    return api.pickSetForRequest(published) ?? DEFAULT_LANDING_HERO_SET;
   } catch {
-    return pickRandomHeroCards(DEFAULT_HERO_CARDS, 4);
+    return DEFAULT_LANDING_HERO_SET;
+  }
+}
+
+async function loadHomeShowcase() {
+  try {
+    const api = new HomeShowcaseApi(loadConfig(), createServerAdapters() as never);
+    const showcase = await api.getHomeView();
+    return {
+      ...showcase,
+      images: api.pickImagesForRequest(showcase.images, 5),
+    };
+  } catch {
+    return DEFAULT_HOME_SHOWCASE_VIEW;
   }
 }
 
 export default async function HomePage() {
-  const [session, heroCards] = await Promise.all([getServerSession(), loadHeroCards()]);
-  return <Landing isAuthed={!!session} heroCards={heroCards} />;
+  const [session, hero, showcase] = await Promise.all([
+    getServerSession(),
+    loadHeroSet(),
+    loadHomeShowcase(),
+  ]);
+  return <Landing isAuthed={!!session} hero={hero} showcase={showcase} />;
 }

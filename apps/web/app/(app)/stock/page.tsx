@@ -2,9 +2,17 @@ import { StockApi } from "@layertone/api/stock";
 import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
+import { createServerAdapters } from "@/lib/server/adapters";
 
 export default async function StockPage() {
   const items = await new StockApi(loadConfig(), {} as never).adminList().catch(() => []);
+  const adapters = createServerAdapters();
+  const itemsWithUrls = await Promise.all(
+    items.map(async (item) => ({
+      ...item,
+      url: await adapters.storage.getSignedUrl(item.s3Key, 60 * 60).catch(() => null),
+    }))
+  );
 
   return (
     <div className="page page--wide">
@@ -56,7 +64,7 @@ export default async function StockPage() {
             gap: 12,
           }}
         >
-          {items.map((item) => (
+          {itemsWithUrls.map((item) => (
             <div
               key={item.id}
               className="card"
@@ -66,13 +74,12 @@ export default async function StockPage() {
                 transition: "transform 160ms",
               }}
             >
-              <div
-                style={{
-                  aspectRatio: "1/1",
-                  background:
-                    "linear-gradient(135deg, var(--cal-gray-100) 0%, var(--cal-gray-200) 100%)",
-                }}
-              />
+              <div style={{ aspectRatio: "1/1", background: "var(--cal-gray-100)", overflow: "hidden" }}>
+                {item.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.url} alt={item.kind} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : null}
+              </div>
               <div style={{ padding: "10px 14px" }}>
                 <div style={{ fontSize: 13, fontWeight: 500 }}>{item.kind}</div>
                 <div

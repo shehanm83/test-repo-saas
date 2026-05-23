@@ -1,6 +1,6 @@
 import chromium from "@sparticuz/chromium";
 import puppeteer, { type Browser } from "puppeteer-core";
-import type { RenderInput, RenderOutput } from "./types.js";
+import type { RenderInput, RenderOutput } from "./types";
 
 let cachedBrowser: Browser | null = null;
 
@@ -8,8 +8,7 @@ async function getBrowser(): Promise<Browser> {
   if (cachedBrowser) return cachedBrowser;
   cachedBrowser = await puppeteer.launch({
     args: chromium.args,
-    executablePath:
-      process.env.PUPPETEER_EXECUTABLE_PATH ?? (await chromium.executablePath()),
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH ?? (await chromium.executablePath()),
     headless: true,
     defaultViewport: null,
   });
@@ -38,10 +37,7 @@ export async function renderTemplateBrowser(input: RenderInput): Promise<RenderO
 }
 
 function renderToHtml(input: RenderInput): string {
-  const factory = new Function(
-    "input",
-    `${input.templateJsxSource}; return templateHtml(input);`,
-  );
+  const factory = new Function("input", `${input.templateJsxSource}; return templateHtml(input);`);
   const body = factory({
     background: {
       dataUrl: `data:${input.background.mimeType};base64,${Buffer.from(input.background.bytes).toString("base64")}`,

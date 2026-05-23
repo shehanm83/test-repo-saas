@@ -2,6 +2,7 @@ export * from "./client";
 export * from "./queries/brand";
 export * from "./queries/caption";
 export * from "./queries/generation";
+export * from "./queries/home-showcase";
 export * from "./schema";
 export * from "./queries/identity";
 export * from "./queries/mood";

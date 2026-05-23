@@ -41,7 +41,7 @@ export function routeQuickCreatePrompt(input: Pick<NormalizedCommercialGeneratio
 }
 
 export function buildQuickCreatePrompt(input: BuildQuickCreatePromptInput): BuiltPrompt {
-  if (input.normalized.mode !== "quick") {
+  if (input.normalized.mode !== "quick" && input.normalized.mode !== "campaign_builder") {
     throw new Error(`prompt-template-mode-not-supported:${input.normalized.mode}`);
   }
 

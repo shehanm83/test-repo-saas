@@ -13,6 +13,8 @@
     "./errors/codes": "./src/errors/codes.ts",
     "./generation/commercial-contract": "./src/generation/commercial-contract.ts",
     "./generation/preflight": "./src/generation/preflight.ts",
+    "./home-showcase": "./src/home-showcase.ts",
+    "./landing-hero": "./src/landing-hero.ts",
     "./output-targets": "./src/output-targets/index.ts",
     "./prompt-templates": "./src/prompt-templates/index.ts",
     "./templates/schema": "./src/templates/schema.ts"

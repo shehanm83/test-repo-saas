@@ -17,6 +17,9 @@ export function TemplateStudio(props: {
   const [selectedId, setSelectedId] = useState(props.templates[0]?.id ?? "");
   const selected = props.templates.find((t) => t.id === selectedId) ?? null;
   const [jsx, setJsx] = useState(selected?.jsxSource ?? "");
+  const [previewBrandName, setPreviewBrandName] = useState("Brand");
+  const [previewPrimary, setPreviewPrimary] = useState("#5E5CE6");
+  const [previewKey, setPreviewKey] = useState(0);
 
   React.useEffect(() => {
     setJsx(selected?.jsxSource ?? "");
@@ -93,6 +96,43 @@ export function TemplateStudio(props: {
               >
                 {selected.status}
               </span>
+            </div>
+            <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+              <div className="t-eyebrow" style={{ marginBottom: 12 }}>Preview</div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div>
+                  <label className="label">Brand name</label>
+                  <input
+                    className="input"
+                    value={previewBrandName}
+                    onChange={(e) => setPreviewBrandName(e.target.value)}
+                    style={{ width: 180 }}
+                  />
+                </div>
+                <div>
+                  <label className="label">Primary colour</label>
+                  <input
+                    type="color"
+                    value={previewPrimary}
+                    onChange={(e) => setPreviewPrimary(e.target.value)}
+                    style={{ width: 48, height: 36, padding: 2, cursor: "pointer", border: "1px solid var(--cal-gray-200)", borderRadius: 6 }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--sm"
+                  onClick={() => setPreviewKey((k) => k + 1)}
+                >
+                  <I.Refresh size={13} /> Refresh
+                </button>
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={previewKey}
+                src={`/api/admin/templates/${selected.id}/preview?brandName=${encodeURIComponent(previewBrandName)}&primary=${encodeURIComponent(previewPrimary)}`}
+                alt="Template preview"
+                style={{ width: "100%", maxWidth: 400, borderRadius: 8, boxShadow: "var(--shadow-ring)", display: "block" }}
+              />
             </div>
             <div className="card" style={{ padding: 20 }}>
               <label className="label">JSX source</label>

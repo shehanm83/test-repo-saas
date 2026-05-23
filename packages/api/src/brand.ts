@@ -197,9 +197,8 @@ export class BrandApi {
     const storedKey = keys.brandAsset(workspaceId, brandId, assetId, ext);
     await this.adapters.storage.putBytes(storedKey, bytes, mimeType);
 
-    const description = await this.adapters.ai.describeImage(storedKey);
-    const embedding = new Array(1536).fill(0);
-    embedding[0] = description.description.length;
+    const { description } = await this.adapters.ai.describeImage(storedKey);
+    const { vector: embedding } = await this.adapters.ai.embedText(description).catch(() => ({ vector: new Array(1536).fill(0) as number[] }));
 
     return addBrandAsset(this.db(), workspaceId, {
       id: assetId,

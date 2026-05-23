@@ -9,6 +9,7 @@ import { WorkspaceSwitcher } from "./workspace-switcher";
 export function TopBar(props: {
   balance: number;
   email: string;
+  authMode: "clerk" | "dev";
   isAdmin: boolean;
   workspaceId: string | null;
   workspaces: Array<{ id: string; name: string }>;
@@ -24,11 +25,7 @@ export function TopBar(props: {
 
       <div className="grow" />
 
-      <Link
-        href="/billing"
-        className="topbar__credits"
-        style={{ textDecoration: "none" }}
-      >
+      <Link href="/billing" className="topbar__credits" style={{ textDecoration: "none" }}>
         <I.Zap size={12} style={{ color: "var(--layertone-violet)" }} />
         <span>{props.balance.toLocaleString()} credits</span>
       </Link>
@@ -37,7 +34,7 @@ export function TopBar(props: {
         <I.Bell size={16} />
       </button>
 
-      <AvatarMenu email={props.email} isAdmin={props.isAdmin} />
+      <AvatarMenu authMode={props.authMode} email={props.email} isAdmin={props.isAdmin} />
     </div>
   );
 }

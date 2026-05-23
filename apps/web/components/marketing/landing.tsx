@@ -2,23 +2,13 @@ import Link from "next/link";
 import React from "react";
 
 import { PLANS, type PlanCode } from "@layertone/billing";
+import type { HomeShowcaseView } from "@layertone/shared/home-showcase";
+import type { LandingHeroSetView } from "@layertone/shared/landing-hero";
 
 import { LayertoneMark } from "@/components/brand/layertone-mark";
 import { I } from "@/components/icons";
 
-import type { HeroCard } from "./hero-cards";
 import { HeroCardImage } from "./hero-cards";
-
-const STOCK = [
-  "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=600&q=80",
-  "https://images.unsplash.com/photo-1481833761820-0509d3217039?w=600&q=80",
-  "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=600&q=80",
-  "https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=600&q=80",
-  "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&q=80",
-  "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&q=80",
-  "https://images.unsplash.com/photo-1509557965875-b88c97052f0e?w=600&q=80",
-  "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
-];
 
 const MOODS = [
   {
@@ -63,14 +53,17 @@ const PLAN_FEATURES: Record<PlanCode, string[]> = {
 
 export function Landing({
   isAuthed = false,
-  heroCards,
+  hero,
+  showcase,
 }: {
   isAuthed?: boolean;
-  heroCards: HeroCard[];
+  hero: LandingHeroSetView;
+  showcase: HomeShowcaseView;
 }) {
-  const primaryHref = isAuthed ? "/generate" : "/sign-up";
-  const primaryLabel = "Open Layertone";
+  const primaryHref = isAuthed ? "/generate" : hero.config.primaryCta.href;
+  const primaryLabel = hero.config.primaryCta.label;
   const navPrimaryLabel = isAuthed ? "Open Layertone" : "Get Started Free";
+  const cards = [...hero.cards].sort((a, b) => a.slot - b.slot);
   return (
     <div style={{ background: "#FCF7EE", minHeight: "100vh", overflow: "hidden" }}>
       <section id="product" className="lt-home-hero">
@@ -105,59 +98,46 @@ export function Landing({
         <div className="lt-home-hero-grid">
           <div className="lt-home-copy">
             <h1 className="lt-home-title">
-              On-brand images,
+              {hero.config.headline.line1}
               <br />
-              <span className="lt-home-title-blue">in</span>{" "}
-              <span className="lt-home-title-purple">a</span>{" "}
-              <span className="lt-home-title-gradient">sentence.</span>
+              <span className="lt-home-title-blue">{hero.config.headline.line2Prefix}</span>{" "}
+              <span className="lt-home-title-purple">{hero.config.headline.line2Middle}</span>{" "}
+              <span className="lt-home-title-gradient">{hero.config.headline.line2Suffix}</span>
             </h1>
-            <p className="lt-home-lede">
-              Describe what you want. Pick your brand. Click generate. Layertone creates stunning,
-              on-brand content for every platform.
-            </p>
+            <p className="lt-home-lede">{hero.config.lede}</p>
             <div className="lt-home-ctas">
               <Link className="lt-home-main-cta" href={primaryHref}>
                 {primaryLabel}
                 <I.ArrowRight size={18} strokeWidth={2.2} />
               </Link>
-              <a className="lt-home-video-cta" href="#showcase">
-                <I.Play size={16} strokeWidth={2} />
-                See it in action &middot; 90s
-              </a>
+              {hero.config.secondaryCta.enabled ? (
+                <a className="lt-home-video-cta" href={hero.config.secondaryCta.href}>
+                  <I.Play size={16} strokeWidth={2} />
+                  {hero.config.secondaryCta.label}
+                </a>
+              ) : null}
             </div>
             <div className="lt-home-proof">
-              <span>
-                <I.Check size={14} strokeWidth={2.4} />
-                Free for one brand
-              </span>
-              <span>
-                <I.Check size={14} strokeWidth={2.4} />
-                No card required
-              </span>
-              <span>
-                <I.Check size={14} strokeWidth={2.4} />
-                Cancel anytime
-              </span>
+              {hero.config.proofItems.map((item) => (
+                <span key={item}>
+                  <I.Check size={14} strokeWidth={2.4} />
+                  {item}
+                </span>
+              ))}
             </div>
 
             <div className="lt-home-prompt-card">
               <div className="lt-home-brief">
                 <span>Brief</span>
-                <p>
-                  &ldquo;Christmas sale, cozy living
-                  <br />
-                  room with a glowing tree, 30%
-                  <br />
-                  off&rdquo;
-                </p>
+                <p>{hero.config.prompt.brief}</p>
               </div>
               <div className="lt-home-brand">
                 <span>Brand</span>
                 <div className="lt-home-brand-row">
-                  <div className="lt-home-brand-badge">NW</div>
-                  <strong>Your Brand</strong>
+                  <div className="lt-home-brand-badge">{hero.config.prompt.brandInitials}</div>
+                  <strong>{hero.config.prompt.brandName}</strong>
                   <div className="lt-home-swatches">
-                    {["#06122f", "#534660", "#b9a39a", "#d9ceb7"].map((c) => (
+                    {hero.config.prompt.swatches.map((c) => (
                       <i key={c} style={{ background: c }} />
                     ))}
                   </div>
@@ -167,7 +147,7 @@ export function Landing({
                   <div>
                     <I.Snowflake size={12} strokeWidth={2.2} />
                   </div>
-                  <strong>Christmas</strong>
+                  <strong>{hero.config.prompt.moodName}</strong>
                 </div>
               </div>
             </div>
@@ -175,7 +155,7 @@ export function Landing({
 
           <div className="lt-home-card-collage" aria-hidden="true">
             <div className="lt-home-dots" />
-            {heroCards.slice(0, 4).map((card, i) => {
+            {cards.slice(0, 4).map((card, i) => {
               const slots = [
                 { top: 20, left: 12, width: 314, rotate: -4, z: 2 },
                 { top: 10, left: 368, width: 318, rotate: 4, z: 3 },
@@ -203,19 +183,10 @@ export function Landing({
         </div>
 
         <div className="lt-home-trust">
-          <span>
-            Trusted by 1,400+ teams
-          </span>
-          {[
-            ["NORTHWIND", "#00568f"],
-            ["LUMEN", "#06a348"],
-            ["ATLAS", "#1265ff"],
-            ["KESTREL", "#151925"],
-            ["PALOMA", "#7856d8"],
-            ["HEMLOCK", "#00a158"],
-          ].map(([n, color]) => (
-            <strong key={n} style={{ color }}>
-              {n}
+          <span>{hero.config.trust.label}</span>
+          {hero.config.trust.teams.map((team) => (
+            <strong key={team.name} style={{ color: team.color }}>
+              {team.name}
             </strong>
           ))}
         </div>
@@ -286,8 +257,7 @@ export function Landing({
                   style={{
                     position: "absolute",
                     inset: 0,
-                    background:
-                      "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)",
+                    background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)",
                   }}
                 />
                 <div
@@ -372,8 +342,7 @@ export function Landing({
                 {
                   n: "01",
                   t: "Set up your brand",
-                  d:
-                    "Upload a logo, paste your colors, pick fonts. About 30 seconds. Or paste your URL — we'll grab them for you.",
+                  d: "Upload a logo, paste your colors, pick fonts. About 30 seconds. Or paste your URL — we'll grab them for you.",
                   icon: <I.Briefcase size={22} />,
                   bg: "linear-gradient(135deg, #FFE5C7, #FBC8A6)",
                   iconBg: "#C97A3F",
@@ -381,8 +350,7 @@ export function Landing({
                 {
                   n: "02",
                   t: "Describe what you want",
-                  d:
-                    "One or two sentences. Optionally pick a published Mood from your production catalog.",
+                  d: "One or two sentences. Optionally pick a published Mood from your production catalog.",
                   icon: <I.Wand size={22} />,
                   bg: "linear-gradient(135deg, #E8E7FA, #D4D2F5)",
                   iconBg: "#5E5CE6",
@@ -390,8 +358,7 @@ export function Landing({
                 {
                   n: "03",
                   t: "Click generate",
-                  d:
-                    "Receive 3–4 finished, brand-correct images in seconds. Download. Edit text inline. Regenerate variants you don't like.",
+                  d: "Receive 3–4 finished, brand-correct images in seconds. Download. Edit text inline. Regenerate variants you don't like.",
                   icon: <I.Sparkle size={22} />,
                   bg: "linear-gradient(135deg, #D7E5C7, #B8D4A0)",
                   iconBg: "#1F7A5A",
@@ -452,10 +419,10 @@ export function Landing({
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
             <div className="t-eyebrow" style={{ color: "#C97A3F" }}>
-              Real work, in seconds
+              {showcase.config.kicker}
             </div>
             <h2 className="t-h1" style={{ marginTop: 8 }}>
-              The output, not the canvas.
+              {showcase.config.galleryHeading}
             </h2>
           </div>
           <div
@@ -478,7 +445,7 @@ export function Landing({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={STOCK[0]}
+                src={showcase.images[0]?.imageUrl}
                 style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.92 }}
                 alt=""
               />
@@ -498,9 +465,9 @@ export function Landing({
                 </div>
               </div>
             </div>
-            {[STOCK[3], STOCK[7], STOCK[2], STOCK[4]].map((s, i) => (
+            {showcase.images.slice(1, 5).map((image) => (
               <div
-                key={s}
+                key={image.id}
                 style={{
                   borderRadius: 12,
                   overflow: "hidden",
@@ -510,7 +477,7 @@ export function Landing({
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={s}
+                  src={image.imageUrl}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   alt=""
                 />
@@ -523,7 +490,7 @@ export function Landing({
                       fontSize: 10,
                     }}
                   >
-                    {["Brand", "Brand", "Brand", "Brand"][i]}
+                    Brand
                   </span>
                 </div>
               </div>
@@ -543,49 +510,25 @@ export function Landing({
       >
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <h2 className="t-h1" style={{ maxWidth: 720, marginBottom: 48 }}>
-            Not a canvas. Not a chatbot. A brand-correct image generator.
+            {showcase.config.differentiatorHeading}
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-            {(
-              [
-                {
-                  vs: "vs. Canva",
-                  h: "You don't design. We deliver.",
-                  b:
-                    "No layers, no font picker, no manual layout. The image arrives finished — branded, sized, captioned.",
-                  color: "#C97A3F",
-                },
-                {
-                  vs: "vs. Midjourney",
-                  h: "Brand-correct by construction.",
-                  b:
-                    "Your real logo, your real fonts, your real colors. Not an approximation. Not a hallucinated lookalike.",
-                  color: "#5E5CE6",
-                },
-                {
-                  vs: "vs. AdCreative.ai",
-                  h: "Curated Mood library.",
-                  b:
-                    "Blend seasonal and aesthetic style packs with your brand under your control. Christmas without abandoning your palette.",
-                  color: "#1F7A5A",
-                },
-              ] as const
-            ).map((d) => (
+            {showcase.config.cards.map((d) => (
               <div
-                key={d.vs}
+                key={d.eyebrow}
                 className="card"
                 style={{ padding: 0, overflow: "hidden", background: "white" }}
               >
                 <div style={{ height: 4, background: d.color }} />
                 <div style={{ padding: 28 }}>
                   <div className="t-eyebrow" style={{ color: d.color, marginBottom: 12 }}>
-                    {d.vs}
+                    {d.eyebrow}
                   </div>
                   <h3 className="t-h3" style={{ margin: "0 0 12px" }}>
-                    {d.h}
+                    {d.heading}
                   </h3>
                   <p className="t-body-muted" style={{ margin: 0 }}>
-                    {d.b}
+                    {d.body}
                   </p>
                 </div>
               </div>
@@ -670,10 +613,7 @@ export function Landing({
                     }}
                   >
                     {PLAN_FEATURES[code].map((f) => (
-                      <li
-                        key={f}
-                        style={{ display: "flex", gap: 8, alignItems: "flex-start" }}
-                      >
+                      <li key={f} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
                         <I.Check size={12} style={{ marginTop: 5, flexShrink: 0 }} />
                         {f}
                       </li>
@@ -705,8 +645,7 @@ export function Landing({
       <section
         style={{
           padding: "72px 24px",
-          background:
-            "linear-gradient(135deg, #FFE5C7 0%, #E8E7FA 50%, #D7E5C7 100%)",
+          background: "linear-gradient(135deg, #FFE5C7 0%, #E8E7FA 50%, #D7E5C7 100%)",
           position: "relative",
           overflow: "hidden",
         }}

@@ -103,7 +103,7 @@ function buildQuickCreateNormalized(args: {
 }): NormalizedCommercialGenerationInput {
   const flags = args.settings.flags ?? {};
   return {
-    mode: "quick",
+    mode: args.commercial.mode === "campaign_builder" ? "campaign_builder" : "quick",
     creationType: args.commercial.creation_type ?? "single_product",
     brandId: args.brandId,
     projectId: args.commercial.project_id ?? null,
@@ -351,7 +351,7 @@ export class GenerationWorker {
             inArray(brandAssets.id, selectedLogoIds),
           ),
         );
-      if (commercial?.mode !== "quick") {
+      if (commercial?.mode !== "quick" && commercial?.mode !== "campaign_builder") {
         selectedLogoRefs = selectedLogoAssets.map((row) => ({
           s3Key: row.s3Key,
           role: "brand_reference" as const,
@@ -396,7 +396,7 @@ export class GenerationWorker {
 
     const target = resolveWorkerTarget(settings.output_target, commercial?.primary_output_target);
     const quickPrompt =
-      commercial?.mode === "quick"
+      commercial?.mode === "quick" || commercial?.mode === "campaign_builder"
         ? buildQuickCreatePrompt({
             normalized: buildQuickCreateNormalized({
               settings,

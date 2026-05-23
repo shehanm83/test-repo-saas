@@ -4,6 +4,7 @@ export { CaptionApi } from "./caption";
 export { GenerationApi } from "./generation";
 export { GenerationEstimateApi } from "./generation-estimate";
 export { GenerationPreflightApi } from "./generation-preflight";
+export { HomeShowcaseApi } from "./home-showcase";
 export { InspirationUploadApi } from "./inspiration";
 export { LandingHeroApi } from "./landing-hero";
 export { MoodApi } from "./mood";

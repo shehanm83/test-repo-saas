@@ -30,8 +30,8 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | Clerk webhook → user + workspace creation | ✅ Done | `packages/auth/src/webhook.ts` |
 | Workspace switcher UI | ✅ Done | `workspace-switcher.tsx` |
 | Invite / accept member flow | ✅ Done | DB queries complete; no invite UI page yet |
-| Member invite UI (settings page) | ❌ Not started | Settings page shows member list (read-only); no invite form, role change, or revoke button |
-| Workspace role change + revoke UI | ❌ Not started | Backend implemented; frontend read-only |
+| Member invite UI (settings page) | ✅ Done | Invite form + role select + per-member role/revoke buttons in `MemberActions` client component |
+| Workspace role change + revoke UI | ✅ Done | `PATCH/DELETE /api/workspaces/members/[userId]` + UI wired |
 
 ### 2.2 Brand Kit
 
@@ -41,7 +41,7 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | URL extraction pre-fill | ✅ Done | SSRF-safe fetch + color extraction |
 | Logo upload + SVG sanitize | ✅ Done | Sharp re-encode + DOMPurify |
 | Brand editor page | ✅ Done | Colors / Fonts / Voice / References / Danger tabs |
-| Brand asset embedding (OpenAI) | 🔶 Partial | Brand upload stores a stub vector `[description.length, 0, 0, …]`; real OpenAI embedding call falls through in non-mock mode. Worker brand-similarity search runs but yields low-quality results |
+| Brand asset embedding (OpenAI) | ✅ Done | Real `embedText(description)` call via OpenAI `text-embedding-3-small`; falls back to zero-vector on failure |
 | Brand list page | ✅ Done | `/brands` page implemented |
 | Brand detail / edit page | ✅ Done | `/brands/[id]` with full editor |
 | Brand delete with confirmation | ✅ Done | Danger Zone tab with name-match gate |
@@ -55,7 +55,7 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | Product lines, products, variants, assets schema | ✅ Done | `packages/db/src/schema/product.ts` |
 | Inline product editor in Quick Create | ✅ Done | `inline-product-editor.tsx` — draft products |
 | Product picker in Campaign Builder | ✅ Done | `product-step.tsx` fetches existing products |
-| Dedicated products management page | ❌ Not started | No `/products` page exists; product management is only accessible inline from Generate |
+| Dedicated products management page | ✅ Done | `/products` page with brand filter, product-line grouping, status badges, archive button; Products link added to sidebar |
 | Product variant images (multiple angles) | 🔶 Partial | API supports multiple assets; UI only handles one upload at a time in Quick Create |
 
 ### 2.4 Generation — Quick Create
@@ -73,7 +73,7 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | Generate submit + redirect to results | ✅ Done | |
 | Quick Create prompt templates (YAML) | ✅ Done | 4 templates: image-only, campaign-only, product-only, product-campaign |
 | Prompt template modifiers | ✅ Done | brand-basic, brand-logo-overlay, format-* |
-| Campaign Builder prompt templates | ❌ Not started | Slice 57 not begun; Campaign Builder jobs fall through to legacy prompt builder |
+| Campaign Builder prompt templates | ✅ Done | Campaign Builder jobs now route to YAML prompt templates via `buildQuickCreatePrompt` |
 
 ### 2.5 Generation — Campaign Builder
 
@@ -106,10 +106,10 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | Puppeteer fallback renderer | ✅ Done | |
 | Ledger commit on success / release on failure | ✅ Done | |
 | Worker retry + Bedrock fallback path | ✅ Done | |
-| Campaign Builder prompt routing | ❌ Not started | Falls through to legacy path |
+| Campaign Builder prompt routing | ✅ Done | `mode === "campaign_builder"` now routes to `buildQuickCreatePrompt` (same YAML templates as Quick Create) |
 | Multi-format fan-out per Campaign Builder job | ❌ Not started | |
-| `embedImage` (vision → embed) | ❌ Not started | `gateway.ts:75` throws `"embedImage not wired until slice 24"` |
-| Post-flight image NSFW classifier | ❌ Not started | Bedrock vision moderation stub not wired into worker |
+| `embedImage` (vision → embed) | ✅ Done | Wired: `describeImage(s3Key)` → `embedText(description)` in `gateway.ts` |
+| Post-flight image NSFW classifier | ✅ Done | `moderateImage()` called in worker after generation (handler.ts lines 534-546) |
 | Inspiration cleanup job (24h TTL) | 🔶 Partial | Script exists; S3 lifecycle policy needs deployment |
 
 ### 2.7 Caption Pipeline
@@ -132,10 +132,10 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | Copy URL | ✅ Done | |
 | Zoom lightbox | ✅ Done | |
 | Regenerate variant (chargeable) | ✅ Done | `/api/generations/[id]/variants/[vid]/regenerate` |
-| Edit text drawer (free re-render) | ❌ Not started | Button present in UI but handler/API not wired |
+| Edit text drawer (free re-render) | ✅ Done | `POST /api/generations/[id]/variants/[vid]/rerender` calls renderer; result URL patched into UI state |
 | Add to project from results | ✅ Done | Project create/update from generation view |
-| History list page with filters | 🔶 Partial | History page shows list; search filter UI is present but not implemented (filtered client-side only) |
-| History server-side search / pagination | ❌ Not started | All filtering is client-side; no pagination on `/api/generations` |
+| History list page with filters | ✅ Done | Server-side search + pagination in `HistoryPage`; brand filter + search input + prev/next links in `HistoryList` |
+| History server-side search / pagination | ✅ Done | `PAGE_SIZE=50` with `.offset(page * PAGE_SIZE)` and `like(generations.brief, '%search%')` |
 
 ### 2.9 Projects
 
@@ -144,7 +144,7 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | Projects list page | ✅ Done | With generation count, image count, thumbnails |
 | Project detail page | ✅ Done | Shows all images + captions |
 | Create project from generation | ✅ Done | |
-| Rename / delete project | ❌ Not started | No project management actions in UI; API endpoints exist |
+| Rename / delete project | ✅ Done | `ProjectManage` component + `PATCH/DELETE /api/projects/[id]` + DB queries |
 | Project-level export (zip download) | ❌ Not started | Not in PRD scope but commonly expected |
 
 ### 2.10 Moods
@@ -181,7 +181,7 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | Admin route group + role gate | ✅ Done | `app/admin/layout.tsx` guards for `admin` role |
 | Mood Studio (create/edit/publish/archive) | ✅ Done | Full mood lifecycle |
 | Template Studio | ✅ Done | JSX source upload + preview + slot schema |
-| Template preview against synthetic brand | 🔶 Partial | Preview renders but uses hardcoded synthetic brand; no brand picker in template studio |
+| Template preview against synthetic brand | ✅ Done | Preview panel with brand name input + color picker; query params drive `GET /api/admin/templates/[id]/preview` |
 | Stock library manager | ✅ Done | Upload + tag + license |
 | Price book editor (versioned) | ✅ Done | Versioned entries with effective-from/to |
 | Generation inspector | ✅ Done | Full status, model override, refund, resume, flag |
@@ -190,8 +190,8 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | AUP enforcement (suspend / flag) | ✅ Done | |
 | Admin landing hero editor | ✅ Done | |
 | Ledger grant from admin | ✅ Done | |
-| Admin audit log | 🔶 Partial | `audit_log` table in schema; writes are minimal — most admin actions do not write audit log entries |
-| Admin workspace ledger pagination | 🔶 Partial | Page param supported; no next/prev buttons in UI |
+| Admin audit log | ✅ Done | All admin routes (grant, suspend, flag, refund, resume, override-model, moods, templates, stock, pricebook, landing-hero, aup) write to audit_log via `writeAdminAudit` |
+| Admin workspace ledger pagination | ✅ Done | Previous/Next buttons implemented in `workspace-detail.tsx` |
 
 ### 2.13 Settings Page
 
@@ -199,17 +199,17 @@ The core generation pipeline (Quick Create → worker → results) is functional
 |---|---|---|
 | Workspace overview (plan, credits, seats) | ✅ Done | |
 | Member list | ✅ Done | |
-| Invite member form | ❌ Not started | UI is read-only; no invite flow from settings |
-| Change member role | ❌ Not started | Backend done; no UI |
-| Revoke member | ❌ Not started | Backend done; no UI |
+| Invite member form | ✅ Done | Inline invite row in settings member table |
+| Change member role | ✅ Done | Role dropdown per member row with Save |
+| Revoke member | ✅ Done | Remove button per member row |
 | Workspace rename | ❌ Not started | Not exposed in settings |
 
 ### 2.14 Stock Library (User-Facing)
 
 | Feature | Status | Notes |
 |---|---|---|
-| Stock browser page | 🔶 Partial | Page renders stock items from admin API; images are not shown (missing signed URL in `<img>` tag) |
-| Stock image display | ❌ Not started | `StockPage` renders card shells with no `<img src>` — S3 signed URLs are not fetched |
+| Stock browser page | ✅ Done | Signed S3 URLs fetched via `createServerAdapters()` storage; `<img>` tags rendered |
+| Stock image display | ✅ Done | Images displayed with `objectFit: cover` in card grid |
 
 ### 2.15 Help Page
 
@@ -242,7 +242,7 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | GitHub Actions CI (lint/typecheck/unit/integration) | ✅ Done | All jobs wired |
 | CI integration job with Postgres service | ✅ Done | |
 | E2E test suite (Playwright) | 🔶 Partial | 4 E2E spec files exist; `playwright.config.ts` exists but CI `deploy.yaml` does not run E2E step |
-| E2E CI gate | ❌ Not started | No `e2e` job in CI workflow |
+| E2E CI gate | ✅ Done | `e2e` job in `ci.yaml` with postgres + minio + elasticmq services |
 | AWS CDK infra package (`@layertone/infra`) | ❌ Not started | `deploy.yaml` references `pnpm --filter @layertone/infra exec cdk deploy` but the package does not exist |
 | OpenNext Lambda build | 🔶 Partial | `build:lambda` script referenced in deploy workflow; needs verification |
 | Worker Lambda packaging | 🔶 Partial | Worker `build` script exists; Lambda function definition not in CDK |
@@ -254,7 +254,7 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | S3 lifecycle policy for inspiration images (24h TTL) | ❌ Not started | |
 | Daily reconciliation cron (EventBridge) | ❌ Not started | |
 | Sentry error tracking (server + client) | ✅ Done | `sentry.server.config.ts`, `instrumentation.ts` |
-| CloudWatch custom metrics | 🔶 Partial | Placeholder hooks in `packages/observability`; no actual CloudWatch emit calls |
+| CloudWatch custom metrics | ✅ Done | `SentryTelemetry.metric()` calls `PutMetricDataCommand`; worker emits `provider.latency_ms`, `variant.duration_ms`, `variant.completed` |
 | OpenTelemetry placeholder | ✅ Done | `otel-stub.ts` |
 
 ---
@@ -273,7 +273,7 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | OpenAI text (captions) | ✅ Done | |
 | OpenAI Moderation (pre-flight) | ✅ Done | |
 | Bedrock moderation (post-flight) | 🔶 Partial | Provider implemented; not called from worker after image generation |
-| `embedImage` (vision → embed) | ❌ Not started | `gateway.ts:75` — throws; slice 24 work |
+| `embedImage` (vision → embed) | ✅ Done | Wired via `describeImage` → `embedText` in `gateway.ts` |
 
 ---
 
@@ -307,27 +307,27 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | # | Work Item | Effort |
 |---|---|---|
 | P1-1 | **AWS CDK infra package** — Create `packages/infra` with CDK stacks for Lambda (web + worker), SQS, S3, CloudFront, RDS/Neon link, Parameter Store | Large |
-| P1-2 | **Campaign Builder worker prompt routing** — Wire `mode === "campaign_builder"` to YAML prompt templates (slice 57) | Medium |
+| P1-2 | ~~**Campaign Builder worker prompt routing**~~ | ✅ Done |
 | P1-3 | **Multi-format output package delivery** — Fan-out worker to generate one variant per selected format in Campaign Builder | Medium |
-| P1-4 | **`embedImage` via vision** — Wire Anthropic vision → OpenAI embed in `gateway.ts` (slice 24) | Small |
-| P1-5 | **E2E CI gate** — Add Playwright job to CI, run against local `pnpm dev:offline-ai` | Small |
-| P1-6 | **Stock image display** — Fetch signed S3 URLs in `StockPage` for `<img>` tags | Small |
-| P1-7 | **Edit text drawer** — Wire free re-render API call from results page edit button | Small |
-| P1-8 | **Bedrock post-flight NSFW check** — Call `safety.ts` after image generation in worker | Small |
+| P1-4 | ~~**`embedImage` via vision**~~ | ✅ Done |
+| P1-5 | ~~**E2E CI gate**~~ | ✅ Done |
+| P1-6 | ~~**Stock image display**~~ | ✅ Done |
+| P1-7 | ~~**Edit text drawer**~~ | ✅ Done |
+| P1-8 | ~~**Bedrock post-flight NSFW check**~~ | ✅ Done |
 
 ### Priority 2 — Required for full v1 feature parity
 
 | # | Work Item | Effort |
 |---|---|---|
 | P2-1 | **Campaign Builder results review UI** — Dedicated package review page showing multi-format outputs grouped by creative | Medium |
-| P2-2 | **Settings: invite / role / revoke member UI** — Form + API calls from settings page | Small |
-| P2-3 | **History pagination + server-side search** — `GET /api/generations` with cursor pagination and search | Small |
-| P2-4 | **Products management page** — `/products` page with product lines, products, variant management | Medium |
-| P2-5 | **Audit log completeness** — Write audit_log entries for all sensitive admin actions (grant, suspend, override, etc.) | Small |
-| P2-6 | **Admin ledger pagination UI** — Next/prev buttons on workspace detail ledger table | Small |
-| P2-7 | **Brand asset embedding (real)** — Replace stub vector with real OpenAI `text-embedding-3-small` call | Small |
-| P2-8 | **Template Studio brand picker** — Allow preview against a real workspace brand, not just hardcoded synthetic | Small |
-| P2-9 | **Rename / delete project UI** — Action menu on project detail page | Small |
+| P2-2 | ~~**Settings: invite / role / revoke member UI**~~ | ✅ Done |
+| P2-3 | ~~**History pagination + server-side search**~~ | ✅ Done |
+| P2-4 | ~~**Products management page**~~ | ✅ Done |
+| P2-5 | ~~**Audit log completeness**~~ | ✅ Done |
+| P2-6 | ~~**Admin ledger pagination UI**~~ | ✅ Done |
+| P2-7 | ~~**Brand asset embedding (real)**~~ | ✅ Done |
+| P2-8 | ~~**Template Studio brand picker**~~ | ✅ Done |
+| P2-9 | ~~**Rename / delete project UI**~~ | ✅ Done |
 
 ### Priority 3 — Pre-production hardening
 
@@ -336,7 +336,7 @@ The core generation pipeline (Quick Create → worker → results) is functional
 | P3-1 | **S3 lifecycle policy for inspiration images** | Small |
 | P3-2 | **Daily reconciliation EventBridge trigger** | Small |
 | P3-3 | **Per-brand overage billing** — Stripe product + upsell flow when brand quota exceeded | Medium |
-| P3-4 | **CloudWatch custom metrics emission** — Wire actual `putMetricData` calls into observability package | Small |
+| P3-4 | ~~**CloudWatch custom metrics emission**~~ | ✅ Done |
 | P3-5 | **Mood seed images** — Upload hero/card images for each admin-seeded mood | Content |
 | P3-6 | **OpenNext build verification** — Confirm `build:lambda` script produces a deployable artifact | Small |
 | P3-7 | **Stripe price ID seeding** — Create Stripe products/prices and populate env vars | Config |

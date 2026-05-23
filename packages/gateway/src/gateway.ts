@@ -70,9 +70,9 @@ export class Gateway implements AIProvider {
     return this.text.embed(text);
   }
 
-  async embedImage(_s3Key: string): Promise<{ vector: number[] }> {
-    // Implemented via vision describe → embed in slice 24
-    throw new Error("embedImage not wired until slice 24");
+  async embedImage(s3Key: string): Promise<{ vector: number[] }> {
+    const { description } = await this.describeImage(s3Key);
+    return this.embedText(description);
   }
 }
 

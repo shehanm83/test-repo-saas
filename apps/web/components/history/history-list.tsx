@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import { I } from "@/components/icons";
 
 interface Item {
   id: string;
   brief: string;
-  brandId: string;
+  brandId: string | undefined;
   brandName: string;
   moodName: string | null;
   status: string;
@@ -40,20 +40,42 @@ function relativeTime(iso: string): string {
 export function HistoryList(props: {
   items: Item[];
   brands: Array<{ id: string; name: string }>;
+  page: number;
+  search: string;
+  hasMore: boolean;
 }) {
   const router = useRouter();
   const [brandFilter, setBrandFilter] = useState("all");
-  const [search, setSearch] = useState("");
+  const [searchVal, setSearchVal] = useState(props.search);
 
   const filtered = useMemo(
     () =>
       props.items.filter((g) => {
         if (brandFilter !== "all" && g.brandId !== brandFilter) return false;
-        if (search && !g.brief.toLowerCase().includes(search.toLowerCase())) return false;
         return true;
       }),
-    [props.items, brandFilter, search],
+    [props.items, brandFilter],
   );
+
+  const buildSearchHref = useCallback(
+    (term: string, targetPage = 0) =>
+      `/history?page=${targetPage}${term ? `&search=${encodeURIComponent(term)}` : ""}`,
+    [],
+  );
+
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        router.push(buildSearchHref(searchVal));
+      }
+    },
+    [router, searchVal, buildSearchHref],
+  );
+
+  const handleClearSearch = useCallback(() => {
+    setSearchVal("");
+    router.push("/history?page=0");
+  }, [router]);
 
   return (
     <div className="page">
@@ -83,10 +105,31 @@ export function HistoryList(props: {
           <input
             className="input"
             placeholder="Search briefs…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ paddingLeft: 36 }}
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            style={{ paddingLeft: 36, paddingRight: props.search ? 36 : undefined }}
           />
+          {props.search ? (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              style={{
+                position: "absolute",
+                right: 10,
+                top: 9,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--fg-3)",
+                display: "flex",
+                alignItems: "center",
+              }}
+              aria-label="Clear search"
+            >
+              <I.X size={14} />
+            </button>
+          ) : null}
         </div>
         <select
           className="select"
@@ -194,7 +237,7 @@ export function HistoryList(props: {
                   style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}
                 >
                   <span className="pill">
-                    <span className="dot" style={{ background: dot(g.brandId) }} />
+                    <span className="dot" style={{ background: dot(g.brandId ?? "unbranded") }} />
                     {g.brandName}
                   </span>
                   {g.moodName ? <span className="pill">{g.moodName}</span> : null}
@@ -224,6 +267,29 @@ export function HistoryList(props: {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {(props.page > 0 || props.hasMore) && (
+        <div style={{ display: "flex", gap: 8, marginTop: 16, justifyContent: "center" }}>
+          {props.page > 0 ? (
+            <Link
+              href={buildSearchHref(props.search, props.page - 1)}
+              className="btn btn--secondary btn--sm"
+              style={{ textDecoration: "none" }}
+            >
+              Previous
+            </Link>
+          ) : null}
+          {props.hasMore ? (
+            <Link
+              href={buildSearchHref(props.search, props.page + 1)}
+              className="btn btn--secondary btn--sm"
+              style={{ textDecoration: "none" }}
+            >
+              Next
+            </Link>
+          ) : null}
         </div>
       )}
     </div>

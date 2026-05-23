@@ -12,6 +12,7 @@
     "./generation": "./src/generation.ts",
     "./generation-estimate": "./src/generation-estimate.ts",
     "./generation-preflight": "./src/generation-preflight.ts",
+    "./home-showcase": "./src/home-showcase.ts",
     "./inspiration": "./src/inspiration.ts",
     "./landing-hero": "./src/landing-hero.ts",
     "./mood": "./src/mood.ts",

@@ -1,0 +1,89 @@
+{
+  "name": "Swedish Midsummer sweets",
+  "status": "published",
+  "weight": 1,
+  "config": {
+    "headline": {
+      "line1": "Brand-ready content",
+      "line2Prefix": "for",
+      "line2Middle": "every",
+      "line2Suffix": "campaign."
+    },
+    "lede": "Example: a dessert brand turns a Swedish Midsummer brief into polished campaign visuals with the right mood, palette, and platform-ready composition.",
+    "primaryCta": {
+      "label": "Open Layertone",
+      "href": "/sign-up"
+    },
+    "secondaryCta": {
+      "label": "See it in action - 90s",
+      "href": "#showcase",
+      "enabled": true
+    },
+    "proofItems": ["Midsummer-ready", "Cake and ice cream", "Seasonal campaign"],
+    "prompt": {
+      "brief": "\"Midsummer ice cream and\nstrawberry cake,\nwildflowers, birch leaves,\nsunny fika\"",
+      "brandName": "Midsommar Sweets",
+      "brandInitials": "MS",
+      "swatches": ["#0F4C81", "#EFD75D", "#7DBD7D", "#F4E9D8"],
+      "moodName": "Swedish Midsummer"
+    },
+    "trust": {
+      "label": "Seasonal ideas for",
+      "teams": [
+        { "name": "FIKA", "color": "#0F4C81" },
+        { "name": "BLOMMA", "color": "#6EAA72" },
+        { "name": "SOLEN", "color": "#D8B719" },
+        { "name": "BAGERI", "color": "#B54B67" }
+      ]
+    }
+  },
+  "cards": [
+    {
+      "slot": 1,
+      "asset": "cards/01-strawberry-cake.png",
+      "headline": "Strawberry\nsummer cake",
+      "sub": "Cream, berries,\nelderflower",
+      "textPosition": "bottom",
+      "textColor": "white",
+      "brandInitials": "MS",
+      "brandColor": "#FFFFFF",
+      "brandTextColor": "#0F172A"
+    },
+    {
+      "slot": 2,
+      "asset": "cards/02-ice-cream-cones.png",
+      "headline": "Scoops for\nMidsummer",
+      "sub": "Berry, vanilla,\nblueberry",
+      "textPosition": "top",
+      "textColor": "dark",
+      "brandInitials": "MS",
+      "brandColor": "#FFFFFF",
+      "brandTextColor": "#0F172A",
+      "badgeText": "NEW\nSEASON",
+      "badgeBg": "#EFD75D",
+      "badgeColor": "#0F172A"
+    },
+    {
+      "slot": 3,
+      "asset": "cards/03-midsummer-cake-table.png",
+      "headline": "Fika under\nthe birches",
+      "sub": "Cake, flowers,\nlate sun",
+      "textPosition": "top",
+      "textColor": "dark",
+      "brandInitials": "MS",
+      "brandColor": "#FFFFFF",
+      "brandTextColor": "#0F172A"
+    },
+    {
+      "slot": 4,
+      "asset": "cards/04-shop-window-desserts.png",
+      "headline": "Fresh from\nthe window",
+      "sub": "Cakes, cones,\ncream buns",
+      "textPosition": "bottom",
+      "textColor": "white",
+      "brandInitials": "MS",
+      "brandColor": "#FFFFFF",
+      "brandTextColor": "#0F172A"
+    }
+  ]
+}
