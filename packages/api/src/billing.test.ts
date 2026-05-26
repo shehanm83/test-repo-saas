@@ -12,6 +12,7 @@ const config = {
   billing: {
     prices: {
       free: "price_free",
+      subscription: "price_subscription",
       starter: "price_starter",
       pro: "price_pro",
       business: "price_business",
@@ -46,7 +47,7 @@ describe("BillingApi", () => {
     const result = await api.startSubscription({
       workspaceId: "ws_1",
       customerId: "cus_123",
-      input: { planCode: "pro" },
+      input: { planCode: "subscription" },
     });
 
     expect(result.url).toContain("stripe.test/sub");
@@ -54,7 +55,7 @@ describe("BillingApi", () => {
       expect.objectContaining({
         workspaceId: "ws_1",
         customerId: "cus_123",
-        priceId: "price_pro",
+        priceId: "price_subscription",
       }),
     );
   });

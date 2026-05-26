@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000010",
+  "slug": "valentines-day",
+  "name": "Valentine's Day",
+  "kind": "seasonal",
+  "validFrom": "2027-01-15T00:00:00.000Z",
+  "validTo": "2027-02-20T23:59:59.000Z",
+  "accentPalette": [
+    "#BE123C",
+    "#F9A8D4",
+    "#F8E7E7",
+    "#7F1D1D"
+  ],
+  "decorationTags": [
+    "roses",
+    "ribbon",
+    "soft-fabric",
+    "heart-subtle",
+    "romantic-light"
+  ],
+  "promptModifiers": "Romantic Valentine's Day campaign styling with roses, silk ribbon, soft blush and crimson palette, elegant gift details, flattering warm light, and refined premium composition.",
+  "negativePrompts": "Heart overload, cheesy romance props, couples, readable text, logos.",
+  "previewAsset": "valentines-day/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

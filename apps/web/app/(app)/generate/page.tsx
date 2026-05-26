@@ -1,4 +1,5 @@
 import { Ledger } from "@layertone/billing";
+import { billingSegmentFor } from "@layertone/billing";
 import { createDb, listAvailableMoods, listBrandAssets, listBrands, listProducts } from "@layertone/db";
 import { loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
@@ -16,7 +17,8 @@ export default async function GeneratePage() {
     : 0;
   const brands = session.workspaceId ? await listBrands(userDb, session.workspaceId) : [];
   const products = session.workspaceId ? await listProducts(userDb, session.workspaceId) : [];
-  const moods = await listAvailableMoods(userDb);
+  const planSegment = billingSegmentFor(workspace?.planCode);
+  const moods = planSegment === "free" ? [] : await listAvailableMoods(userDb);
   const moodPreviewStorage = createStorage(config, config.storage.bucketGlobal);
   const appStorage = createStorage(config, config.storage.bucketApp);
 
@@ -74,8 +76,15 @@ export default async function GeneratePage() {
     targetAudience: product.targetAudience,
   }));
 
-  void workspace;
-  return <Generate brands={brandPayload} moods={moodPayload} products={productPayload} credits={credits} />;
+  return (
+    <Generate
+      brands={brandPayload}
+      moods={moodPayload}
+      products={productPayload}
+      credits={credits}
+      planSegment={planSegment}
+    />
+  );
 }
 
 function createStorage(config: ReturnType<typeof loadConfig>, bucket: string) {

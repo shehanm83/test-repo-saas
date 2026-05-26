@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000008",
+  "slug": "easter",
+  "name": "Easter",
+  "kind": "seasonal",
+  "validFrom": "2027-03-01T00:00:00.000Z",
+  "validTo": "2027-04-30T23:59:59.000Z",
+  "accentPalette": [
+    "#F9A8D4",
+    "#BAE6FD",
+    "#FEF3C7",
+    "#A7F3D0"
+  ],
+  "decorationTags": [
+    "pastel-eggs",
+    "spring-flowers",
+    "woven-basket",
+    "soft-grass",
+    "morning-light"
+  ],
+  "promptModifiers": "Fresh Easter spring styling with pastel eggs, spring flowers, woven basket textures, soft morning light, airy pastel palette, and clean cheerful retail composition.",
+  "negativePrompts": "Religious symbols, cartoon bunnies, childish clutter, text, logos.",
+  "previewAsset": "easter/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

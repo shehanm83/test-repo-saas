@@ -1,11 +1,18 @@
+import { billingSegmentFor } from "@layertone/billing";
 import { createDb, moods } from "@layertone/db";
 import { eq } from "@layertone/db/operators";
 import { loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
 
 import { MoodsBrowser } from "@/components/moods/moods-browser";
+import { getSessionWorkspace } from "@/lib/auth/server";
 
 export default async function MoodsPage() {
+  const { workspace } = await getSessionWorkspace();
+  if (billingSegmentFor(workspace?.planCode) === "free") {
+    return <MoodsBrowser moods={[]} locked />;
+  }
+
   const config = loadConfig();
   const previewStorage = createPreviewStorage(config);
   const rows = await createDb(config.db.url, "app_user")
@@ -13,25 +20,14 @@ export default async function MoodsPage() {
     .from(moods)
     .where(eq(moods.status, "published"));
 
-  const now = new Date();
   const items = await Promise.all(rows.map(async (m) => {
-    const validTo = m.validTo ? new Date(m.validTo) : null;
-    const validFrom = m.validFrom ? new Date(m.validFrom) : null;
-    const dateGroup =
-      validFrom && validFrom > now
-        ? "soon"
-        : validTo && validTo < now
-          ? "soon"
-          : null;
-    const kindGroup = m.kind === "seasonal" ? "now" : "always";
-    const group = (dateGroup ?? kindGroup) as "now" | "always" | "soon";
     return {
       id: m.id,
       slug: m.slug,
       name: m.name,
       kind: m.kind ?? "Evergreen",
       status: m.status,
-      group,
+      group: seasonGroup(m, new Date()),
       img: await signedPreviewUrl(previewStorage, m.previewS3Key),
       colors: (m.accentPalette ?? []) as string[],
       motifs: (m.decorationTags ?? []) as string[],
@@ -57,4 +53,33 @@ function createPreviewStorage(config: ReturnType<typeof loadConfig>) {
 async function signedPreviewUrl(storage: S3StorageAdapter, key: string | null) {
   if (!key) return null;
   return storage.getSignedUrl(key, 60 * 60).catch(() => null);
+}
+
+function seasonGroup(
+  mood: { kind: string; validFrom: Date | null; validTo: Date | null },
+  now: Date,
+): "now" | "always" | "soon" {
+  if (mood.kind !== "seasonal") return "always";
+  if (!mood.validFrom && !mood.validTo) return "now";
+
+  const nowMs = now.getTime();
+  const start = mood.validFrom ? dateWithYear(mood.validFrom, now.getUTCFullYear()) : now;
+  let end = mood.validTo ? dateWithYear(mood.validTo, now.getUTCFullYear()) : start;
+  if (end < start) end = dateWithYear(mood.validTo!, now.getUTCFullYear() + 1);
+
+  return start.getTime() <= nowMs && end.getTime() >= nowMs ? "now" : "soon";
+}
+
+function dateWithYear(date: Date, year: number) {
+  return new Date(
+    Date.UTC(
+      year,
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+      date.getUTCMilliseconds(),
+    ),
+  );
 }

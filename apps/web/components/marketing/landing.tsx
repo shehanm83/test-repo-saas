@@ -10,60 +10,45 @@ import { I } from "@/components/icons";
 
 import { HeroCardImage } from "./hero-cards";
 
-const MOODS = [
-  {
-    id: "christmas",
-    name: "Christmas",
-    kind: "Seasonal",
-    img: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=400&q=80",
-    colors: ["#7A0E0E", "#0E5C2F", "#E8C66B"],
-  },
-  {
-    id: "midsummer",
-    name: "Midsummer",
-    kind: "Seasonal",
-    img: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=400&q=80",
-    colors: ["#F4D35E", "#7BAE7F", "#E8DCC4"],
-  },
-  {
-    id: "clean-editorial",
-    name: "Clean Editorial",
-    kind: "Evergreen",
-    img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80",
-    colors: ["#0E0E10", "#5E5CE6", "#F4F4FB"],
-  },
-  {
-    id: "editorial",
-    name: "Editorial",
-    kind: "Evergreen",
-    img: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&q=80",
-    colors: ["#101010", "#F0EAD6", "#A23B2D"],
-  },
-];
+export interface LandingMood {
+  id: string;
+  name: string;
+  kind: "seasonal" | "evergreen";
+  accentPalette: string[];
+  previewImgUrl: string | null;
+}
 
-const PLAN_ORDER: PlanCode[] = ["free", "starter", "pro", "business", "agency"];
-const POPULAR: PlanCode = "pro";
+const PLAN_ORDER: PlanCode[] = ["free", "subscription", "payg"];
+const POPULAR: PlanCode = "subscription";
 const PLAN_FEATURES: Record<PlanCode, string[]> = {
-  free: ["1 brand", "1 seat", "30 credits / month", "Standard model"],
-  starter: ["1 brand", "1 seat", "250 credits / month", "All Moods"],
-  pro: ["3 brands", "3 seats", "1,000 credits / month", "Premium model"],
-  business: ["10 brands", "10 seats", "4,000 credits / month", "Priority queue"],
-  agency: ["50 brands", "Unlimited seats", "15,000 credits / month", "API access", "White-label"],
+  free: ["20 starter credits", "Standard model only", "No moods", "No saved projects"],
+  subscription: ["1,000 credits / month", "Full Moods", "Premium models", "Saved projects"],
+  payg: ["Buy credits anytime", "Credits never expire", "Full stock library", "Retention day slots"],
 };
 
 export function Landing({
   isAuthed = false,
   hero,
   showcase,
+  moods,
+  moodCount,
 }: {
   isAuthed?: boolean;
   hero: LandingHeroSetView;
   showcase: HomeShowcaseView;
+  moods: LandingMood[];
+  moodCount: number;
 }) {
   const primaryHref = isAuthed ? "/generate" : hero.config.primaryCta.href;
   const primaryLabel = hero.config.primaryCta.label;
   const navPrimaryLabel = isAuthed ? "Open Layertone" : "Get Started Free";
+  const moodsHref = isAuthed ? "/moods" : "/moods";
   const cards = [...hero.cards].sort((a, b) => a.slot - b.slot);
+  const moodExamples = moods.slice(0, 3).map((m) => m.name);
+  const moodExampleText =
+    moodExamples.length > 1
+      ? `${moodExamples.slice(0, -1).join(", ")} and ${moodExamples.at(-1)}`
+      : moodExamples[0] ?? "published moods";
   return (
     <div style={{ background: "#FCF7EE", minHeight: "100vh", overflow: "hidden" }}>
       <section id="product" className="lt-home-hero">
@@ -192,128 +177,143 @@ export function Landing({
         </div>
       </section>
 
-      {/* MOOD GALLERY */}
-      <section
-        id="moods"
-        style={{
-          background: "var(--cal-charcoal)",
-          color: "white",
-          padding: "96px 24px",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              marginBottom: 48,
-              flexWrap: "wrap",
-              gap: 24,
-            }}
-          >
-            <div>
-              <div className="t-eyebrow" style={{ color: "#FBE5C2" }}>
-                Moods
-              </div>
-              <h2 className="t-h1" style={{ color: "white", marginTop: 8, maxWidth: 620 }}>
-                Seasonal flavor.
-                <br />
-                Without abandoning your brand.
-              </h2>
-            </div>
-            <p style={{ color: "rgba(255,255,255,0.7)", maxWidth: 380, fontSize: 16 }}>
-              Curated style packs blend with your brand on demand. Christmas, Midsummer, Bauhaus —
-              tonally consistent, never costume-y.
-            </p>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 12,
-            }}
-          >
-            {MOODS.map((m) => (
-              <div
-                key={m.id}
-                style={{
-                  borderRadius: 12,
-                  overflow: "hidden",
-                  aspectRatio: "3/4",
-                  position: "relative",
-                  cursor: "pointer",
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={m.img}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  alt={m.name}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 16,
-                    top: 16,
-                    display: "flex",
-                    gap: 4,
-                  }}
-                >
-                  {m.colors.map((c) => (
-                    <span
-                      key={c}
-                      style={{
-                        width: 14,
-                        height: 14,
-                        borderRadius: 100,
-                        background: c,
-                        boxShadow: "0 0 0 1.5px white",
-                      }}
-                    />
-                  ))}
-                </div>
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 16,
-                    right: 16,
-                    bottom: 16,
-                    color: "white",
-                  }}
-                >
-                  <div style={{ fontFamily: "var(--font-display)", fontSize: 22 }}>{m.name}</div>
-                  <div style={{ fontSize: 11, opacity: 0.75, marginTop: 2 }}>{m.kind}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{ textAlign: "center", marginTop: 32 }}>
-            <Link
-              className="btn btn--secondary"
-              href={primaryHref}
+      {moodCount > 0 && moods.length > 0 ? (
+        <section
+          id="moods"
+          style={{
+            background: "var(--cal-charcoal)",
+            color: "white",
+            padding: "96px 24px",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <div
               style={{
-                background: "rgba(255,255,255,0.1)",
-                color: "white",
-                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.2)",
-                textDecoration: "none",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+                marginBottom: 48,
+                flexWrap: "wrap",
+                gap: 24,
               }}
             >
-              Browse 40+ moods
-              <I.ArrowRight size={14} />
-            </Link>
+              <div>
+                <div className="t-eyebrow" style={{ color: "#FBE5C2" }}>
+                  Moods
+                </div>
+                <h2 className="t-h1" style={{ color: "white", marginTop: 8, maxWidth: 620 }}>
+                  Seasonal flavor.
+                  <br />
+                  Without abandoning your brand.
+                </h2>
+              </div>
+              <p style={{ color: "rgba(255,255,255,0.7)", maxWidth: 380, fontSize: 16 }}>
+                Curated style packs blend with your brand on demand. {moodExampleText} stay
+                tonally consistent, never costume-y.
+              </p>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                gap: 12,
+              }}
+            >
+              {moods.slice(0, 4).map((m) => {
+                const colors = m.accentPalette.length > 0 ? m.accentPalette : ["#2A1F18"];
+                return (
+                  <div
+                    key={m.id}
+                    style={{
+                      borderRadius: 12,
+                      overflow: "hidden",
+                      aspectRatio: "3/4",
+                      position: "relative",
+                      cursor: "pointer",
+                      background:
+                        colors.length > 1
+                          ? `linear-gradient(135deg, ${colors.join(", ")})`
+                          : colors[0],
+                    }}
+                  >
+                    {m.previewImgUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.previewImgUrl}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        alt={m.name}
+                      />
+                    ) : null}
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background:
+                          "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.72) 100%)",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 16,
+                        top: 16,
+                        display: "flex",
+                        gap: 4,
+                      }}
+                    >
+                      {colors.slice(0, 5).map((c) => (
+                        <span
+                          key={c}
+                          style={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: 100,
+                            background: c,
+                            boxShadow: "0 0 0 1.5px white",
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 16,
+                        right: 16,
+                        bottom: 16,
+                        color: "white",
+                      }}
+                    >
+                      <div style={{ fontFamily: "var(--font-display)", fontSize: 22 }}>
+                        {m.name}
+                      </div>
+                      <div style={{ fontSize: 11, opacity: 0.75, marginTop: 2 }}>
+                        {m.kind === "seasonal" ? "Seasonal" : "Evergreen"}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ textAlign: "center", marginTop: 32 }}>
+              <Link
+                className="btn btn--secondary"
+                href={moodsHref}
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  color: "white",
+                  boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.2)",
+                  textDecoration: "none",
+                }}
+              >
+                {moodCount === 1 ? "Browse 1 mood" : `Browse ${moodCount} moods`}
+                <I.ArrowRight size={14} />
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* HOW IT WORKS */}
       <section
@@ -551,10 +551,10 @@ export function Landing({
               Pay for what you generate.
             </h2>
             <p className="t-lede" style={{ color: "rgba(255,255,255,0.6)", marginTop: 8 }}>
-              Free for individuals. Top up anytime.
+              Free to try, subscribe for monthly production, or buy non-expiring credits when needed.
             </p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
             {PLAN_ORDER.map((code) => {
               const p = PLANS[code];
               const popular = code === POPULAR;
@@ -587,7 +587,7 @@ export function Landing({
                     </div>
                   ) : null}
                   <div style={{ fontFamily: "var(--font-display)", fontSize: 18 }}>
-                    {code.charAt(0).toUpperCase() + code.slice(1)}
+                    {p.name}
                   </div>
                   <div
                     style={{
@@ -600,7 +600,9 @@ export function Landing({
                     <span style={{ fontFamily: "var(--font-display)", fontSize: 36 }}>
                       ${p.price}
                     </span>
-                    <span style={{ fontSize: 13, opacity: 0.7 }}>/mo</span>
+                    {code === "subscription" ? (
+                      <span style={{ fontSize: 13, opacity: 0.7 }}>/mo</span>
+                    ) : null}
                   </div>
                   <ul
                     style={{
@@ -636,7 +638,7 @@ export function Landing({
               Read the docs →
             </a>
             <span style={{ margin: "0 12px" }}>·</span>
-            Top up anytime · Credits never expire
+            Subscription credits expire monthly · PAYG credits never expire · PAYG actions cost about 20% more
           </div>
         </div>
       </section>
@@ -655,7 +657,7 @@ export function Landing({
             Try it on your brand. It takes about 30 seconds.
           </h2>
           <p style={{ color: "var(--fg-2)", fontSize: 18, marginTop: 12, marginBottom: 24 }}>
-            Free forever for one brand. No card, no commitment.
+            Start with 20 free credits. Subscribe or buy credits when you need moods, premium models, and saved projects.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Link

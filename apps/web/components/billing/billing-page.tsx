@@ -89,7 +89,9 @@ function usePortalRedirect() {
 export function BillingPage(props: Props) {
   const [compareOpen, setCompareOpen] = useState(false);
   const [pendingTopup, setPendingTopup] = useState<string | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<string | null>(null);
   const [topupError, setTopupError] = useState<string | null>(null);
+  const [planError, setPlanError] = useState<string | null>(null);
   const portal = usePortalRedirect();
 
   const currentPlan = props.plans.find((p) => p.code === props.planCode);
@@ -107,7 +109,33 @@ export function BillingPage(props: Props) {
 
   const creditResetLabel = props.periodEnd
     ? `Resets on ${new Date(props.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
-    : `${props.monthlyCreditGrant.toLocaleString()} credits / month`;
+    : props.planCode === "subscription"
+      ? `${props.monthlyCreditGrant.toLocaleString()} credits / month`
+      : props.planCode === "payg"
+        ? "Purchased credits do not expire"
+        : "Free starter credits only";
+
+  async function changePlan(planCode: "free" | "subscription") {
+    setPendingPlan(planCode);
+    setPlanError(null);
+    try {
+      const r = await fetch("/api/billing/subscription", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ planCode }),
+      });
+      const json = (await r.json()) as { url?: string; error?: string };
+      if (!r.ok || !json.url) {
+        setPlanError(json.error ?? "Failed to start plan change. Please try again.");
+        return;
+      }
+      window.location.href = json.url;
+    } catch {
+      setPlanError("Network error. Please check your connection and try again.");
+    } finally {
+      setPendingPlan(null);
+    }
+  }
 
   async function buyTopup(code: string) {
     setPendingTopup(code);
@@ -160,7 +188,9 @@ export function BillingPage(props: Props) {
             </h2>
             <span style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "var(--fg-3)" }}>
               ${planPrice}
-              <span style={{ fontSize: 13, marginLeft: 2, color: "var(--fg-3)" }}>/mo</span>
+              {props.planCode === "subscription" ? (
+                <span style={{ fontSize: 13, marginLeft: 2, color: "var(--fg-3)" }}>/mo</span>
+              ) : null}
             </span>
           </div>
           <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
@@ -196,12 +226,19 @@ export function BillingPage(props: Props) {
             <button
               type="button"
               className="btn btn--primary"
-              disabled={portal.pending}
-              onClick={() => void portal.openPortal()}
+              disabled={portal.pending || pendingPlan !== null}
+              onClick={() =>
+                props.planCode === "subscription"
+                  ? void portal.openPortal()
+                  : void changePlan("subscription")
+              }
             >
-              {portal.pending ? "Redirecting…" : "Change plan"}
+              {portal.pending || pendingPlan === "subscription" ? "Redirecting…" : props.planCode === "subscription" ? "Change plan" : "Subscribe"}
             </button>
           </div>
+          {planError ? (
+            <div style={{ fontSize: 13, color: "var(--color-error, #e53e3e)" }}>{planError}</div>
+          ) : null}
         </div>
       </div>
 
@@ -283,7 +320,33 @@ export function BillingPage(props: Props) {
           </div>
         ) : null}
         <div className="t-small" style={{ marginTop: 12 }}>
-          <I.Info size={11} style={{ verticalAlign: "-1px" }} /> Top-up credits never expire.
+          <I.Info size={11} style={{ verticalAlign: "-1px" }} /> Top-up credits never expire. Buying a pack moves Free workspaces to Pay As You Go.
+        </div>
+      </div>
+
+      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
+        <div className="t-eyebrow" style={{ marginBottom: 12 }}>
+          Pricing rules
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, fontSize: 13 }}>
+          <div>
+            <strong>Free</strong>
+            <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
+              20 starter credits, standard model only, no moods, no saved projects.
+            </p>
+          </div>
+          <div>
+            <strong>Subscription</strong>
+            <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
+              Monthly credits expire each period. Moods, premium models, full stock, saved projects, and retention are included.
+            </p>
+          </div>
+          <div>
+            <strong>Pay As You Go</strong>
+            <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
+              Credits never expire. Actions cost about 20% more than subscription, and retention uses day slots.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -448,6 +511,7 @@ export function BillingPage(props: Props) {
                   {props.plans.map((p) => (
                     <td key={p.code} style={{ padding: "8px 16px" }}>
                       ${p.price}/mo
+                      {p.code === "payg" ? " + credits" : ""}
                     </td>
                   ))}
                 </tr>
@@ -481,14 +545,18 @@ export function BillingPage(props: Props) {
                     <td key={p.code} style={{ padding: "12px 16px" }}>
                       {p.code === props.planCode ? (
                         <span style={{ fontSize: 13, color: "var(--fg-3)" }}>Current plan</span>
+                      ) : p.code === "payg" ? (
+                        <a className="btn btn--secondary btn--sm" href="#topups">
+                          Buy credits
+                        </a>
                       ) : (
                         <button
                           type="button"
                           className="btn btn--secondary btn--sm"
-                          disabled={portal.pending}
-                          onClick={() => void portal.openPortal()}
+                          disabled={portal.pending || pendingPlan !== null}
+                          onClick={() => void changePlan(p.code === "subscription" ? "subscription" : "free")}
                         >
-                          {p.price > (currentPlan?.price ?? 0) ? "Upgrade" : "Switch"}
+                          {pendingPlan === p.code ? "Redirecting…" : p.price > (currentPlan?.price ?? 0) ? "Upgrade" : "Switch"}
                         </button>
                       )}
                     </td>

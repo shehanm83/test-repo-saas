@@ -12,7 +12,15 @@ vi.mock("./aup", () => ({
 }));
 
 vi.mock("@layertone/db", () => ({
-  createDb: vi.fn(() => ({})),
+  createDb: vi.fn(() => ({
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: vi.fn(() => ({
+          limit: vi.fn(async () => [{ planCode: "subscription" }]),
+        })),
+      })),
+    })),
+  })),
   getGenerationFull: vi.fn(async () => ({
     brief: "A clean launch image for a skincare serum",
     settings: {
@@ -31,7 +39,7 @@ vi.mock("@layertone/db", () => ({
     },
   })),
   insertCaption: vi.fn(async () => ({ id: "cap-1" })),
-  workspaces: {},
+  workspaces: { planCode: "plan_code", id: "id" },
   auditLog: {},
   eq: vi.fn(),
 }));
@@ -50,7 +58,13 @@ vi.mock("@layertone/billing", () => {
   const Ledger = vi.fn(function () {
     return { reserve: mockReserve };
   });
-  return { Ledger, InsufficientCredits };
+  return {
+    Ledger,
+    InsufficientCredits,
+    captionCreditsForPlan: vi.fn((tier: "short" | "medium" | "long") =>
+      tier === "short" ? 1 : tier === "medium" ? 3 : 5,
+    ),
+  };
 });
 
 const mockSend = vi.fn(async () => undefined);
@@ -74,7 +88,7 @@ beforeEach(() => {
 });
 
 describe("CaptionApi.create", () => {
-  it("reserves fixed credits and enqueues a detailed caption job", async () => {
+  it("reserves tiered credits and enqueues a detailed caption job", async () => {
     const { insertCaption } = await import("@layertone/db");
     const api = new CaptionApi(BASE_CONFIG, BASE_ADAPTERS);
     const result = await api.create({
@@ -89,16 +103,16 @@ describe("CaptionApi.create", () => {
     });
 
     expect(result.status).toBe("pending");
-    expect(result.reservedCredits).toBe(5);
+    expect(result.reservedCredits).toBe(1);
     expect(mockReserve).toHaveBeenCalledWith(
-      expect.objectContaining({ workspaceId: "ws-1", amount: 5 }),
+      expect.objectContaining({ workspaceId: "ws-1", amount: 1 }),
     );
     expect(insertCaption).toHaveBeenCalledWith(
       expect.anything(),
       "ws-1",
       expect.objectContaining({
         lengthTier: "short",
-        creditCost: 5,
+        creditCost: 1,
         voice: expect.stringContaining("Tone: warm"),
       }),
     );
@@ -116,14 +130,14 @@ describe("CaptionApi.create", () => {
     );
   });
 
-  it("uses fixed 5 credit pricing for medium captions", async () => {
+  it("uses 3 credit pricing for medium captions", async () => {
     const api = new CaptionApi(BASE_CONFIG, BASE_ADAPTERS);
     const result = await api.create({
       workspaceId: "ws-1",
       userId: "user-1",
       input: { brief: "Brand story for newsletter", lengthTier: "medium" },
     });
-    expect(result.reservedCredits).toBe(5);
+    expect(result.reservedCredits).toBe(3);
   });
 
   it("reserves 5 credits for long tier", async () => {

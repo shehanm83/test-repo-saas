@@ -18,10 +18,16 @@ vi.mock("drizzle-orm", () => ({
 const mockGrant = vi.fn(async () => ({ id: "e1", balanceAfter: 250, idempotent: false }));
 const mockTopup = vi.fn(async () => ({ id: "e2", balanceAfter: 450, idempotent: false }));
 const mockRefund = vi.fn(async () => ({ id: "e3", balanceAfter: 200, idempotent: false }));
+const mockExpireSubscriptionCredits = vi.fn(async () => ({ id: "e4", balanceAfter: 0, idempotent: false }));
 
 vi.mock("./ledger.js", () => ({
   Ledger: vi.fn(function () {
-    return { grant: mockGrant, topup: mockTopup, refund: mockRefund };
+    return {
+      grant: mockGrant,
+      topup: mockTopup,
+      refund: mockRefund,
+      expireSubscriptionCredits: mockExpireSubscriptionCredits,
+    };
   }),
 }));
 
@@ -66,19 +72,18 @@ describe("StripeWebhookHandler", () => {
 });
 
 describe("PLANS", () => {
-  it("defines correct monthly grant for pro plan", () => {
-    expect(PLANS.pro.monthlyCreditGrant).toBe(1000);
+  it("defines correct monthly grant for subscription plan", () => {
+    expect(PLANS.subscription.monthlyCreditGrant).toBe(1000);
   });
 
-  it("defines correct brand quota for agency plan", () => {
-    expect(PLANS.agency.brandQuota).toBe(50);
+  it("defines PAYG credits as non-expiring", () => {
+    expect(PLANS.payg.purchasedCreditsExpire).toBe(false);
   });
 
   it("covers all plan codes", () => {
-    const codes = ["free", "starter", "pro", "business", "agency"] as const;
+    const codes = ["free", "subscription", "payg"] as const;
     for (const code of codes) {
       expect(PLANS[code]).toBeDefined();
-      expect(PLANS[code].monthlyCreditGrant).toBeGreaterThan(0);
     }
   });
 });
@@ -87,7 +92,7 @@ describe("planFromStripePriceId", () => {
   it("maps known price id to plan code", async () => {
     const { planFromStripePriceId } = await import("./plans.js");
     const env = { STRIPE_PRICE_PRO: "price_pro_123" };
-    expect(planFromStripePriceId(env, "price_pro_123")).toBe("pro");
+    expect(planFromStripePriceId(env, "price_pro_123")).toBe("subscription");
   });
 
   it("returns null for unknown price id", async () => {

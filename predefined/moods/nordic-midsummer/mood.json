@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000018",
+  "slug": "nordic-midsummer",
+  "name": "Nordic Midsummer",
+  "kind": "seasonal",
+  "validFrom": "2026-06-01T00:00:00.000Z",
+  "validTo": "2026-07-15T23:59:59.000Z",
+  "accentPalette": [
+    "#2563EB",
+    "#FDE68A",
+    "#FFFFFF",
+    "#4D7C0F"
+  ],
+  "decorationTags": [
+    "wildflowers",
+    "strawberry",
+    "linen",
+    "summer-light",
+    "birch-leaves"
+  ],
+  "promptModifiers": "Nordic Midsummer campaign mood with wildflower garlands, strawberries, white linen, birch leaves, bright long-evening summer light, blue-yellow-green accents, and fresh outdoor celebration styling.",
+  "negativePrompts": "National flags as focus, folk costumes, crowded dancing, readable text, stereotypes.",
+  "previewAsset": "nordic-midsummer/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

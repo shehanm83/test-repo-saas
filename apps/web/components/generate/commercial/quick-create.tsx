@@ -62,6 +62,7 @@ export function QuickCreate(props: {
   brands: BrandLite[];
   moods: MoodLite[];
   products: ProductLite[];
+  planSegment: "free" | "subscription" | "payg";
   onBriefChange: (brief: string) => void;
   onCampaignChange: (patch: Partial<CampaignDetails>) => void;
   onAddProduct: (product: SelectedProduct) => void;
@@ -104,6 +105,7 @@ export function QuickCreate(props: {
     .toUpperCase();
 
   const { outputs, campaign } = props.state;
+  const premiumDisabled = props.planSegment === "free";
 
   return (
     <div className="qc-stack">
@@ -393,6 +395,7 @@ export function QuickCreate(props: {
           moods={props.moods}
           moodId={props.state.moodId}
           onMoodChange={props.onMoodChange}
+          disabled={props.planSegment === "free"}
         />
       </section>
 
@@ -411,6 +414,7 @@ export function QuickCreate(props: {
                 <button
                   key={q}
                   type="button"
+                  disabled={q === "premium" && premiumDisabled}
                   className={`qc-gen-option ${outputs.quality === q ? "is-active" : ""}`}
                   onClick={() =>
                     props.onOutputsChange({
@@ -420,7 +424,13 @@ export function QuickCreate(props: {
                   }
                 >
                   <strong>{q === "standard" ? "Standard" : "Premium"}</strong>
-                  <span>{q === "standard" ? "10 credits / image" : "20 credits / image"}</span>
+                  <span>
+                    {q === "premium" && premiumDisabled
+                      ? "Upgrade or buy credits"
+                      : q === "standard"
+                        ? "5+ credits / image"
+                        : "15+ credits / image"}
+                  </span>
                 </button>
               ))}
             </div>
@@ -442,7 +452,7 @@ export function QuickCreate(props: {
                   }
                 >
                   <strong>{n}</strong>
-                  <span>{n * (outputs.quality === "premium" ? 20 : 10)} credits</span>
+                  <span>{n * (outputs.quality === "premium" ? 15 : 5)}+ credits</span>
                 </button>
               ))}
             </div>
@@ -604,12 +614,16 @@ function QuickMoodSection(props: {
   moods: MoodLite[];
   moodId: string | null;
   onMoodChange: (moodId: string | null) => void;
+  disabled?: boolean;
 }) {
   const selectedMood = props.moods.find((mood) => mood.id === props.moodId) ?? null;
   const previewImages = getMoodPreviewImages(selectedMood);
 
   return (
     <div className="qc-mood-stack">
+      {props.disabled ? (
+        <div className="qc-empty-note">Moods are not available on the Free plan.</div>
+      ) : null}
       <div className="qc-mood-choice-grid">
         <button
           type="button"
@@ -624,6 +638,7 @@ function QuickMoodSection(props: {
           <button
             type="button"
             key={mood.id}
+            disabled={props.disabled}
             className={`cg-mood-card ${props.moodId === mood.id ? "is-selected" : ""}`}
             onClick={() => props.onMoodChange(mood.id)}
           >

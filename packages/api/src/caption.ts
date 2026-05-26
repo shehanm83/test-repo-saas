@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import { InsufficientCredits, Ledger } from "@layertone/billing";
-import { createDb, getGenerationFull, insertCaption } from "@layertone/db";
+import { captionCreditsForPlan, InsufficientCredits, Ledger } from "@layertone/billing";
+import { createDb, eq, getGenerationFull, insertCaption, workspaces } from "@layertone/db";
 import { AppError } from "@layertone/shared/errors/app-error";
 import { CODES } from "@layertone/shared/errors/codes";
 import type { Adapters, Config } from "@layertone/shared";
@@ -10,7 +10,6 @@ import { z } from "zod";
 import { assertBriefAllowed } from "./aup";
 import { assertWorkspaceCanGenerate } from "./workspace-status";
 
-const CAPTION_CREDIT_COST = 5;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const Input = z.object({
@@ -39,10 +38,15 @@ export class CaptionApi {
   async create(args: { workspaceId: string; userId: string; input: unknown }) {
     const v = Input.parse(args.input);
     const lengthTier = v.short ? "short" : (v.lengthTier ?? "medium");
-    const cost = CAPTION_CREDIT_COST;
     const id = randomUUID();
 
     const adminDb = this.db("app_admin");
+    const [workspace] = await adminDb
+      .select({ planCode: workspaces.planCode })
+      .from(workspaces)
+      .where(eq(workspaces.id, args.workspaceId))
+      .limit(1);
+    const cost = captionCreditsForPlan(lengthTier, workspace?.planCode ?? "free");
     const generationContext =
       v.includeGenerationContext && v.generationId
         ? await this.getCaptionGenerationContext(args.workspaceId, v.generationId)

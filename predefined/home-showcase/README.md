@@ -1,6 +1,6 @@
 # Predefined Home Showcase
 
-This folder stores the homepage output gallery and the three comparison cards shown under the hero.
+This folder stores the homepage output gallery and the three supporting message cards shown under the hero.
 
 Run it against the currently configured environment:
 

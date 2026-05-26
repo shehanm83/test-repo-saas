@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000013",
+  "slug": "oktoberfest",
+  "name": "Oktoberfest",
+  "kind": "seasonal",
+  "validFrom": "2026-09-01T00:00:00.000Z",
+  "validTo": "2026-10-15T23:59:59.000Z",
+  "accentPalette": [
+    "#1D4ED8",
+    "#FFFFFF",
+    "#D97706",
+    "#92400E"
+  ],
+  "decorationTags": [
+    "blue-white-check",
+    "pretzel",
+    "wood-table",
+    "autumn",
+    "brass"
+  ],
+  "promptModifiers": "Oktoberfest-inspired campaign styling with blue-white check textile hints, warm wood tables, pretzel and brass details, autumn amber light, and festive Bavarian market atmosphere.",
+  "negativePrompts": "Beer brand labels, drunk people, costumes as caricature, readable text, logos.",
+  "previewAsset": "oktoberfest/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

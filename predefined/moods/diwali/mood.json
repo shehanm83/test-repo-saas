@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000003",
+  "slug": "diwali",
+  "name": "Diwali",
+  "kind": "seasonal",
+  "validFrom": "2026-10-01T00:00:00.000Z",
+  "validTo": "2026-11-30T23:59:59.000Z",
+  "accentPalette": [
+    "#8A1538",
+    "#F59E0B",
+    "#6D28D9",
+    "#FDE68A"
+  ],
+  "decorationTags": [
+    "diyas",
+    "rangoli",
+    "marigold",
+    "gold-light",
+    "festive-fabric"
+  ],
+  "promptModifiers": "Luxurious Diwali festival-of-lights styling with glowing diyas, marigold garlands, rangoli-inspired geometry, jewel-tone fabrics, warm gold highlights, and celebratory premium retail energy.",
+  "negativePrompts": "Religious figures, smoke-heavy scene, readable text, overloaded patterns, stereotypes.",
+  "previewAsset": "diwali/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

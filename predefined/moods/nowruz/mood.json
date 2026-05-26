@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000022",
+  "slug": "nowruz",
+  "name": "Nowruz",
+  "kind": "seasonal",
+  "validFrom": "2027-03-01T00:00:00.000Z",
+  "validTo": "2027-04-10T23:59:59.000Z",
+  "accentPalette": [
+    "#16A34A",
+    "#FACC15",
+    "#F8FAFC",
+    "#38BDF8"
+  ],
+  "decorationTags": [
+    "spring-table",
+    "fresh-herbs",
+    "flowers",
+    "goldfish-abstract",
+    "renewal"
+  ],
+  "promptModifiers": "Fresh Nowruz spring-renewal mood with flowers, fresh herbs, glass and gold table details, green-yellow-sky-blue palette, natural daylight, and elegant new-beginning campaign atmosphere.",
+  "negativePrompts": "Religious imagery, live animals as focus, cluttered haft-sin table, readable text, stereotypes.",
+  "previewAsset": "nowruz/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

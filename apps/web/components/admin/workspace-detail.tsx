@@ -67,6 +67,7 @@ export function WorkspaceDetail(props: {
   const [messages, setMessages] = useState<{ ok: boolean; text: string }[]>([]);
   const [grantAmount, setGrantAmount] = useState("");
   const [grantReason, setGrantReason] = useState("");
+  const [planCode, setPlanCode] = useState(workspace.planCode);
 
   function pushMsg(ok: boolean, text: string) {
     setMessages((p) => [{ ok, text }, ...p]);
@@ -126,6 +127,28 @@ export function WorkspaceDetail(props: {
       }
     } catch (err) {
       pushMsg(false, `${action} error: ${String(err)}`);
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function handlePlanUpdate() {
+    setLoading("plan");
+    try {
+      const res = await fetch(`/api/admin/users/${workspace.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ planCode }),
+      });
+      const data = (await res.json()) as { error?: unknown };
+      if (!res.ok) {
+        pushMsg(false, `Plan update failed: ${String(data.error ?? "unknown")}`);
+      } else {
+        pushMsg(true, `Plan updated to ${planCode}.`);
+        setTimeout(() => location.reload(), 800);
+      }
+    } catch (err) {
+      pushMsg(false, `Plan update error: ${String(err)}`);
     } finally {
       setLoading(null);
     }
@@ -200,6 +223,35 @@ export function WorkspaceDetail(props: {
             </KV>
           ) : null}
           <KV label="Created" value={new Date(workspace.createdAt).toLocaleString()} />
+        </div>
+      </div>
+
+      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
+        <div className="t-eyebrow" style={{ marginBottom: 16 }}>
+          Pricing plan
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "220px auto 1fr", gap: 12, alignItems: "end" }}>
+          <div>
+            <label className="label">Plan</label>
+            <select className="select" value={planCode} onChange={(e) => setPlanCode(e.target.value)}>
+              <option value="free">Free</option>
+              <option value="subscription">Subscription</option>
+              <option value="payg">Pay As You Go</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            className="btn btn--primary"
+            disabled={loading !== null || planCode === workspace.planCode}
+            onClick={() => void handlePlanUpdate()}
+          >
+            <I.Save size={14} />
+            {loading === "plan" ? "Saving…" : "Update plan"}
+          </button>
+          <p className="t-small" style={{ margin: 0 }}>
+            Free has 20 starter credits and no moods. Subscription grants expiring monthly credits.
+            PAYG credits do not expire and retention uses day slots.
+          </p>
         </div>
       </div>
 

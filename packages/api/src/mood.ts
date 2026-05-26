@@ -60,21 +60,31 @@ export class MoodApi {
   }
 
   async adminUpdate(id: string, input: unknown) {
-    const value = MoodInputBase.partial().parse(input);
+    const UpdateSchema = MoodInputBase.partial().extend({
+      status: z.enum(["draft", "published", "archived"]).optional(),
+    });
+    const value = UpdateSchema.parse(input);
     return adminUpdateMood(this.db("app_admin"), id, {
-      ...(value.slug ? { slug: value.slug } : {}),
-      ...(value.name ? { name: value.name } : {}),
-      ...(value.kind ? { kind: value.kind } : {}),
-      ...(value.validFrom ? { validFrom: new Date(value.validFrom) } : {}),
-      ...(value.validTo ? { validTo: new Date(value.validTo) } : {}),
-      ...(value.promptModifiers ? { promptModifiers: value.promptModifiers } : {}),
-      ...(value.negativePrompts ? { negativePrompts: value.negativePrompts } : {}),
-      ...(value.accentPalette ? { accentPalette: value.accentPalette } : {}),
-      ...(value.decorationTags ? { decorationTags: value.decorationTags } : {}),
-      ...(value.typographyHint ? { typographyHint: value.typographyHint } : {}),
-      ...(value.supportedAspectRatios
+      ...("slug" in value && value.slug ? { slug: value.slug } : {}),
+      ...("name" in value && value.name ? { name: value.name } : {}),
+      ...("kind" in value && value.kind ? { kind: value.kind } : {}),
+      ...("validFrom" in value
+        ? { validFrom: value.validFrom ? new Date(value.validFrom) : null }
+        : {}),
+      ...("validTo" in value
+        ? { validTo: value.validTo ? new Date(value.validTo) : null }
+        : {}),
+      ...("promptModifiers" in value ? { promptModifiers: value.promptModifiers ?? "" } : {}),
+      ...("negativePrompts" in value ? { negativePrompts: value.negativePrompts ?? "" } : {}),
+      ...("accentPalette" in value ? { accentPalette: value.accentPalette ?? [] } : {}),
+      ...("decorationTags" in value ? { decorationTags: value.decorationTags ?? [] } : {}),
+      ...("typographyHint" in value && value.typographyHint
+        ? { typographyHint: value.typographyHint }
+        : {}),
+      ...("supportedAspectRatios" in value && value.supportedAspectRatios
         ? { supportedAspectRatios: value.supportedAspectRatios }
         : {}),
+      ...("status" in value && value.status ? { status: value.status } : {}),
     });
   }
 

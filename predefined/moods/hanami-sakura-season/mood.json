@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000016",
+  "slug": "hanami-sakura-season",
+  "name": "Hanami / Sakura Season",
+  "kind": "seasonal",
+  "validFrom": "2027-03-01T00:00:00.000Z",
+  "validTo": "2027-04-30T23:59:59.000Z",
+  "accentPalette": [
+    "#F9A8D4",
+    "#FFF7ED",
+    "#7C2D12",
+    "#A7F3D0"
+  ],
+  "decorationTags": [
+    "sakura",
+    "picnic-cloth",
+    "soft-petals",
+    "spring-light",
+    "minimal"
+  ],
+  "promptModifiers": "Soft Hanami sakura season mood with cherry blossoms, delicate falling petals, spring picnic textures, airy blush tones, natural daylight, and quiet elegant commercial composition.",
+  "negativePrompts": "Tourist crowds, anime style, readable Japanese text, temple focus, stereotypes.",
+  "previewAsset": "hanami-sakura-season/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

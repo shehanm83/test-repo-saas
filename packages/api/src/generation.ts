@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 
-import { Ledger, InsufficientCredits } from "@layertone/billing";
+import {
+  billingSegmentFor,
+  InsufficientCredits,
+  Ledger,
+  priceCreditsForPlan,
+} from "@layertone/billing";
 import {
   and,
   captionJobs,
@@ -17,6 +22,7 @@ import {
   getProduct,
   updateGenerationInspirationKey,
   priceBookLookup,
+  workspaces,
 } from "@layertone/db";
 import { tagSpan } from "@layertone/observability";
 import {
@@ -48,7 +54,9 @@ export class GenerationApi {
 
   async estimate(args: { workspaceId: string; input: unknown }) {
     const v = normalizeCommercialGenerationInput(args.input);
-    const plan = await this.buildPlan(v);
+    const workspacePlanCode = await this.getWorkspacePlanCode(args.workspaceId);
+    this.assertEntitlements(v, workspacePlanCode);
+    const plan = await this.buildPlan(v, workspacePlanCode);
     return {
       credits: plan.totalCredits,
       priceBookVersion: plan.priceBookVersion,
@@ -60,7 +68,9 @@ export class GenerationApi {
 
   async create(args: { workspaceId: string; userId: string; input: unknown }) {
     const v = normalizeCommercialGenerationInput(args.input);
-    const plan = await this.buildPlan(v);
+    const workspacePlanCode = await this.getWorkspacePlanCode(args.workspaceId);
+    this.assertEntitlements(v, workspacePlanCode);
+    const plan = await this.buildPlan(v, workspacePlanCode);
     v.productRefs = await this.snapshotProductRefs(args.workspaceId, v.productRefs);
 
     const adminDb = this.db("app_admin");
@@ -235,7 +245,51 @@ export class GenerationApi {
     }
   }
 
-  private async buildPlan(v: ReturnType<typeof normalizeCommercialGenerationInput>) {
+  private async getWorkspacePlanCode(workspaceId: string) {
+    const [workspace] = await this.db("app_admin")
+      .select({ planCode: workspaces.planCode })
+      .from(workspaces)
+      .where(eq(workspaces.id, workspaceId))
+      .limit(1);
+    return workspace?.planCode ?? "free";
+  }
+
+  private assertEntitlements(
+    v: ReturnType<typeof normalizeCommercialGenerationInput>,
+    planCode: string,
+  ) {
+    const segment = billingSegmentFor(planCode);
+    if (segment !== "free") return;
+
+    if (v.moodId) {
+      throw new AppError(
+        CODES.VALIDATION_FAILED,
+        "Moods are not available on the Free plan. Upgrade or buy credits to use moods.",
+        403,
+        { entitlement: "moods" },
+      );
+    }
+
+    if (v.flags.usePremiumModel || v.outputs.quality === "premium") {
+      throw new AppError(
+        CODES.VALIDATION_FAILED,
+        "Premium image models are not available on the Free plan.",
+        403,
+        { entitlement: "premium_generation" },
+      );
+    }
+
+    if (v.projectId) {
+      throw new AppError(
+        CODES.VALIDATION_FAILED,
+        "Saved projects are not available on the Free plan.",
+        403,
+        { entitlement: "saved_projects" },
+      );
+    }
+  }
+
+  private async buildPlan(v: ReturnType<typeof normalizeCommercialGenerationInput>, planCode: string) {
     const target = resolveOutputTarget(v.outputTarget);
 
     if (v.moodId) {
@@ -302,7 +356,8 @@ export class GenerationApi {
         hasInspirationFlag: hasInspiration,
       });
       priceBookVersion = p.version;
-      const variantCredits = creditsFromPricebook(p) + extraImageCredits;
+      const baseCredits = creditsFromPricebook(p) + extraImageCredits;
+      const variantCredits = priceCreditsForPlan(baseCredits, planCode);
       totalCredits += variantCredits;
       variantPlan.push({ templateId: t.tid, modelCode, credits: variantCredits });
       lineItems.push({
@@ -380,12 +435,14 @@ export class GenerationApi {
     const hasInspiration = !!gen.inspirationImageS3Key;
 
     const modelCode = sourceVariant.modelUsed ?? "flux-1.1-pro";
+    const workspacePlanCode = await this.getWorkspacePlanCode(args.workspaceId);
     const price = await priceBookLookup(this.db(), {
       modelCode,
       sizeBucket,
       premiumFlag: !!settings.usePremiumModel,
       hasInspirationFlag: hasInspiration,
     });
+    const creditCost = priceCreditsForPlan(price.credits, workspacePlanCode);
 
     const ledger = new Ledger(adminDb, this.adapters.telemetry);
     const newVariantId = randomUUID();
@@ -394,7 +451,7 @@ export class GenerationApi {
     try {
       await ledger.reserve({
         workspaceId: args.workspaceId,
-        amount: price.credits,
+        amount: creditCost,
         idempotencyKey: reservationKey,
         generationId: args.generationId,
       });
@@ -416,7 +473,7 @@ export class GenerationApi {
         generationId: args.generationId,
         templateId: sourceVariant.templateId,
         modelUsed: modelCode,
-        creditCost: price.credits,
+        creditCost,
       },
     ]);
 
@@ -452,7 +509,7 @@ export class GenerationApi {
         templateId: sourceVariant.templateId,
         status: "queued" as const,
       },
-      reservedCredits: price.credits,
+      reservedCredits: creditCost,
     };
   }
 }

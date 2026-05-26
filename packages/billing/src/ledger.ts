@@ -1,9 +1,17 @@
 import { creditLedgerEntries, type Db, workspaces, withWorkspace } from "@layertone/db";
-import { eq, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 
 import { InsufficientCredits } from "./errors";
 
-type Kind = "grant" | "reservation" | "commit" | "release" | "topup" | "refund" | "adjustment";
+type Kind =
+  | "grant"
+  | "reservation"
+  | "commit"
+  | "release"
+  | "topup"
+  | "refund"
+  | "adjustment"
+  | "retention";
 
 export interface LedgerEntry {
   kind: Kind;
@@ -100,6 +108,68 @@ export class Ledger {
     });
   }
 
+  async getExpiringSubscriptionBalance(workspaceId: string): Promise<number> {
+    return withWorkspace(this.db, workspaceId, async (tx) => {
+      const rows = await tx
+        .select({
+          kind: creditLedgerEntries.kind,
+          amount: creditLedgerEntries.amount,
+          metadata: creditLedgerEntries.metadata,
+          createdAt: creditLedgerEntries.createdAt,
+        })
+        .from(creditLedgerEntries)
+        .where(eq(creditLedgerEntries.workspaceId, workspaceId))
+        .orderBy(asc(creditLedgerEntries.createdAt));
+
+      let subscription = 0;
+      let purchased = 0;
+      for (const row of rows) {
+        const metadata = (row.metadata ?? {}) as Record<string, unknown>;
+        const creditBucket = metadata.creditBucket;
+        if (row.amount > 0) {
+          if (
+            creditBucket === "subscription" ||
+            (row.kind === "grant" && metadata.reason === "monthly-grant")
+          ) {
+            subscription += row.amount;
+          } else {
+            purchased += row.amount;
+          }
+          continue;
+        }
+
+        let spend = Math.abs(row.amount);
+        const fromSubscription = Math.min(subscription, spend);
+        subscription -= fromSubscription;
+        spend -= fromSubscription;
+        purchased = Math.max(0, purchased - spend);
+      }
+
+      return subscription;
+    });
+  }
+
+  async expireSubscriptionCredits(args: {
+    workspaceId: string;
+    idempotencyKey: string;
+    metadata?: Record<string, unknown>;
+  }) {
+    const amount = await this.getExpiringSubscriptionBalance(args.workspaceId);
+    if (amount <= 0) {
+      return { id: "", balanceAfter: await this.getBalance(args.workspaceId), idempotent: true };
+    }
+    return this.adjustment({
+      workspaceId: args.workspaceId,
+      amount: -amount,
+      idempotencyKey: args.idempotencyKey,
+      metadata: {
+        ...args.metadata,
+        reason: "subscription-credit-expiry",
+        creditBucket: "subscription",
+      },
+    });
+  }
+
   grant(args: {
     workspaceId: string;
     amount: number;
@@ -165,5 +235,14 @@ export class Ledger {
     metadata?: Record<string, unknown>;
   }) {
     return this.post({ ...args, kind: "adjustment" });
+  }
+
+  retention(args: {
+    workspaceId: string;
+    amount: number;
+    idempotencyKey: string;
+    metadata?: Record<string, unknown>;
+  }) {
+    return this.post({ ...args, kind: "retention", amount: -Math.abs(args.amount) });
   }
 }

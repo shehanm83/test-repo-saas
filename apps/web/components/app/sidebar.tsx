@@ -12,6 +12,14 @@ export function Sidebar(props: {
   planCode: string;
 }) {
   const pathname = usePathname() ?? "/";
+  const planName =
+    props.planCode === "subscription"
+      ? "Subscription"
+      : props.planCode === "payg"
+        ? "Pay As You Go"
+        : props.planCode === "pro" || props.planCode === "starter" || props.planCode === "business" || props.planCode === "agency"
+          ? "Subscription"
+          : "Free";
   const isActive = (path: string): boolean =>
     pathname === path || pathname.startsWith(path + "/");
 
@@ -112,7 +120,7 @@ export function Sidebar(props: {
           style={{ textDecoration: "none" }}
         >
           <span className="sidebar__avatar">N</span>
-          <strong>{props.planCode.charAt(0).toUpperCase() + props.planCode.slice(1)} plan</strong>
+          <strong>{planName} plan</strong>
           <I.ChevronDown size={14} />
         </Link>
       </div>

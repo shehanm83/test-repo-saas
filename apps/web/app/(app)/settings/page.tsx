@@ -1,4 +1,4 @@
-import { Ledger, PLANS } from "@layertone/billing";
+import { Ledger, normalizePlanCode, PLANS } from "@layertone/billing";
 import { createDb } from "@layertone/db";
 import { loadConfig } from "@layertone/shared/config";
 
@@ -41,7 +41,7 @@ export default async function SettingsPage() {
   const config = loadConfig();
   const db = createDb(config.db.url, "app_admin");
   const balance = workspace ? await new Ledger(db).getBalance(workspace.id) : 0;
-  const planCode = (workspace?.planCode ?? "free") as keyof typeof PLANS;
+  const planCode = normalizePlanCode(workspace?.planCode);
   const plan = PLANS[planCode];
 
   return (
@@ -131,7 +131,7 @@ export default async function SettingsPage() {
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span className="pill pill--accent">
               <I.Crown size={11} />
-              {planCode.toUpperCase()}
+              {plan.name}
             </span>
             <span
               className={`pill ${

@@ -8,6 +8,7 @@ export function Generate(props: {
   moods: MoodLite[];
   products?: ProductLite[];
   credits: number;
+  planSegment?: "free" | "subscription" | "payg";
 }) {
   return (
     <GenerateShell
@@ -15,6 +16,7 @@ export function Generate(props: {
       moods={props.moods}
       products={props.products ?? []}
       credits={props.credits}
+      planSegment={props.planSegment ?? "subscription"}
     />
   );
 }

@@ -32,7 +32,7 @@ async function main() {
       id: "00000000-0000-0000-0000-000000000001",
       ownerUserId: user.id,
       name: "Personal Workspace",
-      planCode: "pro",
+      planCode: "subscription",
       brandQuota: 3,
       seatQuota: 3,
       monthlyCreditGrant: 1000,
@@ -40,7 +40,7 @@ async function main() {
     })
     .onConflictDoUpdate({
       target: workspaces.id,
-      set: { name: "Personal Workspace", planCode: "pro" },
+      set: { name: "Personal Workspace", planCode: "subscription" },
     })
     .returning();
 

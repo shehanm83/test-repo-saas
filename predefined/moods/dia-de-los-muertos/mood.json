@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000015",
+  "slug": "dia-de-los-muertos",
+  "name": "Día de los Muertos",
+  "kind": "seasonal",
+  "validFrom": "2026-10-15T00:00:00.000Z",
+  "validTo": "2026-11-10T23:59:59.000Z",
+  "accentPalette": [
+    "#F97316",
+    "#7C2D12",
+    "#FACC15",
+    "#DB2777"
+  ],
+  "decorationTags": [
+    "marigold",
+    "paper-flags",
+    "candlelight",
+    "terracotta",
+    "floral"
+  ],
+  "promptModifiers": "Respectful Día de los Muertos-inspired styling with marigold flowers, candlelight, papel picado-inspired color accents without readable text, terracotta warmth, and celebratory remembrance mood.",
+  "negativePrompts": "Skull face paint focus, costumes, graveyard, readable text, sacred altar close-up, stereotypes.",
+  "previewAsset": "dia-de-los-muertos/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

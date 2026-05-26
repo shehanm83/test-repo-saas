@@ -100,7 +100,7 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
           <div className="t-eyebrow">Homepage</div>
           <h1 className="page__title">Home showcase</h1>
           <p className="page__subtitle">
-            Configure the output gallery and the three comparison cards on the homepage.
+            Configure the output gallery and the three supporting message cards on the homepage.
           </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -241,7 +241,7 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
 
       <section className="card" style={{ padding: 24 }}>
         <h2 className="t-h3" style={{ marginTop: 0 }}>
-          Comparison cards
+          Supporting message cards
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
           {draft.cards.map((card, index) => (
@@ -288,17 +288,37 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
               </label>
               <label style={{ display: "grid", gap: 6 }}>
                 <span className="t-label">Accent color</span>
-                <input
-                  className="input"
-                  type="color"
-                  value={card.color}
-                  onChange={(event) =>
-                    setDraft({
-                      ...draft,
-                      cards: replaceCard(draft.cards, index, { color: event.target.value }),
-                    })
-                  }
-                />
+                <div style={{ display: "grid", gridTemplateColumns: "44px 1fr", gap: 8 }}>
+                  <input
+                    aria-label={`Card ${index + 1} accent color`}
+                    type="color"
+                    value={card.color}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        cards: replaceCard(draft.cards, index, { color: event.target.value }),
+                      })
+                    }
+                    style={{
+                      width: 44,
+                      height: 40,
+                      border: "1px solid var(--cal-gray-300)",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      padding: 3,
+                    }}
+                  />
+                  <input
+                    className="input"
+                    value={card.color}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        cards: replaceCard(draft.cards, index, { color: event.target.value }),
+                      })
+                    }
+                  />
+                </div>
               </label>
             </div>
           ))}

@@ -14,6 +14,8 @@ export function PricebookAdmin(props: {
     credits: number;
     version: number;
   }>;
+  paygActionMarkup: number;
+  paygRetentionDaysPerCredit: number;
 }) {
   const [form, setForm] = useState({
     modelCode: "flux-1.1-pro",
@@ -42,6 +44,32 @@ export function PricebookAdmin(props: {
             Versioned credit pricing across model, size, premium mode, and inspiration
             usage.
           </p>
+        </div>
+      </div>
+
+      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
+        <div className="t-eyebrow" style={{ marginBottom: 8 }}>
+          Active pricing model
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, fontSize: 13 }}>
+          <div>
+            <strong>Subscription actions</strong>
+            <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
+              Use the base pricebook credits shown below.
+            </p>
+          </div>
+          <div>
+            <strong>PAYG actions</strong>
+            <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
+              Base credits × {props.paygActionMarkup.toFixed(1)}, rounded up to whole credits.
+            </p>
+          </div>
+          <div>
+            <strong>PAYG retention</strong>
+            <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
+              1 credit keeps retained assets for {props.paygRetentionDaysPerCredit} days.
+            </p>
+          </div>
         </div>
       </div>
 

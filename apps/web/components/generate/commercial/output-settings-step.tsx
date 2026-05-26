@@ -29,6 +29,7 @@ export function OutputSettingsStep(props: {
   value: OutputSettings;
   onChange: (value: OutputSettings) => void;
   multiFormat?: boolean;
+  premiumDisabled?: boolean;
 }) {
   function toggleFormat(format: OutputFormat) {
     const formats = props.value.formats.includes(format)
@@ -80,10 +81,11 @@ export function OutputSettingsStep(props: {
               <button
                 key={quality}
                 type="button"
+                disabled={quality === "premium" && props.premiumDisabled}
                 className={props.value.quality === quality ? "is-selected" : ""}
                 onClick={() => props.onChange({ ...props.value, quality })}
               >
-                {quality}
+                {quality === "premium" && props.premiumDisabled ? "premium locked" : quality}
               </button>
             ))}
           </div>

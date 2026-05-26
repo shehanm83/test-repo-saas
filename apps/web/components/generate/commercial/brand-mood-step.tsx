@@ -11,6 +11,7 @@ export function BrandMoodStep(props: {
   onBrandChange: (brandId: string) => void;
   onMoodChange: (moodId: string | null) => void;
   onFlagsChange: (flags: BrandFlags) => void;
+  disabledMoods?: boolean;
 }) {
   const activeBrand = props.brands.find((brand) => brand.id === props.brandId);
   const hasBrand = Boolean(activeBrand);
@@ -38,6 +39,11 @@ export function BrandMoodStep(props: {
       </div>
       <div>
         <span className="label">Mood</span>
+        {props.disabledMoods ? (
+          <p className="qc-empty-note" style={{ margin: "6px 0 10px" }}>
+            Moods are not available on the Free plan.
+          </p>
+        ) : null}
         <div className="cg-mood-grid">
           <button
             type="button"
@@ -52,6 +58,7 @@ export function BrandMoodStep(props: {
             <button
               type="button"
               key={mood.id}
+              disabled={props.disabledMoods}
               className={`cg-mood-card ${props.moodId === mood.id ? "is-selected" : ""}`}
               onClick={() => props.onMoodChange(mood.id)}
             >

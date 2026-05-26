@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000025",
+  "slug": "black-friday-cyber-week",
+  "name": "Black Friday / Cyber Week",
+  "kind": "seasonal",
+  "validFrom": "2026-11-01T00:00:00.000Z",
+  "validTo": "2026-12-05T23:59:59.000Z",
+  "accentPalette": [
+    "#09090B",
+    "#F8FAFC",
+    "#A855F7",
+    "#22D3EE"
+  ],
+  "decorationTags": [
+    "neon-grid",
+    "sale-light",
+    "dark-gloss",
+    "digital",
+    "premium-retail"
+  ],
+  "promptModifiers": "Modern Black Friday and Cyber Week campaign mood with dark glossy surfaces, neon violet-cyan highlights, premium retail lighting, subtle digital grid accents, and high-conversion ecommerce energy.",
+  "negativePrompts": "Readable sale text, percent signs, cheap discount stickers, logos, cluttered shopping carts.",
+  "previewAsset": "black-friday-cyber-week/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

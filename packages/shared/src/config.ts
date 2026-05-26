@@ -34,6 +34,7 @@ const baseSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_FREE: z.string().optional(),
+  STRIPE_PRICE_SUBSCRIPTION: z.string().optional(),
   STRIPE_PRICE_STARTER: z.string().optional(),
   STRIPE_PRICE_PRO: z.string().optional(),
   STRIPE_PRICE_BUSINESS: z.string().optional(),
@@ -169,6 +170,7 @@ function shape(env: z.output<typeof baseSchema>) {
       webhookSecret: env.STRIPE_WEBHOOK_SECRET,
       prices: {
         free: env.STRIPE_PRICE_FREE,
+        subscription: env.STRIPE_PRICE_SUBSCRIPTION ?? env.STRIPE_PRICE_PRO,
         starter: env.STRIPE_PRICE_STARTER,
         pro: env.STRIPE_PRICE_PRO,
         business: env.STRIPE_PRICE_BUSINESS,

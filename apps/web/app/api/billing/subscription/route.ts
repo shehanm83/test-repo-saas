@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
   try {
     const { planCode } = (await request.json()) as {
-      planCode: "free" | "starter" | "pro" | "business" | "agency";
+      planCode: "free" | "subscription";
     };
 
     const config = loadConfig();

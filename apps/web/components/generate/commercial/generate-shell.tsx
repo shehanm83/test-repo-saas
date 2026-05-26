@@ -208,6 +208,7 @@ export function GenerateShell(props: {
   moods: MoodLite[];
   products: ProductLite[];
   credits: number;
+  planSegment: "free" | "subscription" | "payg";
 }) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, props.brands, initialState);
@@ -219,6 +220,7 @@ export function GenerateShell(props: {
   const [promptPreview, setPromptPreview] = useState<PromptPreviewResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const payload = useMemo(() => buildGeneratePayload(state), [state]);
+  const isFreePlan = props.planSegment === "free";
 
   useEffect(() => {
     if (!state.brief.trim()) {
@@ -368,16 +370,24 @@ export function GenerateShell(props: {
               brands={props.brands}
               moods={props.moods}
               products={props.products}
+              planSegment={props.planSegment}
               onBriefChange={(brief) => dispatch({ type: "brief", brief })}
               onCampaignChange={(patch) => dispatch({ type: "campaign", patch })}
               onAddProduct={(product) => dispatch({ type: "addProduct", product })}
               onRemoveProduct={(localId) => dispatch({ type: "removeProduct", localId })}
               onProductRoleChange={(localId, role) => dispatch({ type: "productRole", localId, role })}
               onBrandChange={(brandId) => dispatch({ type: "brand", brandId })}
-              onMoodChange={(moodId) => dispatch({ type: "mood", moodId })}
+              onMoodChange={(moodId) => {
+                if (!isFreePlan) dispatch({ type: "mood", moodId });
+              }}
               onFlagsChange={(flags) => dispatch({ type: "flags", flags })}
               onBrandLogoAssetIdsChange={(ids) => dispatch({ type: "brandLogoAssetIds", ids })}
-              onOutputsChange={(outputs) => dispatch({ type: "outputs", outputs })}
+              onOutputsChange={(outputs) =>
+                dispatch({
+                  type: "outputs",
+                  outputs: isFreePlan ? { ...outputs, quality: "standard" } : outputs,
+                })
+              }
             />
           ) : (
             <CampaignBuilder
@@ -385,6 +395,7 @@ export function GenerateShell(props: {
               brands={props.brands}
               moods={props.moods}
               products={props.products}
+              planSegment={props.planSegment}
               canSubmit={canSubmit}
               onStepChange={(step) => dispatch({ type: "step", step })}
               onCreationTypeChange={(creationType) => dispatch({ type: "creationType", creationType })}
@@ -392,12 +403,19 @@ export function GenerateShell(props: {
               onCampaignChange={(patch) => dispatch({ type: "campaign", patch })}
               onTemplateChange={(template) => dispatch({ type: "template", template })}
               onCompositionChange={(composition) => dispatch({ type: "composition", composition })}
-              onOutputsChange={(outputs) => dispatch({ type: "outputs", outputs })}
+              onOutputsChange={(outputs) =>
+                dispatch({
+                  type: "outputs",
+                  outputs: isFreePlan ? { ...outputs, quality: "standard" } : outputs,
+                })
+              }
               onAddProduct={(product) => dispatch({ type: "addProduct", product })}
               onRemoveProduct={(localId) => dispatch({ type: "removeProduct", localId })}
               onProductRoleChange={(localId, role) => dispatch({ type: "productRole", localId, role })}
               onBrandChange={(brandId) => dispatch({ type: "brand", brandId })}
-              onMoodChange={(moodId) => dispatch({ type: "mood", moodId })}
+              onMoodChange={(moodId) => {
+                if (!isFreePlan) dispatch({ type: "mood", moodId });
+              }}
               onFlagsChange={(flags) => dispatch({ type: "flags", flags })}
             />
           )}

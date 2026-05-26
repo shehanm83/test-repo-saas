@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000005",
+  "slug": "eid-al-adha",
+  "name": "Eid al-Adha",
+  "kind": "seasonal",
+  "validFrom": "2026-05-20T00:00:00.000Z",
+  "validTo": "2026-07-10T23:59:59.000Z",
+  "accentPalette": [
+    "#14532D",
+    "#C8A24A",
+    "#F7F1E1",
+    "#1F2937"
+  ],
+  "decorationTags": [
+    "lanterns",
+    "woven-texture",
+    "gold-tray",
+    "olive-branch",
+    "gift-box"
+  ],
+  "promptModifiers": "Elegant Eid al-Adha family-gathering and gifting atmosphere with deep green, cream, and gold tones, lantern highlights, premium table details, woven textures, and understated celebration.",
+  "negativePrompts": "Animal imagery, sacrifice references, readable text, religious figures, crowded table.",
+  "previewAsset": "eid-al-adha/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

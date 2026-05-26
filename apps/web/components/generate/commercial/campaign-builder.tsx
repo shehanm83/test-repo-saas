@@ -33,6 +33,7 @@ export function CampaignBuilder(props: {
   brands: BrandLite[];
   moods: MoodLite[];
   products: ProductLite[];
+  planSegment: "free" | "subscription" | "payg";
   canSubmit: boolean;
   onStepChange: (step: number) => void;
   onCreationTypeChange: (creationType: CreationType) => void;
@@ -114,13 +115,19 @@ export function CampaignBuilder(props: {
             onBrandChange={props.onBrandChange}
             onMoodChange={props.onMoodChange}
             onFlagsChange={props.onFlagsChange}
+            disabledMoods={props.planSegment === "free"}
           />
         ) : null}
         {active === 5 ? (
           <CompositionStep value={props.state.composition} onChange={props.onCompositionChange} />
         ) : null}
         {active === 6 ? (
-          <OutputSettingsStep value={props.state.outputs} onChange={props.onOutputsChange} multiFormat />
+          <OutputSettingsStep
+            value={props.state.outputs}
+            onChange={props.onOutputsChange}
+            multiFormat
+            premiumDisabled={props.planSegment === "free"}
+          />
         ) : null}
         {active === 7 ? (
           <div className="cg-review-copy">

@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000012",
+  "slug": "thanksgiving",
+  "name": "Thanksgiving",
+  "kind": "seasonal",
+  "validFrom": "2026-10-20T00:00:00.000Z",
+  "validTo": "2026-12-05T23:59:59.000Z",
+  "accentPalette": [
+    "#92400E",
+    "#B45309",
+    "#F5D0A9",
+    "#365314"
+  ],
+  "decorationTags": [
+    "harvest-table",
+    "pumpkin",
+    "wheat",
+    "linen",
+    "autumn-leaves"
+  ],
+  "promptModifiers": "Warm Thanksgiving harvest styling with linen table textures, pumpkins, wheat, autumn leaves, amber light, earthy brown-orange-green palette, and hospitable premium food-retail atmosphere.",
+  "negativePrompts": "Turkey centerpiece, pilgrims, flags, crowded dinner table, readable text.",
+  "previewAsset": "thanksgiving/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

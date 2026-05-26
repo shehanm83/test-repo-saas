@@ -94,6 +94,7 @@ const FAKE_CONFIG: Config = {
     webhookSecret: undefined,
     prices: {
       free: undefined,
+      subscription: undefined,
       starter: undefined,
       pro: undefined,
       business: undefined,

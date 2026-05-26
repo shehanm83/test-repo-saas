@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000002",
+  "slug": "lunar-new-year",
+  "name": "Lunar New Year",
+  "kind": "seasonal",
+  "validFrom": "2027-01-01T00:00:00.000Z",
+  "validTo": "2027-03-01T23:59:59.000Z",
+  "accentPalette": [
+    "#B91C1C",
+    "#F2C14E",
+    "#111827",
+    "#FFF4D6"
+  ],
+  "decorationTags": [
+    "red-envelopes",
+    "lanterns",
+    "gold-foil",
+    "peony",
+    "paper-cut"
+  ],
+  "promptModifiers": "Elegant Lunar New Year commercial styling with red envelopes, lantern glow, gold foil details, auspicious floral accents, premium red and gold palette, and refined celebratory warmth.",
+  "negativePrompts": "Zodiac caricatures, stereotypes, readable Chinese characters, cheap props, fireworks overuse.",
+  "previewAsset": "lunar-new-year/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

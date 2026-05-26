@@ -42,7 +42,10 @@ export interface BillingProvider {
   createSubscriptionCheckout(args: {
     workspaceId: string;
     customerId: string;
-    priceId: string;
+    priceId?: string;
+    planCode: string;
+    planName: string;
+    unitAmountCents: number;
     successUrl: string;
     cancelUrl: string;
   }): Promise<{ url: string }>;

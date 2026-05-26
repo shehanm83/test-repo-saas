@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000019",
+  "slug": "bastille-day",
+  "name": "Bastille Day",
+  "kind": "seasonal",
+  "validFrom": "2026-07-01T00:00:00.000Z",
+  "validTo": "2026-07-20T23:59:59.000Z",
+  "accentPalette": [
+    "#1D4ED8",
+    "#FFFFFF",
+    "#B91C1C",
+    "#F5F5F4"
+  ],
+  "decorationTags": [
+    "tricolor-ribbon",
+    "parisian-table",
+    "summer",
+    "bakery",
+    "brass"
+  ],
+  "promptModifiers": "Bastille Day-inspired French summer campaign mood with tasteful blue-white-red ribbon accents, Parisian cafe or bakery details, bright July light, brass and stone textures, refined festive energy.",
+  "negativePrompts": "Eiffel Tower cliche, flags covering scene, political imagery, readable text, logos.",
+  "previewAsset": "bastille-day/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

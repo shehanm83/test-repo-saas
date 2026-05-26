@@ -3,6 +3,8 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import type { Db } from "../client";
 import { creditLedgerEntries, users, workspaceMembers, workspaces } from "../schema";
 
+const FREE_INITIAL_CREDITS = 20;
+
 export async function bootstrapNewUser(
   db: Db,
   args: { clerkUserId: string; email: string; eventId: string },
@@ -79,12 +81,12 @@ export async function bootstrapNewUser(
       .orderBy(desc(creditLedgerEntries.createdAt))
       .limit(1);
 
-    const nextBalance = (currentBalance[0]?.balanceAfter ?? 0) + 30;
+    const nextBalance = (currentBalance[0]?.balanceAfter ?? 0) + FREE_INITIAL_CREDITS;
 
     await tx.insert(creditLedgerEntries).values({
       workspaceId: workspace.id,
       kind: "grant",
-      amount: 30,
+      amount: FREE_INITIAL_CREDITS,
       balanceAfter: nextBalance,
       idempotencyKey,
       metadata: {

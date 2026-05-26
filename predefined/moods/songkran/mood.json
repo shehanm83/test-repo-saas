@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000023",
+  "slug": "songkran",
+  "name": "Songkran",
+  "kind": "seasonal",
+  "validFrom": "2027-04-01T00:00:00.000Z",
+  "validTo": "2027-04-25T23:59:59.000Z",
+  "accentPalette": [
+    "#38BDF8",
+    "#FDE68A",
+    "#22C55E",
+    "#F97316"
+  ],
+  "decorationTags": [
+    "water-splash",
+    "tropical-flowers",
+    "fresh-light",
+    "thai-pattern-subtle",
+    "summer"
+  ],
+  "promptModifiers": "Songkran-inspired fresh water festival mood with clean water splashes, tropical flowers, bright April sunlight, aqua-yellow-green accents, and joyful refreshing campaign energy.",
+  "negativePrompts": "Water fights with people, temple focus, readable Thai text, stereotypes, chaotic splashes.",
+  "previewAsset": "songkran/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

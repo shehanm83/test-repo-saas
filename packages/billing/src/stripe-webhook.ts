@@ -5,20 +5,36 @@ import { eq } from "drizzle-orm";
 import { Ledger } from "./ledger";
 import { PLANS, TOPUP_PACKS, planFromStripePriceId } from "./plans";
 
+type CheckoutSessionData = {
+  id?: string;
+  payment_status?: string;
+  metadata?: {
+    kind?: string;
+    workspaceId?: string;
+    packCode?: string;
+  };
+};
+
 export class StripeWebhookHandler {
   constructor(private readonly config: Config) {}
+
+  private async stripeProvider() {
+    const { StripeBillingProvider } = await import("./stripe");
+    return new StripeBillingProvider({
+      secretKey: this.config.billing.stripeSecretKey!,
+      topupPrices: this.config.billing.topupPrices,
+      ...(this.config.billing.webhookSecret
+        ? { webhookSecret: this.config.billing.webhookSecret }
+        : {}),
+    });
+  }
 
   async handle(rawBody: string, signature: string): Promise<{ status: number; body: unknown }> {
     if (this.config.billing.mode === "stub") {
       return { status: 200, body: { skipped: "stub" } };
     }
 
-    const { StripeBillingProvider } = await import("./stripe");
-    const provider = new StripeBillingProvider({
-      secretKey: this.config.billing.stripeSecretKey!,
-      webhookSecret: this.config.billing.webhookSecret!,
-      topupPrices: this.config.billing.topupPrices,
-    });
+    const provider = await this.stripeProvider();
     const evt = await provider.verifyWebhook(rawBody, signature);
 
     const dbAdmin = createDb(this.config.db.url, "app_admin");
@@ -27,8 +43,8 @@ export class StripeWebhookHandler {
     switch (evt.type) {
       case "invoice.paid": {
         const inv = evt.data as {
-          subscription_details?: { metadata?: { workspaceId?: string } };
-          metadata?: { workspaceId?: string };
+          subscription_details?: { metadata?: { workspaceId?: string; planCode?: string } };
+          metadata?: { workspaceId?: string; planCode?: string };
           lines: { data: { price?: { id?: string } }[] };
         };
         const workspaceId =
@@ -36,10 +52,18 @@ export class StripeWebhookHandler {
         if (!workspaceId) return { status: 200, body: { ignored: "no workspaceId" } };
 
         const priceId = inv.lines.data[0]?.price?.id;
-        const planCode = priceId
-          ? planFromStripePriceId(
+        const metadataPlanCode =
+          inv.subscription_details?.metadata?.planCode === "subscription" ||
+          inv.metadata?.planCode === "subscription"
+            ? "subscription"
+            : null;
+        const planCode =
+          metadataPlanCode ??
+          (priceId
+            ? planFromStripePriceId(
               {
                 STRIPE_PRICE_FREE: this.config.billing.prices.free,
+                STRIPE_PRICE_SUBSCRIPTION: this.config.billing.prices.subscription,
                 STRIPE_PRICE_STARTER: this.config.billing.prices.starter,
                 STRIPE_PRICE_PRO: this.config.billing.prices.pro,
                 STRIPE_PRICE_BUSINESS: this.config.billing.prices.business,
@@ -47,10 +71,17 @@ export class StripeWebhookHandler {
               },
               priceId,
             )
-          : null;
+            : null);
         if (!planCode) return { status: 200, body: { ignored: "unknown plan" } };
 
         const plan = PLANS[planCode];
+        if (plan.monthlyCreditsExpire) {
+          await ledger.expireSubscriptionCredits({
+            workspaceId,
+            idempotencyKey: `stripe-expire-subscription-credits-${evt.id}`,
+            metadata: { planCode },
+          });
+        }
         await dbAdmin
           .update(workspaces)
           .set({
@@ -67,7 +98,11 @@ export class StripeWebhookHandler {
           amount: plan.monthlyCreditGrant,
           idempotencyKey: `stripe-grant-${evt.id}`,
           stripeEventId: evt.id,
-          metadata: { reason: "monthly-grant", planCode },
+          metadata: {
+            reason: "monthly-grant",
+            creditBucket: "subscription",
+            planCode,
+          },
         });
 
         const subscriptionId =
@@ -101,7 +136,7 @@ export class StripeWebhookHandler {
       case "customer.subscription.deleted": {
         const sub = evt.data as {
           id: string;
-          metadata?: { workspaceId?: string };
+          metadata?: { workspaceId?: string; planCode?: string };
           status: string;
           items: { data: { price: { id: string } }[] };
           current_period_start: number;
@@ -111,10 +146,14 @@ export class StripeWebhookHandler {
         if (!workspaceId) return { status: 200, body: { ignored: "no workspaceId" } };
 
         const priceId = sub.items.data[0]?.price.id;
-        const planCode = priceId
-          ? planFromStripePriceId(
+        const metadataPlanCode = sub.metadata?.planCode === "subscription" ? "subscription" : null;
+        const planCode =
+          metadataPlanCode ??
+          (priceId
+            ? planFromStripePriceId(
               {
                 STRIPE_PRICE_FREE: this.config.billing.prices.free,
+                STRIPE_PRICE_SUBSCRIPTION: this.config.billing.prices.subscription,
                 STRIPE_PRICE_STARTER: this.config.billing.prices.starter,
                 STRIPE_PRICE_PRO: this.config.billing.prices.pro,
                 STRIPE_PRICE_BUSINESS: this.config.billing.prices.business,
@@ -122,7 +161,7 @@ export class StripeWebhookHandler {
               },
               priceId,
             )
-          : null;
+            : null);
 
         if (sub.status === "unpaid" || evt.type === "customer.subscription.deleted") {
           await dbAdmin
@@ -161,30 +200,12 @@ export class StripeWebhookHandler {
       }
 
       case "checkout.session.completed": {
-        const sess = evt.data as {
-          metadata?: {
-            kind?: string;
-            workspaceId?: string;
-            packCode?: string;
-          };
-        };
-        if (sess.metadata?.kind !== "topup") {
-          return { status: 200, body: { ignored: "non-topup checkout" } };
-        }
-        const workspaceId = sess.metadata.workspaceId;
-        if (!workspaceId) return { status: 200, body: { ignored: "no workspaceId" } };
-
-        const packCode = sess.metadata.packCode as keyof typeof TOPUP_PACKS | undefined;
-        const pack = packCode ? TOPUP_PACKS[packCode] : undefined;
-        if (!pack) return { status: 400, body: { error: "unknown pack" } };
-
-        await ledger.topup({
-          workspaceId,
-          amount: pack.credits,
-          idempotencyKey: `stripe-topup-${evt.id}`,
+        return this.applyCheckoutSession(evt.data as CheckoutSessionData, {
+          sourceId: evt.id,
+          ledger,
+          dbAdmin,
           stripeEventId: evt.id,
         });
-        return { status: 200, body: { ok: true, credits: pack.credits } };
       }
 
       case "charge.refunded": {
@@ -211,5 +232,70 @@ export class StripeWebhookHandler {
       default:
         return { status: 200, body: { ignored: evt.type } };
     }
+  }
+
+  async syncCheckoutSession(
+    sessionId: string,
+    expectedWorkspaceId?: string,
+  ): Promise<{ status: number; body: unknown }> {
+    if (this.config.billing.mode === "stub") {
+      return { status: 200, body: { skipped: "stub" } };
+    }
+
+    const provider = await this.stripeProvider();
+    const session = (await provider.retrieveCheckoutSession(sessionId)) as CheckoutSessionData;
+    if (expectedWorkspaceId && session.metadata?.workspaceId !== expectedWorkspaceId) {
+      return { status: 403, body: { error: "checkout-session-workspace-mismatch" } };
+    }
+    const dbAdmin = createDb(this.config.db.url, "app_admin");
+    const ledger = new Ledger(dbAdmin);
+
+    return this.applyCheckoutSession(session, {
+      sourceId: session.id ?? sessionId,
+      ledger,
+      dbAdmin,
+    });
+  }
+
+  private async applyCheckoutSession(
+    sess: CheckoutSessionData,
+    args: {
+      sourceId: string;
+      ledger: Ledger;
+      dbAdmin: ReturnType<typeof createDb>;
+      stripeEventId?: string;
+    },
+  ): Promise<{ status: number; body: unknown }> {
+    if (sess.metadata?.kind !== "topup") {
+      return { status: 200, body: { ignored: "non-topup checkout" } };
+    }
+    if (sess.payment_status && sess.payment_status !== "paid" && sess.payment_status !== "no_payment_required") {
+      return { status: 200, body: { ignored: "checkout-not-paid" } };
+    }
+
+    const workspaceId = sess.metadata.workspaceId;
+    if (!workspaceId) return { status: 200, body: { ignored: "no workspaceId" } };
+
+    const packCode = sess.metadata.packCode as keyof typeof TOPUP_PACKS | undefined;
+    const pack = packCode ? TOPUP_PACKS[packCode] : undefined;
+    if (!pack) return { status: 400, body: { error: "unknown pack" } };
+
+    await args.ledger.topup({
+      workspaceId,
+      amount: pack.credits,
+      idempotencyKey: `stripe-topup-session-${sess.id ?? args.sourceId}`,
+      ...(args.stripeEventId ? { stripeEventId: args.stripeEventId } : {}),
+    });
+    await args.dbAdmin
+      .update(workspaces)
+      .set({
+        planCode: "payg",
+        brandQuota: PLANS.payg.brandQuota,
+        seatQuota: PLANS.payg.seatQuota,
+        monthlyCreditGrant: PLANS.payg.monthlyCreditGrant,
+        status: "active",
+      })
+      .where(eq(workspaces.id, workspaceId));
+    return { status: 200, body: { ok: true, credits: pack.credits } };
   }
 }

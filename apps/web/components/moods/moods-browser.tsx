@@ -19,7 +19,7 @@ interface Mood {
   validTo: string | null;
 }
 
-export function MoodsBrowser({ moods }: { moods: Mood[] }) {
+export function MoodsBrowser({ moods, locked = false }: { moods: Mood[]; locked?: boolean }) {
   const [tab, setTab] = useState<"all" | "now" | "always" | "soon">("all");
   const [search, setSearch] = useState("");
 
@@ -57,13 +57,23 @@ export function MoodsBrowser({ moods }: { moods: Mood[] }) {
         </div>
       </div>
 
-      <div className="tabs" style={{ marginBottom: 24 }}>
+      {locked ? (
+        <div className="empty card">
+          <div className="empty__art">
+            <I.Lock size={28} />
+          </div>
+          <div className="empty__title">Moods are not available on Free</div>
+          <div className="empty__sub">Subscribe or buy credits to unlock the full mood library.</div>
+        </div>
+      ) : null}
+
+      {!locked ? <div className="tabs" style={{ marginBottom: 24 }}>
         {(
           [
             ["all", "All"],
-            ["now", "Right now"],
-            ["always", "Always"],
-            ["soon", "Coming soon"],
+            ["now", "This season"],
+            ["always", "Evergreen"],
+            ["soon", "Upcoming"],
           ] as const
         ).map(([k, l]) => (
           <div
@@ -74,9 +84,9 @@ export function MoodsBrowser({ moods }: { moods: Mood[] }) {
             {l}
           </div>
         ))}
-      </div>
+      </div> : null}
 
-      {filtered.length === 0 ? (
+      {!locked && filtered.length === 0 ? (
         <div className="empty card">
           <div className="empty__art">
             <I.Library size={28} />
@@ -84,7 +94,7 @@ export function MoodsBrowser({ moods }: { moods: Mood[] }) {
           <div className="empty__title">No moods match</div>
           <div className="empty__sub">Try a different search or tab.</div>
         </div>
-      ) : (
+      ) : !locked ? (
         <div
           style={{
             display: "grid",
@@ -160,25 +170,30 @@ export function MoodsBrowser({ moods }: { moods: Mood[] }) {
                   {m.name}
                 </div>
                 <div className="t-small" style={{ marginTop: 4, fontSize: 12 }}>
-                  {m.validTo
-                    ? `Available until ${new Date(m.validTo).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                      })}`
-                    : m.validFrom
-                      ? `Available from ${new Date(m.validFrom).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                        })}`
-                      : m.motifs.length > 0
-                        ? m.motifs.slice(0, 3).join(" · ")
-                        : "Evergreen"}
+                  {seasonLabel(m)}
                 </div>
               </div>
             </Link>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
+}
+
+function seasonLabel(mood: Mood) {
+  if (mood.kind !== "seasonal") return "Evergreen";
+  if (mood.validFrom && mood.validTo) {
+    return `Seasonal period ${formatMonthDay(mood.validFrom)} - ${formatMonthDay(mood.validTo)}`;
+  }
+  if (mood.validFrom) return `Seasonal period starts ${formatMonthDay(mood.validFrom)}`;
+  if (mood.validTo) return `Seasonal period ends ${formatMonthDay(mood.validTo)}`;
+  return "Seasonal";
+}
+
+function formatMonthDay(value: string) {
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }

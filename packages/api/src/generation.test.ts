@@ -14,7 +14,15 @@ vi.mock("./aup", () => ({
 
 // Mock all @layertone/db imports
 vi.mock("@layertone/db", () => ({
-  createDb: vi.fn(() => ({})),
+  createDb: vi.fn(() => ({
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: vi.fn(() => ({
+          limit: vi.fn(async () => [{ planCode: "subscription" }]),
+        })),
+      })),
+    })),
+  })),
   listAvailableMoods: vi.fn(async () => [{ id: "mood-1", supportedAspectRatios: ["1:1", "4:5"] }]),
   pickTemplates: vi.fn(async () => [
     {
@@ -32,7 +40,7 @@ vi.mock("@layertone/db", () => ({
   updateGenerationInspirationKey: vi.fn(async () => undefined),
   priceBookLookup: vi.fn(async () => ({ creditCost: 10, version: 1 })),
   generations: {},
-  workspaces: {},
+  workspaces: { planCode: "plan_code", id: "id" },
   auditLog: {},
   and: vi.fn(),
   eq: vi.fn(),
@@ -57,7 +65,12 @@ vi.mock("@layertone/billing", () => {
       release: vi.fn(async () => undefined),
     };
   });
-  return { Ledger, InsufficientCredits };
+  return {
+    Ledger,
+    InsufficientCredits,
+    billingSegmentFor: vi.fn(() => "subscription"),
+    priceCreditsForPlan: vi.fn((credits: number) => credits),
+  };
 });
 
 // Mock @layertone/storage

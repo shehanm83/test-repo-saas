@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000001",
+  "slug": "christmas",
+  "name": "Christmas",
+  "kind": "seasonal",
+  "validFrom": "2026-11-15T00:00:00.000Z",
+  "validTo": "2027-01-06T23:59:59.000Z",
+  "accentPalette": [
+    "#7A0E0E",
+    "#0E5C2F",
+    "#E8C66B",
+    "#FBE5C2"
+  ],
+  "decorationTags": [
+    "evergreen",
+    "ornaments",
+    "candles",
+    "gift-wrap",
+    "warm-lights"
+  ],
+  "promptModifiers": "Warm premium Christmas campaign atmosphere with evergreen foliage, subtle ornaments, candlelight, wrapped gifts, rich red-green-gold accents, cozy winter retail styling, and polished editorial lighting.",
+  "negativePrompts": "Santa characters, elves, readable text, logos, cluttered decorations, plastic-looking props.",
+  "previewAsset": "christmas/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

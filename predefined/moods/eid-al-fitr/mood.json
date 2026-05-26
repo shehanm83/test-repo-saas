@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000004",
+  "slug": "eid-al-fitr",
+  "name": "Eid al-Fitr",
+  "kind": "seasonal",
+  "validFrom": "2027-02-20T00:00:00.000Z",
+  "validTo": "2027-04-10T23:59:59.000Z",
+  "accentPalette": [
+    "#0F766E",
+    "#D4AF37",
+    "#F8E7C9",
+    "#FFFFFF"
+  ],
+  "decorationTags": [
+    "crescent",
+    "lanterns",
+    "dates",
+    "gold-pattern",
+    "silk"
+  ],
+  "promptModifiers": "Refined Eid al-Fitr celebration styling with crescent-inspired motifs, warm lantern light, dates, soft textiles, gold geometric accents, and an elegant welcoming table atmosphere.",
+  "negativePrompts": "Readable calligraphy, mosque interiors as backdrop, religious figures, visual cliches, clutter.",
+  "previewAsset": "eid-al-fitr/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

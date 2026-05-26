@@ -1,11 +1,16 @@
+import { billingSegmentFor } from "@layertone/billing";
 import { StockApi } from "@layertone/api/stock";
 import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
+import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
 
 export default async function StockPage() {
-  const items = await new StockApi(loadConfig(), {} as never).adminList().catch(() => []);
+  const { workspace } = await getSessionWorkspace();
+  const isFree = billingSegmentFor(workspace?.planCode) === "free";
+  const allItems = await new StockApi(loadConfig(), {} as never).adminList().catch(() => []);
+  const items = isFree ? allItems.slice(0, 6) : allItems;
   const adapters = createServerAdapters();
   const itemsWithUrls = await Promise.all(
     items.map(async (item) => ({
@@ -26,7 +31,9 @@ export default async function StockPage() {
           </div>
           <h1 className="page__title">Stock library</h1>
           <p className="page__sub">
-            Curated stock used by moods, templates, and editorial references.
+            {isFree
+              ? "Free workspaces can preview a limited stock set. Subscription and PAYG unlock the full library."
+              : "Curated stock used by moods, templates, and editorial references."}
           </p>
         </div>
       </div>

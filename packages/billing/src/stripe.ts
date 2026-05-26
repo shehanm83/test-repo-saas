@@ -1,17 +1,22 @@
 import type { BillingProvider } from "@layertone/shared";
 import Stripe from "stripe";
 
+import { TOPUP_PACKS } from "./plans";
+
 export class StripeBillingProvider implements BillingProvider {
   private stripe: Stripe;
 
   constructor(
     private readonly opts: {
       secretKey: string;
-      webhookSecret: string;
+      webhookSecret?: string;
       topupPrices?: Record<string, string | undefined>;
     },
   ) {
-    this.stripe = new Stripe(opts.secretKey, { apiVersion: "2025-04-30" as never });
+    this.stripe = new Stripe(opts.secretKey, {
+      appInfo: { name: "Layertone", version: "0.0.0" },
+      maxNetworkRetries: 2,
+    });
   }
 
   async ensureCustomer(workspaceId: string, email: string) {
@@ -24,20 +29,45 @@ export class StripeBillingProvider implements BillingProvider {
   async createSubscriptionCheckout(args: {
     workspaceId: string;
     customerId: string;
-    priceId: string;
+    priceId?: string;
+    planCode: string;
+    planName: string;
+    unitAmountCents: number;
     successUrl: string;
     cancelUrl: string;
   }) {
+    const lineItem = args.priceId
+      ? { price: args.priceId, quantity: 1 }
+      : {
+          price_data: {
+            currency: "usd" as const,
+            unit_amount: args.unitAmountCents,
+            recurring: { interval: "month" as const },
+            product_data: {
+              name: args.planName,
+              metadata: {
+                kind: "subscription",
+                planCode: args.planCode,
+              },
+            },
+          },
+          quantity: 1,
+        };
+
     const s = await this.stripe.checkout.sessions.create({
       mode: "subscription",
       customer: args.customerId,
-      line_items: [{ price: args.priceId, quantity: 1 }],
+      client_reference_id: args.workspaceId,
+      line_items: [lineItem],
       success_url: args.successUrl,
       cancel_url: args.cancelUrl,
-      automatic_tax: { enabled: true },
-      metadata: { workspaceId: args.workspaceId, kind: "subscription" },
+      metadata: {
+        workspaceId: args.workspaceId,
+        kind: "subscription",
+        planCode: args.planCode,
+      },
       subscription_data: {
-        metadata: { workspaceId: args.workspaceId },
+        metadata: { workspaceId: args.workspaceId, planCode: args.planCode },
       },
     });
     return { url: s.url! };
@@ -51,19 +81,34 @@ export class StripeBillingProvider implements BillingProvider {
     cancelUrl: string;
   }) {
     const priceId = this.opts.topupPrices?.[args.packCode];
-    if (!priceId) throw new Error(`unknown-pack-${args.packCode}`);
-
-    const { TOPUP_PACKS } = await import("./plans");
     const pack = TOPUP_PACKS[args.packCode as keyof typeof TOPUP_PACKS];
     if (!pack) throw new Error(`unknown-pack-${args.packCode}`);
+
+    const lineItem = priceId
+      ? { price: priceId, quantity: 1 }
+      : {
+          price_data: {
+            currency: "usd" as const,
+            unit_amount: pack.priceUsd * 100,
+            product_data: {
+              name: `${pack.credits.toLocaleString("en-US")} credits`,
+              metadata: {
+                kind: "topup",
+                packCode: args.packCode,
+                credits: String(pack.credits),
+              },
+            },
+          },
+          quantity: 1,
+        };
 
     const s = await this.stripe.checkout.sessions.create({
       mode: "payment",
       customer: args.customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
+      client_reference_id: args.workspaceId,
+      line_items: [lineItem],
       success_url: args.successUrl,
       cancel_url: args.cancelUrl,
-      automatic_tax: { enabled: true },
       metadata: {
         workspaceId: args.workspaceId,
         kind: "topup",
@@ -94,8 +139,15 @@ export class StripeBillingProvider implements BillingProvider {
     rawBody: string,
     signature: string,
   ): Promise<{ id: string; type: string; data: unknown }> {
+    if (!this.opts.webhookSecret) {
+      throw new Error("missing-stripe-webhook-secret");
+    }
     const evt = this.stripe.webhooks.constructEvent(rawBody, signature, this.opts.webhookSecret);
     return { id: evt.id, type: evt.type, data: evt.data.object };
+  }
+
+  async retrieveCheckoutSession(sessionId: string): Promise<unknown> {
+    return this.stripe.checkout.sessions.retrieve(sessionId);
   }
 
   async refundCharge(args: { chargeId: string; reason?: string }) {
