@@ -36,40 +36,45 @@ export async function POST(request: Request) {
   const api = new StockApi(loadConfig(), createServerAdapters() as never);
   const results = [];
 
-  for (const fileEntry of fileList) {
-    if (!(fileEntry instanceof File)) continue;
-    // Derive per-file label from filename when batch uploading
-    const fileLabel =
-      fileList.length === 1
-        ? label
-        : fileEntry.name
-            .replace(/\.[^.]+$/, "")
-            .replace(/[-_]/g, " ")
-            .replace(/\b\w/g, (c) => c.toUpperCase());
+  try {
+    for (const fileEntry of fileList) {
+      if (!(fileEntry instanceof File)) continue;
+      // Derive per-file label from filename when batch uploading
+      const fileLabel =
+        fileList.length === 1
+          ? label
+          : fileEntry.name
+              .replace(/\.[^.]+$/, "")
+              .replace(/[-_]/g, " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase());
 
-    const payload = await api.adminUpload({
-      kind: "icon",
-      category: category as never,
-      label: fileLabel,
-      tags,
-      license,
-      file: {
-        bytes: Buffer.from(await fileEntry.arrayBuffer()),
-        mimeType: fileEntry.type,
-        filename: fileEntry.name,
-      },
-    });
-
-    if (session.workspaceId) {
-      await writeAdminAudit({
-        workspaceId: session.workspaceId,
-        actorUserId: session.userId,
-        action: "admin.stock.upload",
-        target: payload.id,
-        payload: { category, label: fileLabel, tags },
+      const payload = await api.adminUpload({
+        kind: "icon",
+        category: category as never,
+        label: fileLabel,
+        tags,
+        license,
+        file: {
+          bytes: Buffer.from(await fileEntry.arrayBuffer()),
+          mimeType: fileEntry.type,
+          filename: fileEntry.name,
+        },
       });
+
+      if (session.workspaceId) {
+        await writeAdminAudit({
+          workspaceId: session.workspaceId,
+          actorUserId: session.userId,
+          action: "admin.stock.upload",
+          target: payload.id,
+          payload: { category, label: fileLabel, tags },
+        });
+      }
+      results.push(payload);
     }
-    results.push(payload);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "upload-failed";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
   return NextResponse.json(results.length === 1 ? results[0] : results);

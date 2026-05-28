@@ -6,13 +6,21 @@ import type { Config } from "@layertone/shared/config";
 import { keys } from "@layertone/storage";
 import { z } from "zod";
 
+const CATEGORY = z.enum(["food-dietary", "food-safety", "cosmetics", "manufacturing", "wellness"]);
+
 const UploadInput = z.object({
   kind: z.enum(["icon", "photo"]),
-  category: z.enum(["food-dietary", "food-safety", "cosmetics", "manufacturing", "wellness"]),
+  category: CATEGORY,
   label: z.string().min(1).max(120),
   tags: z.array(z.string()).default([]),
   license: z.string().min(1),
   attribution: z.string().optional(),
+});
+
+const UpdateInput = z.object({
+  label: z.string().min(1).max(120).optional(),
+  category: CATEGORY.optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export class StockApi {
@@ -78,11 +86,13 @@ export class StockApi {
     });
   }
 
-  async adminUpdate(
-    id: string,
-    patch: Partial<Pick<typeof import("@layertone/db").stockAssets.$inferInsert, "label" | "category" | "tags">>,
-  ) {
-    return adminUpdateStock(this.db(), id, patch);
+  async adminUpdate(id: string, patch: { label?: string; category?: string; tags?: string[] }) {
+    const validated = UpdateInput.parse(patch);
+    return adminUpdateStock(
+      this.db(),
+      id,
+      validated as Parameters<typeof adminUpdateStock>[2],
+    );
   }
 
   async adminDelete(id: string) {
