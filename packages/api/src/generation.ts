@@ -20,6 +20,7 @@ import {
   insertVariants,
   getGenerationFull,
   getProduct,
+  getStockById,
   updateGenerationInspirationKey,
   priceBookLookup,
   workspaces,
@@ -141,6 +142,29 @@ export class GenerationApi {
         genId,
         JSON.stringify(finalKeys),
       );
+    }
+
+    // Append stock reference to inspiration keys if a stock asset was selected
+    if (v.stockAssetId) {
+      const stockAsset = await getStockById(this.db("app_admin"), v.stockAssetId);
+      if (stockAsset) {
+        const existingJson = await this.db("app_admin")
+          .select({ inspirationImageS3Key: generations.inspirationImageS3Key })
+          .from(generations)
+          .where(eq(generations.id, genId))
+          .limit(1)
+          .then((rows) => rows[0]?.inspirationImageS3Key ?? null);
+
+        const existingKeys: string[] = existingJson
+          ? (JSON.parse(existingJson) as string[])
+          : [];
+
+        await updateGenerationInspirationKey(
+          this.db("app_admin"),
+          genId,
+          JSON.stringify([stockAsset.s3Key, ...existingKeys]),
+        );
+      }
     }
 
     // Insert variants
