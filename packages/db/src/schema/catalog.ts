@@ -65,7 +65,11 @@ export const moodTemplateBindings = pgTable("mood_template_bindings", {
 
 export const stockAssets = pgTable("stock_assets", {
   id: uuid("id").primaryKey().defaultRandom(),
-  kind: text("kind", { enum: ["icon", "photo"] }).notNull(),
+  category: text("category", {
+    enum: ["food-dietary", "food-safety", "cosmetics", "manufacturing", "wellness"],
+  }).notNull(),
+  kind: text("kind", { enum: ["icon", "photo"] }).notNull().default("icon"),
+  label: text("label").notNull(),
   s3Key: text("s3_key").notNull(),
   mimeType: text("mime_type").notNull(),
   width: integer("width"),
