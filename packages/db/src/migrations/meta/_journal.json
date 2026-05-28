@@ -120,6 +120,13 @@
       "when": 1779667200000,
       "tag": "0017_simplified_pricing",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1748390400000,
+      "tag": "0018_stock_category_label",
+      "breakpoints": true
     }
   ]
 }
