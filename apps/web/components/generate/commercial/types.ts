@@ -22,6 +22,14 @@ export interface MoodLite {
   colors?: string[];
 }
 
+export interface StockAssetLite {
+  id: string;
+  label: string;
+  category: string;
+  tags: string[];
+  url: string | null;
+}
+
 export interface ProductLite {
   id: string;
   brandId: string | null;
@@ -177,6 +185,7 @@ export interface GenerateState {
   creationType: CreationType;
   brandId: string;
   moodId: string | null;
+  stockAssetId: string | null;
   brief: string;
   selectedProducts: SelectedProduct[];
   campaign: CampaignDetails;
@@ -240,6 +249,7 @@ export type GeneratePayload = {
   creationType: CreationType;
   brandId?: string;
   moodId: string | null;
+  stockAssetId: string | null;
   brief?: string;
   productRefs: Array<{
     productId?: string;

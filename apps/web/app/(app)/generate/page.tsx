@@ -1,6 +1,6 @@
 import { Ledger } from "@layertone/billing";
 import { billingSegmentFor } from "@layertone/billing";
-import { createDb, listAvailableMoods, listBrandAssets, listBrands, listProducts } from "@layertone/db";
+import { adminListStock, createDb, listAvailableMoods, listBrandAssets, listBrands, listProducts } from "@layertone/db";
 import { loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
 
@@ -21,6 +21,16 @@ export default async function GeneratePage() {
   const moods = planSegment === "free" ? [] : await listAvailableMoods(userDb);
   const moodPreviewStorage = createStorage(config, config.storage.bucketGlobal);
   const appStorage = createStorage(config, config.storage.bucketApp);
+  const rawStock = await adminListStock(userDb);
+  const stockAssets = await Promise.all(
+    rawStock.map(async (item) => ({
+      id: item.id,
+      label: item.label,
+      category: item.category,
+      tags: item.tags,
+      url: await moodPreviewStorage.getSignedUrl(item.s3Key, 14400).catch(() => null),
+    })),
+  );
 
   const moodPayload = await Promise.all(moods.map(async (m) => ({
     id: m.id,
@@ -81,6 +91,7 @@ export default async function GeneratePage() {
       brands={brandPayload}
       moods={moodPayload}
       products={productPayload}
+      stockAssets={stockAssets}
       credits={credits}
       planSegment={planSegment}
     />
