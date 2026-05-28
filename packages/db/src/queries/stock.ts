@@ -40,3 +40,29 @@ export async function findStockByEmbedding(db: Db, embedding: number[], limit = 
 export async function deleteStock(db: Db, id: string) {
   await db.delete(stockAssets).where(eq(stockAssets.id, id));
 }
+
+export async function adminUpdateStock(
+  db: Db,
+  id: string,
+  patch: { label?: string; category?: string; tags?: string[] },
+) {
+  const [updated] = await db
+    .update(stockAssets)
+    .set({
+      ...(patch.label !== undefined ? { label: patch.label } : {}),
+      ...(patch.category !== undefined ? { category: patch.category as typeof stockAssets.$inferInsert["category"] } : {}),
+      ...(patch.tags !== undefined ? { tags: patch.tags } : {}),
+    })
+    .where(eq(stockAssets.id, id))
+    .returning();
+  return updated ?? null;
+}
+
+export async function getStockById(db: Db, id: string) {
+  const [row] = await db
+    .select()
+    .from(stockAssets)
+    .where(eq(stockAssets.id, id))
+    .limit(1);
+  return row ?? null;
+}
