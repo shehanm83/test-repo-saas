@@ -140,6 +140,7 @@ function buildQuickCreateNormalized(args: {
       formats: ["product_card"],
     },
     inspirationUploadIds: [],
+    stockAssetId: null,
     flags: {
       useBrandColors: flags.useBrandColors ?? true,
       useBrandLogo: flags.useBrandLogo ?? true,
