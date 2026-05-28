@@ -44,15 +44,17 @@ export async function deleteStock(db: Db, id: string) {
 export async function adminUpdateStock(
   db: Db,
   id: string,
-  patch: { label?: string; category?: string; tags?: string[] },
+  patch: Partial<Pick<typeof stockAssets.$inferInsert, "label" | "category" | "tags">>,
 ) {
+  const cols = {
+    ...(patch.label !== undefined ? { label: patch.label } : {}),
+    ...(patch.category !== undefined ? { category: patch.category } : {}),
+    ...(patch.tags !== undefined ? { tags: patch.tags } : {}),
+  };
+  if (Object.keys(cols).length === 0) return null;
   const [updated] = await db
     .update(stockAssets)
-    .set({
-      ...(patch.label !== undefined ? { label: patch.label } : {}),
-      ...(patch.category !== undefined ? { category: patch.category as typeof stockAssets.$inferInsert["category"] } : {}),
-      ...(patch.tags !== undefined ? { tags: patch.tags } : {}),
-    })
+    .set(cols)
     .where(eq(stockAssets.id, id))
     .returning();
   return updated ?? null;
