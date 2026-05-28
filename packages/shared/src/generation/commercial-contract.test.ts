@@ -26,4 +26,10 @@ describe("normalizeCommercialGenerationInput — stockAssetId", () => {
     const result = normalizeCommercialGenerationInput({ ...BASE, stockAssetId: null });
     expect(result.stockAssetId).toBeNull();
   });
+
+  it("rejects a malformed UUID", () => {
+    expect(() =>
+      normalizeCommercialGenerationInput({ ...BASE, stockAssetId: "not-a-uuid" } as never),
+    ).toThrow();
+  });
 });
