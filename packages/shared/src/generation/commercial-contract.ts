@@ -168,6 +168,7 @@ const CommercialInput = z.object({
   }),
   outputs: OutputSettings,
   inspirationInfluence: z.enum(["subtle", "balanced", "strong"]).optional(),
+  stockAssetId: UUID.nullable().optional(),
   flags: LegacyInput.shape.flags,
 });
 
@@ -188,6 +189,7 @@ export type NormalizedCommercialGenerationInput = {
   outputs: z.infer<typeof OutputSettings>;
   inspirationUploadIds: string[];
   inspirationInfluence?: "subtle" | "balanced" | "strong";
+  stockAssetId: string | null;
   flags: {
     useBrandColors: boolean;
     useBrandLogo: boolean;
@@ -259,6 +261,7 @@ export function normalizeCommercialGenerationInput(
       composition: parsed.composition,
       outputs: parsed.outputs,
       inspirationUploadIds: uploadIds,
+      stockAssetId: parsed.stockAssetId ?? null,
       flags: mergeFlags(parsed.flags),
     };
     if (parsed.inspirationInfluence) {
@@ -304,6 +307,7 @@ export function normalizeCommercialGenerationInput(
       formats: ["product_card"],
     },
     inspirationUploadIds: uploadIds,
+    stockAssetId: null,
     flags: mergeFlags(parsed.flags),
   };
   if (parsed.inspirationInfluence) {
