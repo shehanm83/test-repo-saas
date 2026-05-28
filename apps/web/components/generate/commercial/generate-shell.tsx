@@ -450,6 +450,7 @@ export function GenerateShell(props: {
                 if (!isFreePlan) dispatch({ type: "mood", moodId });
               }}
               onFlagsChange={(flags) => dispatch({ type: "flags", flags })}
+              onStockAssetChange={(id) => dispatch({ type: "stockAssetId", stockAssetId: id })}
               onBrandLogoAssetIdsChange={(ids) => dispatch({ type: "brandLogoAssetIds", ids })}
               onOutputsChange={(outputs) =>
                 dispatch({

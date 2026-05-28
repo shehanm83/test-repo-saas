@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 
+import { I } from "@/components/icons";
 import { ProductStep } from "./product-step";
 import type {
   BrandFlags,
@@ -83,6 +84,7 @@ export function QuickCreate(props: {
   onProductRoleChange: (localId: string, role: ProductRole) => void;
   onBrandChange: (brandId: string) => void;
   onMoodChange: (moodId: string | null) => void;
+  onStockAssetChange: (id: string | null) => void;
   onFlagsChange: (flags: GenerateState["flags"]) => void;
   onBrandLogoAssetIdsChange: (ids: string[]) => void;
   onOutputsChange: (outputs: OutputSettings) => void;
@@ -452,6 +454,38 @@ export function QuickCreate(props: {
         />
       </section>
 
+      {/* Stock certification mark picker */}
+      {props.stockAssets.length > 0 ? (
+        <details className="qc-stock-picker">
+          <summary className="qc-stock-picker__summary">
+            <I.Tag size={14} />
+            <span>
+              {props.state.stockAssetId
+                ? `Certification mark · ${props.stockAssets.find((a) => a.id === props.state.stockAssetId)?.label ?? "Selected"}`
+                : "Add certification mark"}
+            </span>
+            {props.state.stockAssetId ? (
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                style={{ marginLeft: "auto", fontSize: 12 }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  props.onStockAssetChange(null);
+                }}
+              >
+                Clear
+              </button>
+            ) : null}
+          </summary>
+          <StockPicker
+            assets={props.stockAssets}
+            selectedId={props.state.stockAssetId}
+            onChange={props.onStockAssetChange}
+          />
+        </details>
+      ) : null}
+
       {/* Section 7 — Generation settings */}
       <section className="qc-section">
         <h2 className="qc-step-title">
@@ -512,6 +546,98 @@ export function QuickCreate(props: {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+type StockPickerCategory = "all" | "food-dietary" | "food-safety" | "cosmetics" | "manufacturing" | "wellness";
+
+const PICKER_CATEGORIES: Array<{ key: StockPickerCategory; label: string }> = [
+  { key: "all", label: "All" },
+  { key: "food-dietary", label: "Dietary" },
+  { key: "food-safety", label: "Safety" },
+  { key: "cosmetics", label: "Cosmetics" },
+  { key: "manufacturing", label: "Manufacturing" },
+  { key: "wellness", label: "Wellness" },
+];
+
+function StockPicker({
+  assets,
+  selectedId,
+  onChange,
+}: {
+  assets: StockAssetLite[];
+  selectedId: string | null;
+  onChange: (id: string | null) => void;
+}) {
+  const [category, setCategory] = useState<StockPickerCategory>("all");
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return assets.filter((a) => {
+      const matchesCat = category === "all" || a.category === category;
+      const matchesSearch =
+        !q || a.label.toLowerCase().includes(q) || a.tags.some((t) => t.toLowerCase().includes(q));
+      return matchesCat && matchesSearch;
+    });
+  }, [assets, category, search]);
+
+  return (
+    <div className="qc-stock-picker__body">
+      <div className="qc-stock-picker__controls">
+        <input
+          className="input"
+          style={{ fontSize: 13 }}
+          placeholder="Search…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          autoComplete="off"
+        />
+        <div className="tabs" style={{ flexWrap: "wrap", gap: 4 }}>
+          {PICKER_CATEGORIES.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              className={`tab${category === c.key ? " is-active" : ""}`}
+              style={{ fontSize: 12, padding: "4px 10px" }}
+              onClick={() => setCategory(c.key)}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="qc-stock-picker__grid">
+        {filtered.map((asset) => {
+          const isSelected = asset.id === selectedId;
+          return (
+            <button
+              key={asset.id}
+              type="button"
+              className={`qc-stock-tile${isSelected ? " is-selected" : ""}`}
+              onClick={() => onChange(isSelected ? null : asset.id)}
+              aria-pressed={isSelected}
+              title={asset.label}
+            >
+              <div className="qc-stock-tile__img">
+                {asset.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={asset.url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                ) : (
+                  <I.Image size={20} style={{ color: "var(--fg-3)" }} />
+                )}
+                {isSelected ? (
+                  <div className="qc-stock-tile__check">
+                    <I.Check size={12} />
+                  </div>
+                ) : null}
+              </div>
+              <span className="qc-stock-tile__label">{asset.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
