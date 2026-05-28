@@ -29,6 +29,8 @@ describe("StockApi", () => {
   it("uploads an svg asset", async () => {
     const asset = await api.adminUpload({
       kind: "icon",
+      category: "food-dietary",
+      label: "Arrow Icon",
       tags: ["arrow"],
       license: "internal",
       file: {

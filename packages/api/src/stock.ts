@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { adminInsertStock, adminListStock, createDb, deleteStock } from "@layertone/db";
+import { adminInsertStock, adminListStock, adminUpdateStock, createDb, deleteStock } from "@layertone/db";
 import type { Adapters } from "@layertone/shared/adapters";
 import type { Config } from "@layertone/shared/config";
 import { keys } from "@layertone/storage";
@@ -8,6 +8,8 @@ import { z } from "zod";
 
 const UploadInput = z.object({
   kind: z.enum(["icon", "photo"]),
+  category: z.enum(["food-dietary", "food-safety", "cosmetics", "manufacturing", "wellness"]),
+  label: z.string().min(1).max(120),
   tags: z.array(z.string()).default([]),
   license: z.string().min(1),
   attribution: z.string().optional(),
@@ -29,6 +31,8 @@ export class StockApi {
 
   async adminUpload(input: {
     kind: "icon" | "photo";
+    category: "food-dietary" | "food-safety" | "cosmetics" | "manufacturing" | "wellness";
+    label: string;
     tags: string[];
     license: string;
     attribution?: string;
@@ -60,7 +64,9 @@ export class StockApi {
 
     return adminInsertStock(this.db(), {
       id,
+      category: args.category,
       kind: args.kind,
+      label: args.label,
       s3Key,
       mimeType,
       width,
@@ -70,6 +76,13 @@ export class StockApi {
       attribution: args.attribution ?? null,
       embedding: new Array(1536).fill(0),
     });
+  }
+
+  async adminUpdate(
+    id: string,
+    patch: Partial<Pick<typeof import("@layertone/db").stockAssets.$inferInsert, "label" | "category" | "tags">>,
+  ) {
+    return adminUpdateStock(this.db(), id, patch);
   }
 
   async adminDelete(id: string) {
