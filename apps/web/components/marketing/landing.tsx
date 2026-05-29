@@ -63,12 +63,10 @@ export function Landing({
             <Link href="#features">
               Features <I.ChevronDown size={15} strokeWidth={2.2} />
             </Link>
-            <Link href="#templates">Templates</Link>
+            <Link href="#showcase">Templates</Link>
             <Link href="#pricing">Pricing</Link>
-            <Link href="#resources">
-              Resources <I.ChevronDown size={15} strokeWidth={2.2} />
-            </Link>
-            <Link href="#enterprise">Enterprise</Link>
+            <Link href="/help">Resources</Link>
+            <Link href="#pricing">Enterprise</Link>
           </nav>
           <div className="lt-home-actions">
             <Link className="lt-home-login" href={isAuthed ? "/generate" : "/sign-in"}>
@@ -317,6 +315,7 @@ export function Landing({
 
       {/* HOW IT WORKS */}
       <section
+        id="features"
         style={{
           padding: "96px 24px",
           background: "linear-gradient(180deg, var(--cal-white) 0%, #FFFAF0 100%)",
@@ -718,10 +717,41 @@ export function Landing({
           </div>
           {(
             [
-              { h: "Product", l: ["Generate", "Moods", "Brands", "Pricing"] },
-              { h: "Company", l: ["About", "Careers", "Contact", "Press"] },
-              { h: "Legal", l: ["Terms", "Privacy", "AUP", "DPA"] },
-              { h: "Social", l: ["Twitter", "GitHub", "LinkedIn"] },
+              {
+                h: "Product",
+                l: [
+                  { label: "Generate", href: "/generate" },
+                  { label: "Moods", href: "/moods" },
+                  { label: "Brands", href: "/brands" },
+                  { label: "Pricing", href: "#pricing" },
+                ],
+              },
+              {
+                h: "Company",
+                l: [
+                  { label: "About", href: "#" },
+                  { label: "Careers", href: "#" },
+                  { label: "Contact", href: "#" },
+                  { label: "Press", href: "#" },
+                ],
+              },
+              {
+                h: "Legal",
+                l: [
+                  { label: "Terms", href: "#" },
+                  { label: "Privacy", href: "#" },
+                  { label: "AUP", href: "#" },
+                  { label: "DPA", href: "#" },
+                ],
+              },
+              {
+                h: "Social",
+                l: [
+                  { label: "Twitter", href: "#" },
+                  { label: "GitHub", href: "#" },
+                  { label: "LinkedIn", href: "#" },
+                ],
+              },
             ] as const
           ).map((c) => (
             <div key={c.h}>
@@ -729,8 +759,13 @@ export function Landing({
                 {c.h}
               </div>
               {c.l.map((x) => (
-                <div key={x} className="t-small" style={{ padding: "4px 0", cursor: "pointer" }}>
-                  {x}
+                <div key={x.label} className="t-small" style={{ padding: "4px 0" }}>
+                  <a
+                    href={x.href}
+                    style={{ color: "inherit", textDecoration: "none", opacity: x.href === "#" ? 0.5 : 1 }}
+                  >
+                    {x.label}
+                  </a>
                 </div>
               ))}
             </div>
