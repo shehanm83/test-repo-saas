@@ -1,6 +1,7 @@
 "use client";
 
 import type { OutputFormat, OutputSettings } from "./types";
+import { UpgradeInline } from "@/components/billing/upgrade-inline";
 
 const FORMATS: Array<{ id: OutputFormat; label: string; spec: string }> = [
   { id: "instagram_square", label: "Instagram - Square post", spec: "1080 × 1080" },
@@ -85,10 +86,18 @@ export function OutputSettingsStep(props: {
                 className={props.value.quality === quality ? "is-selected" : ""}
                 onClick={() => props.onChange({ ...props.value, quality })}
               >
-                {quality === "premium" && props.premiumDisabled ? "premium locked" : quality}
+                {quality === "premium" && props.premiumDisabled ? "Premium locked" : quality}
               </button>
             ))}
           </div>
+          {props.premiumDisabled ? (
+            <div style={{ marginTop: 8 }}>
+              <UpgradeInline
+                feature="premium-quality"
+                label="Premium quality requires credits."
+              />
+            </div>
+          ) : null}
         </div>
         <div>
           <span className="label">Consistency</span>

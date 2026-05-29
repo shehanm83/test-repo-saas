@@ -1,6 +1,7 @@
 "use client";
 
 import type { BrandLite, BrandFlags, MoodLite } from "./types";
+import { UpgradeInline } from "@/components/billing/upgrade-inline";
 
 export function BrandMoodStep(props: {
   brands: BrandLite[];
@@ -41,7 +42,10 @@ export function BrandMoodStep(props: {
         <span className="label">Mood</span>
         {props.disabledMoods ? (
           <p className="qc-empty-note" style={{ margin: "6px 0 10px" }}>
-            Moods are not available on the Free plan.
+            <UpgradeInline
+              feature="moods"
+              label="Moods are not available on the Free plan."
+            />
           </p>
         ) : null}
         <div className="cg-mood-grid">
