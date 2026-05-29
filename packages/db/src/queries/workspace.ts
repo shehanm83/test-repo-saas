@@ -206,3 +206,22 @@ export async function revokeMember(
     });
   });
 }
+
+export async function createWorkspace(
+  db: Db,
+  args: { name: string; userId: string },
+): Promise<{ id: string; name: string }> {
+  return db.transaction(async (tx) => {
+    const [workspace] = await tx
+      .insert(workspaces)
+      .values({ ownerUserId: args.userId, name: args.name })
+      .returning({ id: workspaces.id, name: workspaces.name });
+    await tx.insert(workspaceMembers).values({
+      workspaceId: workspace!.id,
+      userId: args.userId,
+      role: "owner",
+      acceptedAt: new Date(),
+    });
+    return workspace!;
+  });
+}
