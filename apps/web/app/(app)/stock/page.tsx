@@ -5,6 +5,7 @@ import { loadConfig } from "@layertone/shared/config";
 import { I } from "@/components/icons";
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
+import { UpgradeInline } from "@/components/billing/upgrade-inline";
 
 export default async function StockPage() {
   const { workspace } = await getSessionWorkspace();
@@ -31,9 +32,17 @@ export default async function StockPage() {
           </div>
           <h1 className="page__title">Stock library</h1>
           <p className="page__sub">
-            {isFree
-              ? "Free workspaces can preview a limited stock set. Subscription and PAYG unlock the full library."
-              : "Curated stock used by moods, templates, and editorial references."}
+            {isFree ? (
+              <>
+                Free workspaces can preview a limited stock set.{" "}
+                <UpgradeInline
+                  feature="stock"
+                  buttonLabel="Unlock the full library →"
+                />
+              </>
+            ) : (
+              "Curated stock used by moods, templates, and editorial references."
+            )}
           </p>
         </div>
       </div>
