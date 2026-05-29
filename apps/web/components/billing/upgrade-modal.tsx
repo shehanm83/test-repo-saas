@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Feature = "moods" | "stock" | "premium-quality" | "generic";
 
@@ -42,6 +42,15 @@ export function UpgradeModal({
   const [pendingPlan, setPendingPlan] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const copy = COPY[feature];
+
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -93,7 +102,7 @@ export function UpgradeModal({
 
   return (
     <div className="upgrade-overlay" onClick={onClose}>
-      <div className="upgrade-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="upgrade-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <button
           className="upgrade-dialog__close"
           onClick={onClose}
