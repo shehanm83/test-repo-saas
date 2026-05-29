@@ -5,6 +5,7 @@ import type React from "react";
 
 import { I } from "@/components/icons";
 import { ProductStep } from "./product-step";
+import { UpgradeInline } from "@/components/billing/upgrade-inline";
 import type {
   BrandFlags,
   BrandLite,
@@ -513,7 +514,7 @@ export function QuickCreate(props: {
                   <strong>{q === "standard" ? "Standard" : "Premium"}</strong>
                   <span>
                     {q === "premium" && premiumDisabled
-                      ? "Upgrade or buy credits"
+                      ? "Premium locked"
                       : q === "standard"
                         ? "5+ credits / image"
                         : "15+ credits / image"}
@@ -521,6 +522,14 @@ export function QuickCreate(props: {
                 </button>
               ))}
             </div>
+            {premiumDisabled ? (
+              <div style={{ marginTop: 8 }}>
+                <UpgradeInline
+                  feature="premium-quality"
+                  label="Premium quality requires credits."
+                />
+              </div>
+            ) : null}
           </div>
 
           <div>
@@ -818,7 +827,12 @@ function QuickMoodSection(props: {
   return (
     <div className="qc-mood-stack">
       {props.disabled ? (
-        <div className="qc-empty-note">Moods are not available on the Free plan.</div>
+        <div className="qc-empty-note">
+          <UpgradeInline
+            feature="moods"
+            label="Moods are not available on the Free plan."
+          />
+        </div>
       ) : null}
       <div className="qc-mood-choice-grid">
         <button
