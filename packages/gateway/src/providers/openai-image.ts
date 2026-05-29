@@ -2,16 +2,7 @@ import OpenAI from "openai";
 import type { ImageProvider, ProviderCapabilities } from "../types.js";
 import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@layertone/shared";
 
-const GPT_IMAGE_1_SIZE_TO_OPENAI: Record<string, string> = {
-  "1:1": "1024x1024",
-  "4:5": "1024x1536",
-  "9:16": "1024x1536",
-  "16:9": "1536x1024",
-  "1.91:1": "1536x1024",
-  "2:3": "1024x1536",
-};
-
-const GPT_IMAGE_2_SIZE_TO_OPENAI: Record<string, string> = {
+const SIZE_TO_OPENAI: Record<string, string> = {
   "1:1": "1024x1024",
   "4:5": "1024x1536",
   "9:16": "1024x1536",
@@ -32,6 +23,7 @@ export class OpenAIImageProvider implements ImageProvider {
   constructor(private readonly opts: { apiKey: string; storage: StorageAdapter; model?: string }) {
     this.client = new OpenAI({ apiKey: opts.apiKey });
     this.capabilities = {
+      // gpt-image-1 kept for backwards compat (regeneration of old generations)
       modelCodes: Array.from(new Set([opts.model ?? DEFAULT_MODEL, DEFAULT_MODEL, "gpt-image-1"])),
       supportsImageToImage: true,
       supportsMultiReference: true,
@@ -41,8 +33,10 @@ export class OpenAIImageProvider implements ImageProvider {
 
   async generate(req: AIImageRequest): Promise<AIImageResponse> {
     const start = Date.now();
-    const model = req.modelCode || this.opts.model || DEFAULT_MODEL;
-    const size = resolveOpenAISize(model, req.aspectRatio);
+    // Treat gpt-image-1 as gpt-image-2 — unified model going forward.
+    const requested = req.modelCode || this.opts.model || DEFAULT_MODEL;
+    const model = requested === "gpt-image-1" ? DEFAULT_MODEL : requested;
+    const size = resolveOpenAISize(req.aspectRatio);
     const quality = req.width * req.height > 1280 * 1280 ? "high" : "medium";
 
     let result;
@@ -86,7 +80,6 @@ export class OpenAIImageProvider implements ImageProvider {
   }
 }
 
-function resolveOpenAISize(model: string, aspectRatio: string): string {
-  const sizes = model === "gpt-image-1" ? GPT_IMAGE_1_SIZE_TO_OPENAI : GPT_IMAGE_2_SIZE_TO_OPENAI;
-  return sizes[aspectRatio] ?? "1024x1024";
+function resolveOpenAISize(aspectRatio: string): string {
+  return SIZE_TO_OPENAI[aspectRatio] ?? "1024x1024";
 }

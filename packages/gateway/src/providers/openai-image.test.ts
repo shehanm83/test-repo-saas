@@ -42,7 +42,7 @@ describe("OpenAIImageProvider", () => {
     expect(r.imageBytes.byteLength).toBeGreaterThan(0);
   });
 
-  it("uses a supported gpt-image-1 landscape size for 1.91:1 targets", async () => {
+  it("aliases gpt-image-1 requests to gpt-image-2", async () => {
     const { __mockGenerate } = (await import("openai")) as unknown as {
       __mockGenerate: ReturnType<typeof vi.fn>;
     };
@@ -61,8 +61,9 @@ describe("OpenAIImageProvider", () => {
       safetyLevel: "default",
     });
 
+    // gpt-image-1 is aliased to gpt-image-2 at the API call level
     expect(__mockGenerate).toHaveBeenCalledWith(
-      expect.objectContaining({ model: "gpt-image-1", size: "1536x1024" }),
+      expect.objectContaining({ model: "gpt-image-2", size: "1536x1024" }),
     );
   });
 
