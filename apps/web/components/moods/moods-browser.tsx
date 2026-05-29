@@ -4,6 +4,7 @@ import Link from "next/link";
 import React, { useMemo, useState } from "react";
 
 import { I } from "@/components/icons";
+import { UpgradeModal } from "@/components/billing/upgrade-modal";
 
 interface Mood {
   id: string;
@@ -22,6 +23,7 @@ interface Mood {
 export function MoodsBrowser({ moods, locked = false }: { moods: Mood[]; locked?: boolean }) {
   const [tab, setTab] = useState<"all" | "now" | "always" | "soon">("all");
   const [search, setSearch] = useState("");
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const filtered = useMemo(
     () =>
@@ -64,6 +66,15 @@ export function MoodsBrowser({ moods, locked = false }: { moods: Mood[]; locked?
           </div>
           <div className="empty__title">Moods are not available on Free</div>
           <div className="empty__sub">Subscribe or buy credits to unlock the full mood library.</div>
+          <div style={{ marginTop: 16 }}>
+            <button
+              type="button"
+              className="btn btn--accent btn--sm"
+              onClick={() => setUpgradeOpen(true)}
+            >
+              Unlock Moods →
+            </button>
+          </div>
         </div>
       ) : null}
 
@@ -177,6 +188,11 @@ export function MoodsBrowser({ moods, locked = false }: { moods: Mood[]; locked?
           ))}
         </div>
       ) : null}
+      <UpgradeModal
+        feature="moods"
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+      />
     </div>
   );
 }
