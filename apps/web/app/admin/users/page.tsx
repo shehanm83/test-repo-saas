@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { createDb, users, workspaces, workspaceMembers } from "@layertone/db";
 import { eq, sql, inArray } from "@layertone/db";
-import { ilike } from "drizzle-orm";
+import { ilike, and } from "drizzle-orm";
 import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
@@ -59,23 +59,37 @@ export default async function AdminUsersPage({
   const page = Math.max(0, parseInt(pageParam ?? "0", 10) || 0);
   const trimmedQ = q?.trim() ?? "";
 
-  const userRows = await (trimmedQ
-    ? db
-        .select({ id: users.id, email: users.email, role: users.role, createdAt: users.createdAt })
-        .from(users)
-        .where(ilike(users.email, `%${trimmedQ}%`))
-        .limit(PAGE_SIZE)
-        .offset(page * PAGE_SIZE)
-    : db
-        .select({ id: users.id, email: users.email, role: users.role, createdAt: users.createdAt })
-        .from(users)
-        .limit(PAGE_SIZE)
-        .offset(page * PAGE_SIZE));
+  // Build status subquery filter: when a status tab is active, only include
+  // users who have at least one workspace with that status. This keeps pagination
+  // counts accurate (previously the filter ran in JS after a paginated DB fetch).
+  const statusFilter =
+    activeTab !== "all"
+      ? sql`${users.id} IN (
+          SELECT ${workspaceMembers.userId} FROM ${workspaceMembers}
+          INNER JOIN ${workspaces} ON ${workspaces.id} = ${workspaceMembers.workspaceId}
+          WHERE ${workspaces.status} = ${activeTab}
+        )`
+      : undefined;
 
-  const [countRow] = await (trimmedQ
-    ? db.select({ count: sql<number>`count(*)::int` }).from(users).where(ilike(users.email, `%${trimmedQ}%`))
-    : db.select({ count: sql<number>`count(*)::int` }).from(users)) as [{ count: number }];
-  const totalCount = countRow?.count ?? 0;
+  const emailFilter = trimmedQ ? ilike(users.email, `%${trimmedQ}%`) : undefined;
+  const whereCond =
+    emailFilter && statusFilter
+      ? and(emailFilter, statusFilter)
+      : emailFilter ?? statusFilter;
+
+  const baseQuery = db
+    .select({ id: users.id, email: users.email, role: users.role, createdAt: users.createdAt })
+    .from(users);
+  const countQuery = db.select({ count: sql<number>`count(*)::int` }).from(users);
+
+  const [userRows, countRows] = await Promise.all([
+    (whereCond ? baseQuery.where(whereCond) : baseQuery)
+      .limit(PAGE_SIZE)
+      .offset(page * PAGE_SIZE),
+    whereCond ? countQuery.where(whereCond) : countQuery,
+  ]);
+
+  const totalCount = (countRows as Array<{ count: number }>)[0]?.count ?? 0;
 
   const userIds = userRows.map((u) => u.id);
   const wsRows = userIds.length > 0
@@ -99,12 +113,7 @@ export default async function AdminUsersPage({
     wsMap.get(row.userId)!.push(row);
   }
 
-  const filteredUsers = activeTab === "all"
-    ? userRows
-    : userRows.filter((u) => {
-        const uws = wsMap.get(u.id) ?? [];
-        return uws.some((w) => w.workspaceStatus === activeTab);
-      });
+  const filteredUsers = userRows;
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const hasNext = page < totalPages - 1;

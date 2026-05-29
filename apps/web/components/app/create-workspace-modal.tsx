@@ -67,11 +67,16 @@ export function CreateWorkspaceModal({
         setState("error");
         return;
       }
-      await fetch("/api/workspaces/switch", {
+      const switchRes = await fetch("/api/workspaces/switch", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ workspaceId: json.workspaceId }),
       });
+      if (!switchRes.ok) {
+        setErrorMsg("Workspace created but could not switch to it. Refresh and select it from the switcher.");
+        setState("error");
+        return;
+      }
       router.refresh();
       onClose();
     } catch {
