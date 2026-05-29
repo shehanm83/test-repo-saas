@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-type Feature = "moods" | "stock" | "premium-quality" | "generic";
+export type Feature = "moods" | "stock" | "premium-quality" | "generic";
 
 const COPY: Record<Feature, { headline: string; description: string }> = {
   moods: {
@@ -42,6 +42,14 @@ export function UpgradeModal({
   const [pendingPlan, setPendingPlan] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const copy = COPY[feature];
+
+  useEffect(() => {
+    if (open) {
+      setError(null);
+      setPendingTopup(null);
+      setPendingPlan(false);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -102,15 +110,16 @@ export function UpgradeModal({
 
   return (
     <div className="upgrade-overlay" onClick={onClose}>
-      <div className="upgrade-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+      <div className="upgrade-dialog" role="dialog" aria-modal="true" aria-labelledby="upgrade-dialog-title" onClick={(e) => e.stopPropagation()}>
         <button
+          type="button"
           className="upgrade-dialog__close"
           onClick={onClose}
           aria-label="Close"
         >
           ✕
         </button>
-        <h2 className="upgrade-dialog__headline">{copy.headline}</h2>
+        <h2 id="upgrade-dialog-title" className="upgrade-dialog__headline">{copy.headline}</h2>
         <p className="upgrade-dialog__desc">{copy.description}</p>
         <div className="upgrade-dialog__packs">
           {PACKS.map((pack) => (

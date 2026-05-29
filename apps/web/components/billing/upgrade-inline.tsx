@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 
-import { UpgradeModal } from "./upgrade-modal";
-
-type Feature = "moods" | "stock" | "premium-quality" | "generic";
+import { UpgradeModal, type Feature } from "./upgrade-modal";
 
 export function UpgradeInline({
   feature,
