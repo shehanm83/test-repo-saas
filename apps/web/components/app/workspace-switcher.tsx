@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState, useTransition } from "react";
 
 import { I } from "@/components/icons";
+import { CreateWorkspaceModal } from "./create-workspace-modal";
 
 const DOT_COLORS = ["#1D3B2A", "#5E5CE6", "#C97A3F", "#7A0E0E", "#1F7A5A", "#B5651D"];
 function dotColor(id: string): string {
@@ -20,6 +21,7 @@ export function WorkspaceSwitcher(props: {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -102,11 +104,17 @@ export function WorkspaceSwitcher(props: {
             </button>
           ))}
           <div className="menu-divider" />
-          <button type="button" className="menu-item" style={{ width: "100%", textAlign: "left" }}>
+          <button
+            type="button"
+            className="menu-item"
+            style={{ width: "100%", textAlign: "left" }}
+            onClick={() => { setOpen(false); setModalOpen(true); }}
+          >
             <I.Plus size={14} /> Create new workspace
           </button>
         </div>
       ) : null}
+      <CreateWorkspaceModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }
