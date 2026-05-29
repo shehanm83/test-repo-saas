@@ -2563,6 +2563,10 @@ hr {
   backdrop-filter: blur(14px);
 }
 
+.brand-wizard-body {
+  min-height: 420px;
+}
+
 .brand-wizard-tabs {
   margin-bottom: 28px;
   padding: 5px;
@@ -3745,6 +3749,39 @@ hr {
   z-index: 2;
 }
 
+/* Confirmation dialog */
+.admin-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.admin-confirm-dialog {
+  background: var(--cal-white);
+  border-radius: 14px;
+  padding: 28px 28px 24px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.admin-confirm-dialog p {
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--fg-1);
+}
+
+.admin-confirm-dialog__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 /* Mobile sidebar overlay — hidden on desktop */
 .admin-sidebar-overlay {
   display: none;
@@ -4621,4 +4658,111 @@ hr {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ── Upgrade modal ─────────────────────────────────────────────── */
+.upgrade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+}
+
+.upgrade-dialog {
+  position: relative;
+  background: var(--cal-white);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 440px;
+  width: calc(100vw - 32px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+}
+
+.upgrade-dialog__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--fg-3);
+  line-height: 1;
+  padding: 4px;
+}
+
+.upgrade-dialog__headline {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.upgrade-dialog__desc {
+  margin: 0 0 24px;
+  color: var(--fg-2);
+  font-size: 14px;
+}
+
+.upgrade-dialog__packs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.upgrade-pack-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+}
+
+.upgrade-pack-btn__credits {
+  font-weight: 600;
+}
+
+.upgrade-pack-btn__price {
+  color: var(--fg-2);
+}
+
+.upgrade-dialog__divider {
+  text-align: center;
+  color: var(--fg-3);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.upgrade-subscribe-btn {
+  width: 100%;
+  height: 44px;
+}
+
+.upgrade-dialog__error {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #d32f2f;
+}
+
+/* ── Upgrade inline CTA ────────────────────────────────────────── */
+.upgrade-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+.upgrade-inline__btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--layertone-violet);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  text-decoration: underline;
 }
