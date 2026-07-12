@@ -1,3 +1,14 @@
-/* Template design system — single source of truth */
-@import "./cal-tokens.css";
-@import "./cal-layertone.css";
+/*
+ * Layertone styling — two coexisting systems:
+ *  - legacy: the hand-written Cal design system (cal-tokens + cal-layertone),
+ *    layered BELOW Tailwind utilities so utility classes always win.
+ *  - Tailwind v4 utilities (no preflight — legacy CSS ships its own reset).
+ * Brand tokens for Tailwind live in ./theme.css (@theme).
+ */
+@layer theme, base, legacy, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "./cal-tokens.css" layer(legacy);
+@import "./cal-layertone.css" layer(legacy);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "./theme.css";

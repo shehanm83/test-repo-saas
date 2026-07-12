@@ -2,27 +2,16 @@ import React from "react";
 
 import { createDb, eq, moods } from "@layertone/db";
 import { HomeShowcaseApi } from "@layertone/api/home-showcase";
-import { LandingHeroApi } from "@layertone/api/landing-hero";
 import { DEFAULT_HOME_SHOWCASE_VIEW } from "@layertone/shared/home-showcase";
-import { DEFAULT_LANDING_HERO_SET } from "@layertone/shared/landing-hero";
 import { loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
 
-import { Landing, type LandingMood } from "@/components/marketing/landing";
+import { LandingV2 } from "@/components/marketing/v2/landing";
+import type { LandingMood } from "@/components/marketing/v2/types";
 import { getServerSession } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
 
 export const dynamic = "force-dynamic";
-
-async function loadHeroSet() {
-  try {
-    const api = new LandingHeroApi(loadConfig(), createServerAdapters() as never);
-    const published = await api.listPublishedSets();
-    return api.pickSetForRequest(published) ?? DEFAULT_LANDING_HERO_SET;
-  } catch {
-    return DEFAULT_LANDING_HERO_SET;
-  }
-}
 
 async function loadHomeShowcase() {
   try {
@@ -118,16 +107,14 @@ function dateWithYear(date: Date, year: number) {
 }
 
 export default async function HomePage() {
-  const [session, hero, showcase, moods] = await Promise.all([
+  const [session, showcase, moods] = await Promise.all([
     getServerSession(),
-    loadHeroSet(),
     loadHomeShowcase(),
     loadMoods(),
   ]);
   return (
-    <Landing
+    <LandingV2
       isAuthed={!!session}
-      hero={hero}
       showcase={showcase}
       moods={moods.preview}
       moodCount={moods.total}

@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.7",
-    "@sentry/nextjs": "^10.50.0",
     "@layertone/api": "workspace:*",
     "@layertone/auth": "workspace:*",
     "@layertone/billing": "workspace:*",
@@ -24,18 +23,23 @@
     "@layertone/gateway": "workspace:*",
     "@layertone/observability": "workspace:*",
     "@layertone/queue": "workspace:*",
-    "@layertone/shared": "workspace:*",
     "@layertone/renderer": "workspace:*",
+    "@layertone/shared": "workspace:*",
     "@layertone/storage": "workspace:*",
     "@layertone/worker": "workspace:*",
+    "@sentry/nextjs": "^10.50.0",
     "drizzle-orm": "^0.45.2",
+    "lucide-react": "^1.24.0",
+    "motion": "^12.42.2",
     "next": "^16.2.4",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   },
   "devDependencies": {
     "@opennextjs/aws": "^3.10.4",
+    "@tailwindcss/postcss": "^4.3.2",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2"
+    "@testing-library/react": "^16.3.2",
+    "tailwindcss": "^4.3.2"
   }
 }
