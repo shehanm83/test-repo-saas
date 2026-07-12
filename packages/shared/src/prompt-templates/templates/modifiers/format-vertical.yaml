@@ -29,5 +29,7 @@ prompt: |
   Build for {{output.platform_label}} at {{output.width}} x {{output.height}}.
   Use a strong vertical composition with the main subject centered enough for story or reel viewing.
   Keep top and bottom areas visually quiet for platform UI and renderer overlays.
+  Keep products and main subjects fully visible with margin inside the tall frame.
 negative_prompt: |
-  subject cut off, busy top bar area, busy bottom caption area, horizontal-only composition
+  subject cut off, busy top bar area, busy bottom caption area, horizontal-only composition,
+  cropped product, clipped packaging, out-of-frame subject

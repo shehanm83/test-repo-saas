@@ -248,9 +248,14 @@ export function GenerateShell(props: {
   const isFreePlan = props.planSegment === "free";
 
   useEffect(() => {
-    const mode = new URLSearchParams(window.location.search).get("mode");
+    const search = new URLSearchParams(window.location.search);
+    const mode = search.get("mode");
+    const moodId = search.get("mood");
     if (mode === "campaign" && state.mode !== "campaign_builder") {
       dispatch({ type: "mode", mode: "campaign_builder" });
+    }
+    if (!isFreePlan && moodId && props.moods.some((mood) => mood.id === moodId)) {
+      dispatch({ type: "mood", moodId });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

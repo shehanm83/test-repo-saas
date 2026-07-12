@@ -5,6 +5,16 @@ import React, { useMemo, useState } from "react";
 import type { LandingHeroSetCard, LandingHeroSetView } from "@layertone/shared/landing-hero";
 
 import { I } from "@/components/icons";
+import {
+  AdminAlert,
+  AdminEmpty,
+  AdminPage,
+  AdminSection,
+  AdminStat,
+  AdminStatGrid,
+  AdminStatus,
+  formatAdminNumber,
+} from "@/components/admin/ui";
 import { HeroCardImage } from "@/components/marketing/hero-cards";
 
 type SetStatus = LandingHeroSetView["status"];
@@ -40,11 +50,15 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
     selected ? cloneSet(selected) : null,
   );
   const [busy, setBusy] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   function selectSet(id: string) {
     const next = sets.find((set) => set.id === id);
     setSelectedId(id);
     setDraft(next ? cloneSet(next) : null);
+    setConfirmDelete(false);
+    setMessage(null);
   }
 
   function patchDraft(patch: Partial<LandingHeroSetView>) {
@@ -105,6 +119,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
   async function saveSet(status?: SetStatus) {
     if (!draft) return;
     setBusy("save");
+    setMessage(null);
     const payload = {
       name: draft.name,
       weight: Number(draft.weight),
@@ -118,17 +133,33 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
     });
     setBusy(null);
     if (!res.ok) {
-      alert(await res.text());
+      setMessage({ ok: false, text: await res.text() });
       return;
     }
+    setMessage({
+      ok: true,
+      text: status === "published" ? "Hero set published." : "Hero set saved.",
+    });
+    setConfirmDelete(false);
     await refresh(draft.id);
   }
 
   async function deleteSet() {
-    if (!draft || !confirm(`Delete "${draft.name}"?`)) return;
+    if (!draft) return;
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      setMessage({ ok: false, text: `Click Delete again to permanently remove "${draft.name}".` });
+      return;
+    }
     setBusy("delete");
-    await fetch(`/api/admin/landing-hero/${draft.id}`, { method: "DELETE" });
+    const res = await fetch(`/api/admin/landing-hero/${draft.id}`, { method: "DELETE" });
     setBusy(null);
+    if (!res.ok) {
+      setMessage({ ok: false, text: await res.text() });
+      return;
+    }
+    setMessage({ ok: true, text: "Hero set deleted." });
+    setConfirmDelete(false);
     await refresh();
   }
 
@@ -137,6 +168,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
     const card = draft.cards.find((c) => c.slot === slot);
     if (!card) return;
     setBusy(`card-${slot}`);
+    setMessage(null);
     const fd = new FormData();
     fd.append("headline", card.headline);
     fd.append("sub", card.sub);
@@ -156,52 +188,87 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
     });
     setBusy(null);
     if (!res.ok) {
-      alert(await res.text());
+      setMessage({ ok: false, text: await res.text() });
       return;
     }
+    setMessage({ ok: true, text: `Card ${slot} saved.` });
     await refresh(draft.id);
   }
 
   const publishedCount = sets.filter((set) => set.status === "published").length;
+  const draftCount = sets.filter((set) => set.status === "draft").length;
+  const archivedCount = sets.filter((set) => set.status === "archived").length;
 
   return (
-    <div className="page page--wide">
-      <div className="page__head">
-        <div>
-          <h1 className="page__title">Landing hero</h1>
-          <p className="page__sub">
-            Manage complete hero sets. A visitor sees one published set: brief, mood, brand, and
-            four matching images stay together.
-          </p>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div className="pill pill--ring" style={{ height: 30, padding: "0 12px", gap: 6 }}>
-            <I.Layout size={12} />
-            <span style={{ color: "var(--fg-1)", fontWeight: 600 }}>{publishedCount}</span>
-            <span style={{ color: "var(--fg-3)" }}>published</span>
-          </div>
-          <button className="btn btn--primary" type="button" onClick={() => void createSet()}>
-            <I.Plus size={14} />
-            New set
-          </button>
-        </div>
-      </div>
+    <AdminPage
+      wide
+      eyebrow={
+        <>
+          <I.Image size={12} />
+          Marketing
+        </>
+      }
+      title="Landing Hero"
+      description="Manage complete hero sets. A visitor sees one published set: brief, mood, brand, and four matching images stay together."
+      actions={
+        <button
+          className="btn btn--primary"
+          type="button"
+          onClick={() => void createSet()}
+          disabled={busy === "create"}
+        >
+          <I.Plus size={14} />
+          {busy === "create" ? "Creating…" : "New Hero Set"}
+        </button>
+      }
+    >
+      <AdminStatGrid>
+        <AdminStat
+          label="Hero Sets"
+          value={formatAdminNumber(sets.length)}
+          detail="Total configured variants"
+          icon={<I.Layout size={14} />}
+        />
+        <AdminStat
+          label="Published"
+          value={formatAdminNumber(publishedCount)}
+          detail="Eligible for homepage rotation"
+          icon={<I.Check size={14} />}
+          tone={publishedCount > 0 ? "success" : "warning"}
+        />
+        <AdminStat
+          label="Drafts"
+          value={formatAdminNumber(draftCount)}
+          detail="Work in progress"
+          icon={<I.Edit size={14} />}
+        />
+        <AdminStat
+          label="Archived"
+          value={formatAdminNumber(archivedCount)}
+          detail="Hidden from visitors"
+          icon={<I.Inbox size={14} />}
+        />
+      </AdminStatGrid>
+
+      {message ? (
+        <AdminAlert tone={message.ok ? "success" : "danger"}>{message.text}</AdminAlert>
+      ) : null}
 
       {sets.length === 0 ? (
-        <div className="card" style={{ padding: 24 }}>
-          <p className="t-small" style={{ color: "var(--fg-3)", marginTop: 0 }}>
-            No hero sets yet.
-          </p>
+        <AdminEmpty icon={<I.Image size={28} />} title="No Hero Sets Yet">
           <button className="btn btn--primary" type="button" onClick={() => void createSet()}>
             <I.Plus size={14} />
-            Create first set
+            Create First Set
           </button>
-        </div>
+        </AdminEmpty>
       ) : null}
 
       {draft ? (
         <div style={{ display: "grid", gap: 16 }}>
-          <div className="card" style={{ padding: 12 }}>
+          <AdminSection
+            title="Hero Sets"
+            description="Select a complete homepage hero configuration to edit."
+          >
             <div
               style={{
                 display: "flex",
@@ -211,55 +278,77 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                 paddingBottom: 2,
               }}
             >
-              {sets.map((set) => (
-                <button
-                  key={set.id}
-                  type="button"
-                  onClick={() => selectSet(set.id)}
-                  style={{
-                    minWidth: 220,
-                    minHeight: 58,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 8,
-                    padding: "10px 12px",
-                    border: 0,
-                    borderRadius: 8,
-                    background: set.id === draft.id ? "var(--cal-gray-100)" : "transparent",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  <span>
-                    <strong style={{ display: "block", color: "var(--fg-1)", fontSize: 13 }}>
-                      {set.name}
-                    </strong>
-                    <span style={{ color: "var(--fg-3)", fontSize: 12 }}>
-                      {set.status} · weight {set.weight}
+              {sets.map((set) => {
+                const thumb = [...set.cards].sort((a, b) => a.slot - b.slot)[0];
+                const isActive = set.id === draft.id;
+                return (
+                  <button
+                    key={set.id}
+                    type="button"
+                    onClick={() => selectSet(set.id)}
+                    style={{
+                      minWidth: 200,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "8px 10px",
+                      border: `2px solid ${isActive ? "var(--layertone-violet)" : "transparent"}`,
+                      borderRadius: 10,
+                      background: isActive ? "var(--layertone-violet-50)" : "var(--cal-gray-50)",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 52,
+                        height: 52,
+                        borderRadius: 7,
+                        overflow: "hidden",
+                        flexShrink: 0,
+                        background: "var(--cal-gray-200)",
+                      }}
+                    >
+                      {thumb?.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={thumb.imageUrl}
+                          alt=""
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      ) : null}
+                    </div>
+                    <span style={{ minWidth: 0 }}>
+                      <strong style={{ display: "block", color: "var(--fg-1)", fontSize: 13, lineHeight: 1.2 }}>
+                        {set.name}
+                      </strong>
+                      <span
+                        style={{
+                          marginTop: 5,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          color: "var(--fg-3)",
+                          fontSize: 12,
+                        }}
+                      >
+                        <AdminStatus status={set.status} />
+                        <span>W{set.weight}</span>
+                      </span>
                     </span>
-                  </span>
-                  {set.status === "published" ? <I.Check size={14} /> : null}
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
-          </div>
+          </AdminSection>
 
           <main style={{ display: "grid", gap: 16 }}>
-            <div className="card" style={{ padding: 20 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                  marginBottom: 16,
-                }}
-              >
-                <h2 className="t-h4" style={{ margin: 0 }}>
-                  Set settings
-                </h2>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <AdminSection
+              title="Set Settings"
+              description="Name, lifecycle state, and homepage rotation weight."
+              actions={
+                <>
                   <button
                     className="btn btn--ghost"
                     type="button"
@@ -268,9 +357,13 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                     <I.Copy size={14} />
                     Duplicate
                   </button>
-                  <button className="btn btn--ghost" type="button" onClick={() => void deleteSet()}>
+                  <button
+                    className="btn btn--ghost btn--danger"
+                    type="button"
+                    onClick={() => void deleteSet()}
+                  >
                     <I.Trash size={14} />
-                    Delete
+                    {confirmDelete ? "Confirm Delete" : "Delete"}
                   </button>
                   <button
                     className="btn btn--ghost"
@@ -278,7 +371,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                     onClick={() => void saveSet("draft")}
                     disabled={busy === "save"}
                   >
-                    Save draft
+                    Save Draft
                   </button>
                   <button
                     className="btn btn--primary"
@@ -286,11 +379,11 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                     onClick={() => void saveSet("published")}
                     disabled={busy === "save"}
                   >
-                    Publish
+                    Publish Hero
                   </button>
-                </div>
-              </div>
-
+                </>
+              }
+            >
               <div
                 style={{
                   display: "grid",
@@ -302,6 +395,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                   <span className="label">Name</span>
                   <input
                     className="input"
+                    name="heroSetName"
                     value={draft.name}
                     onChange={(e) => patchDraft({ name: e.target.value })}
                   />
@@ -323,6 +417,8 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                   <input
                     className="input"
                     type="number"
+                    name="heroSetWeight"
+                    inputMode="numeric"
                     min={1}
                     max={100}
                     value={draft.weight}
@@ -330,12 +426,9 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                   />
                 </label>
               </div>
-            </div>
+            </AdminSection>
 
-            <div className="card" style={{ padding: 20 }}>
-              <h2 className="t-h4" style={{ margin: "0 0 16px" }}>
-                Hero copy
-              </h2>
+            <AdminSection title="Hero Copy">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
                 <label>
                   <span className="label">Headline line 1</span>
@@ -456,12 +549,9 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                   Secondary CTA enabled
                 </label>
               </div>
-            </div>
+            </AdminSection>
 
-            <div className="card" style={{ padding: 20 }}>
-              <h2 className="t-h4" style={{ margin: "0 0 16px" }}>
-                Prompt, proof, and trust
-              </h2>
+            <AdminSection title="Prompt, Proof, and Trust">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
                 <label>
                   <span className="label">Brief</span>
@@ -559,12 +649,12 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                   />
                 </label>
               </div>
-            </div>
+            </AdminSection>
 
-            <div className="card" style={{ padding: 20 }}>
-              <h2 className="t-h4" style={{ margin: "0 0 16px" }}>
-                Cards
-              </h2>
+            <AdminSection
+              title="Cards"
+              description="Each published set keeps its four images and overlay text together."
+            >
               <div
                 style={{
                   display: "grid",
@@ -584,13 +674,13 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                     />
                   ))}
               </div>
-            </div>
+            </AdminSection>
 
             <HeroPreview set={draft} />
           </main>
         </div>
       ) : null}
-    </div>
+    </AdminPage>
   );
 }
 
@@ -712,7 +802,7 @@ function CardEditor({
         disabled={busy}
         onClick={() => onSave(file)}
       >
-        {busy ? "Saving..." : "Save card"}
+        {busy ? "Saving…" : "Save Card"}
       </button>
     </div>
   );
@@ -940,10 +1030,10 @@ function SegmentedControl({
 
 function HeroPreview({ set }: { set: LandingHeroSetView }) {
   return (
-    <div className="card" style={{ padding: 20 }}>
-      <h2 className="t-h4" style={{ margin: "0 0 16px" }}>
-        Preview data
-      </h2>
+    <AdminSection
+      title="Preview Data"
+      description="A compact rendering of the hero copy, prompt card, and image set."
+    >
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 420px", gap: 20 }}>
         <div>
           <h3 style={{ margin: 0, color: "#071230", fontSize: 36, lineHeight: 1.05 }}>
@@ -987,6 +1077,6 @@ function HeroPreview({ set }: { set: LandingHeroSetView }) {
             ))}
         </div>
       </div>
-    </div>
+    </AdminSection>
   );
 }

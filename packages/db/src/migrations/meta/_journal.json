@@ -127,6 +127,13 @@
       "when": 1779753600000,
       "tag": "0018_stock_category_label",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1779840000000,
+      "tag": "0019_quick_create_strict_contain_template",
+      "breakpoints": true
     }
   ]
 }

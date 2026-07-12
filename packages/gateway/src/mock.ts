@@ -42,7 +42,7 @@ export class MockImageProvider implements ImageProvider {
 
     const png = existsSync(samplePath)
       ? await sharp(samplePath)
-          .resize(req.width, req.height, { fit: "cover" })
+          .resize(req.width, req.height, { fit: "contain", background: "#f7f7f7" })
           .png()
           .toBuffer()
       : await sharp({

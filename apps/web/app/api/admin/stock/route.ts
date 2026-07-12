@@ -4,7 +4,7 @@ import { StockApi } from "@layertone/api/stock";
 import { loadConfig } from "@layertone/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
-import { createServerAdapters } from "@/lib/server/adapters";
+import { createGlobalStorageAdapter, createServerAdapters } from "@/lib/server/adapters";
 import { writeAdminAudit } from "@/lib/server/admin";
 
 export async function GET() {
@@ -33,7 +33,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "missing-category-or-label" }, { status: 400 });
   }
 
-  const api = new StockApi(loadConfig(), createServerAdapters() as never);
+  const config = loadConfig();
+  const api = new StockApi(config, {
+    ...createServerAdapters(),
+    storage: createGlobalStorageAdapter(config),
+  } as never);
   const results = [];
 
   try {

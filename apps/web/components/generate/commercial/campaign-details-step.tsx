@@ -2,6 +2,8 @@
 
 import type { CampaignDetails } from "./types";
 
+const CREATIVE_BRIEF_MAX_LENGTH = 4000;
+
 export function CampaignDetailsStep(props: {
   brief: string;
   campaign: CampaignDetails;
@@ -17,8 +19,11 @@ export function CampaignDetailsStep(props: {
           value={props.brief}
           onChange={(event) => props.onBriefChange(event.target.value)}
           placeholder="Spring launch for a clean skincare product, bright bathroom set, premium but approachable."
-          maxLength={500}
+          maxLength={CREATIVE_BRIEF_MAX_LENGTH}
         />
+        <span className="hint">
+          {props.brief.length} / {CREATIVE_BRIEF_MAX_LENGTH}
+        </span>
       </label>
       <div className="cg-field-row">
         <label>

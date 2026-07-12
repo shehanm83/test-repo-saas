@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import { I } from "@/components/icons";
 
@@ -17,7 +17,9 @@ function snapshotFromProduct(product: ProductLite): ProductSnapshot {
     ...(product.sku ? { sku: product.sku } : {}),
     ...(product.category ? { category: product.category } : {}),
     ...(product.priceMinor != null ? { priceMinor: product.priceMinor } : {}),
-    ...(product.compareAtPriceMinor != null ? { compareAtPriceMinor: product.compareAtPriceMinor } : {}),
+    ...(product.compareAtPriceMinor != null
+      ? { compareAtPriceMinor: product.compareAtPriceMinor }
+      : {}),
     ...(product.currency ? { currency: product.currency } : {}),
     ...(product.discountText ? { discountText: product.discountText } : {}),
     ...(product.keyFeatures?.length ? { keyFeatures: product.keyFeatures } : {}),
@@ -42,9 +44,9 @@ export function ProductPicker(props: {
   onRemove: (localId: string) => void;
   onUpdateRole?: (localId: string, role: ProductRole) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const selectedProductIds = new Set(props.selected.map((item) => item.productId).filter(Boolean));
+  const fileInputId = "product-image-upload";
 
   async function onFiles(files: FileList | null) {
     const file = files?.[0];
@@ -106,15 +108,25 @@ export function ProductPicker(props: {
                 )}
               </div>
               <div>
-                <strong>{item.commercialFields.title ?? item.commercialFields.name ?? "Product"}</strong>
-                <span>{item.source === "saved" ? "Saved product" : item.uploadPending ? "Uploading" : "Draft product"}</span>
+                <strong>
+                  {item.commercialFields.title ?? item.commercialFields.name ?? "Product"}
+                </strong>
+                <span>
+                  {item.source === "saved"
+                    ? "Saved product"
+                    : item.uploadPending
+                      ? "Uploading"
+                      : "Draft product"}
+                </span>
               </div>
               {props.onUpdateRole ? (
                 <select
                   className="select cg-role-select"
                   value={item.role}
                   aria-label={`Role for ${item.commercialFields.name ?? "product"}`}
-                  onChange={(event) => props.onUpdateRole?.(item.localId, event.target.value as ProductRole)}
+                  onChange={(event) =>
+                    props.onUpdateRole?.(item.localId, event.target.value as ProductRole)
+                  }
                 >
                   <option value="hero">Hero</option>
                   <option value="bundle_item">Bundle</option>
@@ -138,17 +150,24 @@ export function ProductPicker(props: {
 
       <div className="cg-upload-strip">
         <input
-          ref={inputRef}
+          id={fileInputId}
           type="file"
           accept="image/jpeg,image/png,image/webp"
           className="cg-file-input"
+          aria-label="Upload product image"
           onChange={(event) => void onFiles(event.target.files)}
         />
-        <button type="button" className="btn btn--secondary" onClick={() => inputRef.current?.click()}>
+        <label htmlFor={fileInputId} className="btn btn--secondary">
           <I.Upload size={15} />
-          Upload product image
-        </button>
-        {uploadError ? <span className="cg-error-text">{uploadError}</span> : <span>PNG, JPG, or WebP up to 10 MB.</span>}
+          Upload Product Image
+        </label>
+        {uploadError ? (
+          <span className="cg-error-text" aria-live="polite">
+            {uploadError}
+          </span>
+        ) : (
+          <span>PNG, JPG, or WebP up to 10 MB.</span>
+        )}
       </div>
 
       {props.products.length > 0 ? (
@@ -182,7 +201,9 @@ export function ProductPicker(props: {
           })}
         </div>
       ) : (
-        <div className="cg-empty-inline">No saved products yet. Create a draft below to continue.</div>
+        <div className="cg-empty-inline">
+          No saved products yet. Create a draft below to continue.
+        </div>
       )}
     </div>
   );

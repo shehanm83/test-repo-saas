@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { ResolvedOutputTarget } from "../output-targets";
 
 const UUID = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+const BRIEF_MAX_LENGTH = 4000;
 
 export const CreationType = z.enum([
   "single_product",
@@ -13,13 +14,7 @@ export const CreationType = z.enum([
   "social_ad_pack",
 ]);
 
-export const ProductRole = z.enum([
-  "hero",
-  "bundle_item",
-  "catalogue_item",
-  "before",
-  "after",
-]);
+export const ProductRole = z.enum(["hero", "bundle_item", "catalogue_item", "before", "after"]);
 
 export const OutputFormat = z.enum([
   "instagram_square",
@@ -122,7 +117,7 @@ export const OutputSettings = z.object({
 const LegacyInput = z.object({
   brandId: UUID,
   moodId: UUID.optional().nullable(),
-  brief: z.string().min(1).max(500),
+  brief: z.string().min(1).max(BRIEF_MAX_LENGTH),
   outputTarget: z.unknown(),
   inspirationUploadId: UUID.optional(),
   inspirationUploadIds: z.array(UUID).max(5).optional(),
@@ -149,7 +144,7 @@ const CommercialInput = z.object({
   brandId: UUID.optional().nullable(),
   projectId: UUID.optional().nullable(),
   moodId: UUID.optional().nullable(),
-  brief: z.string().min(1).max(500).optional(),
+  brief: z.string().min(1).max(BRIEF_MAX_LENGTH).optional(),
   outputTarget: z.unknown().optional(),
   productRefs: z.array(ProductRef).max(40).default([]),
   brandLogoAssetIds: z.array(UUID).max(5).default([]),
@@ -208,8 +203,16 @@ export const OUTPUT_FORMAT_TARGETS: Record<z.infer<typeof OutputFormat>, unknown
   instagram_landscape: { kind: "social", platform: "instagram", format: "post_landscape" },
   instagram_story: { kind: "social", platform: "instagram", format: "story" },
   instagram_reel: { kind: "social", platform: "instagram", format: "reel" },
-  instagram_feed_video_portrait: { kind: "social", platform: "instagram", format: "feed_video_portrait" },
-  instagram_feed_video_square: { kind: "social", platform: "instagram", format: "feed_video_square" },
+  instagram_feed_video_portrait: {
+    kind: "social",
+    platform: "instagram",
+    format: "feed_video_portrait",
+  },
+  instagram_feed_video_square: {
+    kind: "social",
+    platform: "instagram",
+    format: "feed_video_square",
+  },
   facebook_feed: { kind: "social", platform: "facebook", format: "post" },
   facebook_square: { kind: "social", platform: "facebook", format: "post_square" },
   facebook_portrait: { kind: "social", platform: "facebook", format: "post_portrait" },
@@ -353,7 +356,9 @@ function buildCommercialBrief(parsed: z.infer<typeof CommercialInput>) {
     `Template: ${parsed.template.family} / ${parsed.template.layout}`,
     `Composition: ${parsed.composition.backgroundStyle}, ${parsed.composition.realism}`,
   ].filter((piece): piece is string => !!piece && piece.trim().length > 0);
-  return pieces.join("\n").slice(0, 500) || "Create a polished commercial product image.";
+  return (
+    pieces.join("\n").slice(0, BRIEF_MAX_LENGTH) || "Create a polished commercial product image."
+  );
 }
 
 type ParsedFlags = {

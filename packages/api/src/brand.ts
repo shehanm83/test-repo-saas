@@ -107,13 +107,19 @@ export class BrandApi {
         }
       : undefined;
 
-    return updateBrand(this.db(), workspaceId, brandId, {
+    const patch = {
       ...(args.name ? { name: args.name } : {}),
       ...(args.sourceUrl !== undefined ? { sourceUrl: args.sourceUrl } : {}),
       ...(palette ? { palette } : {}),
       ...(fonts ? { fonts } : {}),
-      ...(args.voiceNotes ? { voiceNotes: args.voiceNotes } : {}),
-    });
+      ...(args.voiceNotes !== undefined ? { voiceNotes: args.voiceNotes } : {}),
+    };
+
+    if (Object.keys(patch).length === 0) {
+      return getBrand(this.db(), workspaceId, brandId);
+    }
+
+    return updateBrand(this.db(), workspaceId, brandId, patch);
   }
 
   async uploadLogo(
@@ -198,7 +204,9 @@ export class BrandApi {
     await this.adapters.storage.putBytes(storedKey, bytes, mimeType);
 
     const { description } = await this.adapters.ai.describeImage(storedKey);
-    const { vector: embedding } = await this.adapters.ai.embedText(description).catch(() => ({ vector: new Array(1536).fill(0) as number[] }));
+    const { vector: embedding } = await this.adapters.ai
+      .embedText(description)
+      .catch(() => ({ vector: new Array(1536).fill(0) as number[] }));
 
     return addBrandAsset(this.db(), workspaceId, {
       id: assetId,

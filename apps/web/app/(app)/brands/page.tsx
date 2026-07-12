@@ -20,78 +20,54 @@ export default async function BrandsPage() {
     : [];
 
   return (
-    <div className="page">
-      <div className="page__head">
+    <div className="page page--wide brand-page">
+      <div className="brand-hero">
         <div>
-          <div className="t-eyebrow" style={{ color: "var(--layertone-violet)", marginBottom: 6 }}>
-            <I.Briefcase size={11} style={{ verticalAlign: "-1px" }} /> Brand kits
+          <div className="brand-hero__eyebrow">
+            <I.Briefcase size={12} /> Brand Kits
           </div>
-          <h1 className="page__title">Brands</h1>
-          <p className="page__sub">
-            Your active brand kits, ready for generation and seasonal mood blending.
-          </p>
+          <h1>Brand Library</h1>
+          <p>Your identity systems, palettes, logos, and voice notes for production generation.</p>
+          <div className="brand-hero__stats" aria-label="Brand summary">
+            <span>
+              <strong>{brands.length}</strong> Active Brands
+            </span>
+            <span>
+              <strong>{brands.filter((brand) => brand.sourceUrl).length}</strong> With Source URL
+            </span>
+          </div>
         </div>
-        <Link
-          className="btn btn--accent"
-          href="/brands/new/identify?new=1"
-          style={{ textDecoration: "none" }}
-        >
+        <Link className="btn btn--accent btn--lg" href="/brands/new/identify?new=1">
           <I.Plus size={14} />
-          New brand
+          New Brand
         </Link>
       </div>
 
       {brands.length === 0 ? (
-        <div
-          className="card card--elevated"
-          style={{
-            padding: 0,
-            overflow: "hidden",
-            background:
-              "radial-gradient(ellipse 80% 80% at 50% 0%, #FBE5C2 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 100% 80%, #E8E7FA 0%, transparent 60%), white",
-          }}
-        >
-          <div className="empty" style={{ padding: "80px 32px" }}>
-            <div
-              className="empty__art"
-              style={{
-                background: "linear-gradient(135deg, var(--layertone-violet) 0%, #A8A5F0 100%)",
-                color: "white",
-              }}
-            >
+        <div className="brand-empty">
+          <div className="empty">
+            <div className="brand-empty__art">
               <I.Briefcase size={32} />
             </div>
-            <div className="empty__title">No brands yet</div>
+            <div className="empty__title">No Brands Yet</div>
             <div className="empty__sub">
-              Spin up your first brand kit in 30 seconds — paste your URL and we&apos;ll
-              do the rest.
+              Create your first brand kit, then use its colors, logo, fonts, and voice in every
+              generation.
             </div>
-            <Link
-              href="/brands/new/identify?new=1"
-              className="btn btn--accent btn--lg"
-              style={{ textDecoration: "none", marginTop: 8 }}
-            >
-              <I.Sparkle size={14} /> Create your first brand
+            <Link href="/brands/new/identify?new=1" className="btn btn--accent btn--lg">
+              <I.Sparkle size={14} /> Create First Brand
             </Link>
           </div>
         </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 16,
-          }}
-        >
+        <div className="brand-grid">
           {brands.map((brand) => {
-            const palette = brand.palette as
-              | {
-                  primary?: string;
-                  secondary?: string;
-                  accent?: string;
-                  extras?: string[];
-                }
-              | null;
+            const palette = brand.palette as {
+              primary?: string;
+              secondary?: string;
+              accent?: string;
+              extras?: string[];
+            } | null;
             const palColors = palette
               ? [palette.primary, palette.secondary, palette.accent, ...(palette.extras ?? [])]
                   .filter((c): c is string => Boolean(c))
@@ -102,80 +78,38 @@ export default async function BrandsPage() {
                 ? `linear-gradient(135deg, ${palColors[0]} 0%, ${palColors[1]} 100%)`
                 : `linear-gradient(135deg, ${dot(brand.id)} 0%, var(--cal-charcoal) 100%)`;
             return (
-              <Link
-                key={brand.id}
-                className="card"
-                href={`/brands/${brand.id}`}
-                style={{
-                  padding: 0,
-                  overflow: "hidden",
-                  textDecoration: "none",
-                  display: "flex",
-                  flexDirection: "column",
-                  transition: "transform 160ms, box-shadow 160ms",
-                }}
-              >
-                <div
-                  style={{
-                    height: 88,
-                    background: heroBg,
-                    position: "relative",
-                  }}
-                >
-                  <div
+              <Link key={brand.id} className="brand-card" href={`/brands/${brand.id}`}>
+                <div className="brand-card__cover" style={{ background: heroBg }}>
+                  <span
+                    className="brand-card__mark"
                     style={{
-                      position: "absolute",
-                      left: 16,
-                      bottom: -22,
-                      width: 56,
-                      height: 56,
-                      borderRadius: 12,
                       background: palColors[0] ?? dot(brand.id),
                       color: palColors[2] ?? "white",
-                      display: "grid",
-                      placeItems: "center",
-                      fontFamily: "var(--font-display)",
-                      fontSize: 18,
-                      fontWeight: 600,
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.18), 0 0 0 3px white",
                     }}
                   >
-                    {brand.name.slice(0, 2).toUpperCase()}
-                  </div>
+                    <span translate="no">{brand.name.slice(0, 2).toUpperCase()}</span>
+                  </span>
                 </div>
-                <div style={{ padding: "32px 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
-                  <div>
-                    <div
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontSize: 18,
-                        color: "var(--fg-1)",
-                      }}
-                    >
-                      {brand.name}
-                    </div>
-                    <div className="t-small" style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 6 }}>
-                      <I.Globe size={11} style={{ color: "var(--fg-4)" }} />
-                      {brand.sourceUrl ?? "No source URL"}
-                    </div>
+                <div className="brand-card__body">
+                  <div className="brand-card__title-row">
+                    <h2>{brand.name}</h2>
+                    <I.ArrowRight size={15} />
+                  </div>
+                  <div className="brand-card__url">
+                    <I.Globe size={12} />
+                    <span>{brand.sourceUrl ?? "No Source URL"}</span>
                   </div>
                   {palColors.length > 0 ? (
-                    <div style={{ display: "flex", gap: 4 }}>
+                    <div className="brand-card__palette" aria-label={`${brand.name} palette`}>
                       {palColors.map((c, i) => (
-                        <span
-                          key={i}
-                          title={c}
-                          style={{
-                            flex: 1,
-                            height: 18,
-                            borderRadius: 4,
-                            background: c,
-                            boxShadow: "var(--shadow-ring)",
-                          }}
-                        />
+                        <span key={i} title={c} style={{ background: c }} />
                       ))}
                     </div>
                   ) : null}
+                  <div className="brand-card__meta">
+                    <span>{palColors.length || 0} Colors</span>
+                    <span>Ready for Generate</span>
+                  </div>
                 </div>
               </Link>
             );

@@ -1,6 +1,7 @@
 import {
   adminBindings,
   adminCreateMood,
+  adminDeleteMood,
   adminListMoods,
   adminUpdateMood,
   createDb,
@@ -94,6 +95,10 @@ export class MoodApi {
 
   async adminArchive(id: string) {
     return adminUpdateMood(this.db("app_admin"), id, { status: "archived" });
+  }
+
+  async adminDelete(id: string) {
+    await adminDeleteMood(this.db("app_admin"), id);
   }
 
   async adminBindings(moodId: string) {

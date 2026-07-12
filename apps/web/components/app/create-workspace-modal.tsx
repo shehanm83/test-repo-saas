@@ -7,13 +7,7 @@ import { UpgradeModal } from "@/components/billing/upgrade-modal";
 
 type State = "idle" | "submitting" | "limit-reached" | "error";
 
-export function CreateWorkspaceModal({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function CreateWorkspaceModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const [state, setState] = useState<State>("idle");
   const [name, setName] = useState("");
@@ -73,7 +67,9 @@ export function CreateWorkspaceModal({
         body: JSON.stringify({ workspaceId: json.workspaceId }),
       });
       if (!switchRes.ok) {
-        setErrorMsg("Workspace created but could not switch to it. Refresh and select it from the switcher.");
+        setErrorMsg(
+          "Workspace created but could not switch to it. Refresh and select it from the switcher.",
+        );
         setState("error");
         return;
       }
@@ -128,9 +124,7 @@ export function CreateWorkspaceModal({
               disabled={busy}
             />
           </div>
-          {state === "error" ? (
-            <p className="upgrade-dialog__error">{errorMsg}</p>
-          ) : null}
+          {state === "error" ? <p className="upgrade-dialog__error">{errorMsg}</p> : null}
           <button
             type="submit"
             className="btn btn--accent upgrade-subscribe-btn"

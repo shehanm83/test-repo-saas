@@ -1,8 +1,17 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 import { I } from "@/components/icons";
+import {
+  AdminAlert,
+  AdminPage,
+  AdminSection,
+  AdminStat,
+  AdminStatGrid,
+  formatAdminNumber,
+} from "@/components/admin/ui";
 
 export function PricebookAdmin(props: {
   rows: Array<{
@@ -17,6 +26,9 @@ export function PricebookAdmin(props: {
   paygActionMarkup: number;
   paygRetentionDaysPerCredit: number;
 }) {
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [form, setForm] = useState({
     modelCode: "flux-1.1-pro",
     sizeBucket: "standard",
@@ -27,31 +39,68 @@ export function PricebookAdmin(props: {
   });
 
   async function submit() {
-    await fetch("/api/admin/pricebook", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...form, effectiveFrom: new Date().toISOString() }),
-    });
-    location.reload();
+    setSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/pricebook", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...form, effectiveFrom: new Date().toISOString() }),
+      });
+      if (!res.ok) {
+        setMessage({ ok: false, text: await res.text() });
+        return;
+      }
+      setMessage({ ok: true, text: "Price version added." });
+      router.refresh();
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
-    <div className="page">
-      <div className="page__head">
-        <div>
-          <h1 className="page__title">Pricebook</h1>
-          <p className="page__sub">
-            Versioned credit pricing across model, size, premium mode, and inspiration
-            usage.
-          </p>
-        </div>
-      </div>
+    <AdminPage
+      eyebrow={
+        <>
+          <I.Coin size={12} />
+          Commerce
+        </>
+      }
+      title="Pricebook"
+      description="Versioned credit pricing across model, size, premium mode, and inspiration usage."
+    >
+      <AdminStatGrid>
+        <AdminStat
+          label="Rows"
+          value={formatAdminNumber(props.rows.length)}
+          detail="Configured price rules"
+          icon={<I.Database size={14} />}
+        />
+        <AdminStat
+          label="PAYG Markup"
+          value={`${props.paygActionMarkup.toFixed(1)}x`}
+          detail="Applied to base action credits"
+          icon={<I.TrendUp size={14} />}
+          tone="accent"
+        />
+        <AdminStat
+          label="Retention"
+          value={`${formatAdminNumber(props.paygRetentionDaysPerCredit)} days`}
+          detail="Per PAYG retention credit"
+          icon={<I.Calendar size={14} />}
+        />
+        <AdminStat
+          label="Latest Version"
+          value={`v${formatAdminNumber(Math.max(0, ...props.rows.map((row) => row.version)))}`}
+          detail="Highest version in this table"
+          icon={<I.Hash size={14} />}
+        />
+      </AdminStatGrid>
 
-      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
-        <div className="t-eyebrow" style={{ marginBottom: 8 }}>
-          Active pricing model
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, fontSize: 13 }}>
+      <AdminSection title="Active Pricing Model">
+        <div
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, fontSize: 13 }}
+        >
           <div>
             <strong>Subscription actions</strong>
             <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
@@ -71,15 +120,12 @@ export function PricebookAdmin(props: {
             </p>
           </div>
         </div>
-      </div>
+      </AdminSection>
 
-      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
-        <h2
-          className="t-h4"
-          style={{ margin: "0 0 16px" }}
-        >
-          Add version
-        </h2>
+      <AdminSection title="Add Price Version" description="Create a new effective pricebook entry.">
+        {message ? (
+          <AdminAlert tone={message.ok ? "success" : "danger"}>{message.text}</AdminAlert>
+        ) : null}
         <div
           style={{
             display: "grid",
@@ -92,6 +138,8 @@ export function PricebookAdmin(props: {
             <label className="label">Model</label>
             <input
               className="input mono"
+              name="modelCode"
+              autoComplete="off"
               value={form.modelCode}
               onChange={(e) => setForm((c) => ({ ...c, modelCode: e.target.value }))}
             />
@@ -112,10 +160,10 @@ export function PricebookAdmin(props: {
             <input
               className="input"
               type="number"
+              name="credits"
+              inputMode="numeric"
               value={form.credits}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, credits: Number(e.target.value) }))
-              }
+              onChange={(e) => setForm((c) => ({ ...c, credits: Number(e.target.value) }))}
             />
           </div>
           <div>
@@ -123,10 +171,10 @@ export function PricebookAdmin(props: {
             <input
               className="input"
               type="number"
+              name="version"
+              inputMode="numeric"
               value={form.version}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, version: Number(e.target.value) }))
-              }
+              onChange={(e) => setForm((c) => ({ ...c, version: Number(e.target.value) }))}
             />
           </div>
         </div>
@@ -145,9 +193,7 @@ export function PricebookAdmin(props: {
             <input
               type="checkbox"
               checked={form.premiumFlag}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, premiumFlag: e.target.checked }))
-              }
+              onChange={(e) => setForm((c) => ({ ...c, premiumFlag: e.target.checked }))}
             />
             <span style={{ fontSize: 13 }}>Premium</span>
           </label>
@@ -165,9 +211,7 @@ export function PricebookAdmin(props: {
             <input
               type="checkbox"
               checked={form.hasInspirationFlag}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, hasInspirationFlag: e.target.checked }))
-              }
+              onChange={(e) => setForm((c) => ({ ...c, hasInspirationFlag: e.target.checked }))}
             />
             <span style={{ fontSize: 13 }}>Has inspiration</span>
           </label>
@@ -176,69 +220,36 @@ export function PricebookAdmin(props: {
           type="button"
           className="btn btn--primary"
           onClick={() => void submit()}
+          disabled={saving}
         >
           <I.Plus size={14} />
-          Add row
+          {saving ? "Adding…" : "Add Price Version"}
         </button>
-      </div>
+      </AdminSection>
 
-      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <AdminSection title="Price Rules" flush>
+        <table className="admin-table">
           <thead>
-            <tr style={{ background: "var(--cal-gray-50)" }}>
-              {["Model", "Bucket", "Premium", "Inspiration", "Credits", "Version"].map(
-                (h) => (
-                  <th
-                    key={h}
-                    style={{
-                      textAlign: "left",
-                      padding: "10px 16px",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: "var(--fg-3)",
-                      textTransform: "uppercase",
-                      letterSpacing: 0.4,
-                    }}
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
+            <tr>
+              {["Model", "Bucket", "Premium", "Inspiration", "Credits", "Version"].map((h) => (
+                <th key={h}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {props.rows.map((row) => (
-              <tr key={row.id} style={{ borderTop: "1px solid var(--cal-gray-200)" }}>
-                <td
-                  style={{
-                    padding: "10px 16px",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 13,
-                  }}
-                >
-                  {row.modelCode}
-                </td>
-                <td style={{ padding: "10px 16px" }}>{row.sizeBucket}</td>
-                <td style={{ padding: "10px 16px" }}>
-                  {row.premiumFlag ? <I.Check size={14} /> : "—"}
-                </td>
-                <td style={{ padding: "10px 16px" }}>
-                  {row.hasInspirationFlag ? <I.Check size={14} /> : "—"}
-                </td>
-                <td
-                  style={{
-                    padding: "10px 16px",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  {row.credits}
-                </td>
-                <td style={{ padding: "10px 16px" }}>v{row.version}</td>
+              <tr key={row.id}>
+                <td className="mono">{row.modelCode}</td>
+                <td>{row.sizeBucket}</td>
+                <td>{row.premiumFlag ? <I.Check size={14} /> : "—"}</td>
+                <td>{row.hasInspirationFlag ? <I.Check size={14} /> : "—"}</td>
+                <td className="mono admin-num">{row.credits}</td>
+                <td className="admin-num">v{row.version}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
-    </div>
+      </AdminSection>
+    </AdminPage>
   );
 }

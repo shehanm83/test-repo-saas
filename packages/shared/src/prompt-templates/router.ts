@@ -31,6 +31,12 @@ export interface BuildQuickCreatePromptInput {
   variantIndex?: number;
 }
 
+export const NO_CROP_PROMPT_INSTRUCTION =
+  "Non-negotiable framing rule: keep every product, package, label, and main subject fully inside the frame with all edges visible and clear breathing room. If the selected format is tight, zoom out and scale the subject down instead of cropping. Do not place overlay space, decorations, shadows, or platform-safe areas over the product or main subject.";
+
+export const NO_CROP_NEGATIVE_PROMPT =
+  "cropped product, cut off product, clipped product edges, cropped packaging, clipped packaging edges, product outside frame, partial product, out-of-frame subject, subject cut off, cropped main subject, hidden product, overlay covering product";
+
 export function routeQuickCreatePrompt(input: Pick<NormalizedCommercialGenerationInput, "productRefs" | "campaign">): string {
   const hasProduct = input.productRefs.length > 0;
   const hasCampaign = hasCampaignDetails(input.campaign);
@@ -53,16 +59,20 @@ export function buildQuickCreatePrompt(input: BuildQuickCreatePromptInput): Buil
   validateRequiredVariables(base, context);
 
   const prompt = compactPrompt(
-    templates
-      .map((template) => renderPromptString(template.prompt, context))
-      .filter(Boolean)
-      .join("\n\n"),
+    [
+      ...templates
+        .map((template) => renderPromptString(template.prompt, context))
+        .filter(Boolean),
+      NO_CROP_PROMPT_INSTRUCTION,
+    ].join("\n\n"),
   );
   const negativePrompt = compactPrompt(
-    templates
-      .map((template) => template.negative_prompt ? renderPromptString(template.negative_prompt, context) : "")
-      .filter(Boolean)
-      .join("\n"),
+    [
+      ...templates
+        .map((template) => template.negative_prompt ? renderPromptString(template.negative_prompt, context) : "")
+        .filter(Boolean),
+      NO_CROP_NEGATIVE_PROMPT,
+    ].join("\n"),
   );
 
   return {
@@ -236,6 +246,7 @@ function summarizeComposition(composition: NormalizedCommercialGenerationInput["
     `label visibility: ${composition.labelVisibility}`,
     `packaging: ${composition.packagingVisibility}`,
     `brand blend: ${composition.brandBlend}`,
+    "framing: full product and main subject must remain inside frame with all edges visible",
   ].join("; ");
 }
 

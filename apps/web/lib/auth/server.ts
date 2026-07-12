@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import { ClerkAuthProvider, DevAuthProvider } from "@layertone/auth";
 import {
@@ -27,6 +27,8 @@ export interface SessionWorkspace {
   planCode: string;
   status: string;
 }
+
+export const ACTIVE_WORKSPACE_COOKIE = "lt_active_workspace_id";
 
 function configuredAdminEmails(): string[] {
   return (process.env.ADMIN_EMAILS ?? "")
@@ -91,11 +93,13 @@ export async function getServerSession(): Promise<
   }
 
   const memberWorkspaces = await listWorkspacesForUser(db, user.id);
-  const requestedWorkspaceId = requestHeaders.get("x-dev-workspace-id") ?? identity.workspaceId;
+  const cookieWorkspaceId = (await cookies()).get(ACTIVE_WORKSPACE_COOKIE)?.value ?? null;
+  const preferredWorkspaceId =
+    requestHeaders.get("x-dev-workspace-id") ?? cookieWorkspaceId ?? identity.workspaceId;
   const workspaceId =
-    requestedWorkspaceId &&
-    memberWorkspaces.some((workspace) => workspace.id === requestedWorkspaceId)
-      ? requestedWorkspaceId
+    preferredWorkspaceId &&
+    memberWorkspaces.some((workspace) => workspace.id === preferredWorkspaceId)
+      ? preferredWorkspaceId
       : (memberWorkspaces[0]?.id ?? null);
 
   return {

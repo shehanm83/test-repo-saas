@@ -6,6 +6,25 @@ import { loadConfig } from "@layertone/shared/config";
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";
 
+export async function DELETE(
+  _request: Request,
+  props: { params: Promise<{ id: string }> },
+) {
+  const { id } = await props.params;
+  const { session } = await getSessionWorkspace();
+  await new MoodApi(loadConfig()).adminDelete(id);
+  if (session.workspaceId) {
+    await writeAdminAudit({
+      workspaceId: session.workspaceId,
+      actorUserId: session.userId,
+      action: "admin.mood.delete",
+      target: id,
+      payload: {},
+    });
+  }
+  return NextResponse.json({ ok: true });
+}
+
 export async function PATCH(
   request: Request,
   props: { params: Promise<{ id: string }> },

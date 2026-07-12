@@ -4,6 +4,17 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 import { I } from "@/components/icons";
+import {
+  AdminAlert,
+  AdminEmpty,
+  AdminPage,
+  AdminSection,
+  AdminStat,
+  AdminStatGrid,
+  AdminStatus,
+  formatAdminDate,
+  formatAdminNumber,
+} from "@/components/admin/ui";
 
 interface FlaggedItem {
   auditId: string;
@@ -73,156 +84,179 @@ export default function AdminAupPage() {
   }
 
   return (
-    <div className="page">
-      <div className="page__head">
-        <div>
-          <h1 className="page__title">AUP enforcement</h1>
-          <p className="page__sub">
-            Generations flagged for Acceptable Use Policy review.
-          </p>
-        </div>
-      </div>
+    <AdminPage
+      eyebrow={
+        <>
+          <I.Shield size={12} />
+          Safety
+        </>
+      }
+      title="AUP Enforcement"
+      description="Generations flagged for Acceptable Use Policy review."
+    >
+      <AdminStatGrid>
+        <AdminStat
+          label="Flagged"
+          value={loading ? "…" : formatAdminNumber(items.length)}
+          detail="Items requiring review"
+          icon={<I.AlertTriangle size={14} />}
+          tone={items.length > 0 ? "danger" : "success"}
+        />
+        <AdminStat
+          label="Suspended"
+          value={formatAdminNumber(
+            items.filter((item) => item.workspace?.status === "suspended").length,
+          )}
+          detail="Already restricted"
+          icon={<I.Lock size={14} />}
+        />
+        <AdminStat
+          label="Generations"
+          value={formatAdminNumber(items.filter((item) => item.generationId).length)}
+          detail="Linked to inspector records"
+          icon={<I.Image size={14} />}
+        />
+        <AdminStat
+          label="Workspaces"
+          value={formatAdminNumber(new Set(items.map((item) => item.workspaceId)).size)}
+          detail="Distinct workspaces in view"
+          icon={<I.Briefcase size={14} />}
+        />
+      </AdminStatGrid>
 
       {messages.length > 0 ? (
-        <div style={{ marginBottom: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+        <div
+          aria-live="polite"
+          style={{ marginBottom: 16, display: "flex", flexDirection: "column", gap: 6 }}
+        >
           {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`pill ${m.ok ? "pill--green" : "pill--red"}`}
-              style={{ alignSelf: "flex-start" }}
-            >
-              {m.ok ? <I.Check size={11} /> : <I.AlertCircle size={11} />}
+            <AdminAlert key={i} tone={m.ok ? "success" : "danger"}>
               {m.text}
-            </div>
+            </AdminAlert>
           ))}
         </div>
       ) : null}
 
       {loading ? (
-        <div className="t-small">Loading…</div>
+        <AdminSection title="Review Queue">
+          <div className="t-small">Loading…</div>
+        </AdminSection>
       ) : items.length === 0 ? (
-        <div className="empty card">
-          <div className="empty__art">
-            <I.Shield size={28} />
-          </div>
-          <div className="empty__title">No flagged generations</div>
-          <div className="empty__sub">All clear.</div>
-        </div>
+        <AdminEmpty icon={<I.Shield size={28} />} title="No Flagged Generations">
+          All clear.
+        </AdminEmpty>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {items.map((item) => {
-            const reason = (() => {
-              if (!item.payload) return null;
-              try {
-                const parsed = JSON.parse(item.payload) as { reason?: string; tags?: string[] };
-                return parsed.reason ?? parsed.tags?.join(", ") ?? item.payload;
-              } catch {
-                return item.payload;
-              }
-            })();
-            return (
-              <div
-                key={item.auditId}
-                className="card"
-                style={{
-                  padding: 20,
-                  borderTop: "3px solid var(--layertone-red)",
-                }}
-              >
+        <AdminSection
+          title="Review Queue"
+          description="Inspect flagged generations and suspend workspaces when the violation is confirmed."
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {items.map((item) => {
+              const reason = (() => {
+                if (!item.payload) return null;
+                try {
+                  const parsed = JSON.parse(item.payload) as { reason?: string; tags?: string[] };
+                  return parsed.reason ?? parsed.tags?.join(", ") ?? item.payload;
+                } catch {
+                  return item.payload;
+                }
+              })();
+              return (
                 <div
+                  key={item.auditId}
+                  className="card"
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    gap: 16,
+                    padding: 20,
+                    borderTop: "3px solid var(--layertone-red)",
                   }}
                 >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="t-small mono" style={{ marginBottom: 6 }}>
-                      <I.AlertTriangle
-                        size={11}
-                        style={{
-                          verticalAlign: "-1px",
-                          color: "var(--layertone-red)",
-                        }}
-                      />{" "}
-                      Flagged {new Date(item.flaggedAt).toLocaleString()}
-                    </div>
-                    {item.generation ? (
-                      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>
-                        {item.generation.brief}
-                      </div>
-                    ) : null}
-                    {reason ? (
-                      <div className="t-small" style={{ marginBottom: 6 }}>
-                        Reason: {reason}
-                      </div>
-                    ) : null}
-                    {item.workspace ? (
-                      <div className="t-small">
-                        Workspace:{" "}
-                        <Link
-                          href={`/admin/users/${item.workspace.id}`}
-                          style={{ color: "var(--cal-link)", textDecoration: "underline" }}
-                        >
-                          {item.workspace.name}
-                        </Link>
-                        <span
-                          className={`pill ${
-                            item.workspace.status === "active"
-                              ? "pill--green"
-                              : item.workspace.status === "suspended"
-                                ? "pill--red"
-                                : "pill--amber"
-                          }`}
-                          style={{ marginLeft: 8 }}
-                        >
-                          {item.workspace.status}
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
                   <div
                     style={{
                       display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                      flexShrink: 0,
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 16,
                     }}
                   >
-                    {item.generationId ? (
-                      <Link
-                        href={`/admin/generations/${item.generationId}`}
-                        className="btn btn--secondary btn--sm"
-                        style={{ textDecoration: "none" }}
-                      >
-                        Inspect
-                      </Link>
-                    ) : null}
-                    {item.workspace && item.workspace.status !== "suspended" ? (
-                      <button
-                        type="button"
-                        className="btn btn--secondary btn--danger btn--sm"
-                        disabled={actionLoading !== null}
-                        onClick={() =>
-                          void suspendWorkspace(item.workspace!.id, item.generationId)
-                        }
-                      >
-                        <I.Lock size={11} />
-                        {actionLoading === item.workspace.id
-                          ? "Suspending…"
-                          : "Suspend"}
-                      </button>
-                    ) : (
-                      <span className="t-small">Already suspended</span>
-                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="t-small mono" style={{ marginBottom: 6 }}>
+                        <I.AlertTriangle
+                          size={11}
+                          style={{
+                            verticalAlign: "-1px",
+                            color: "var(--layertone-red)",
+                          }}
+                        />{" "}
+                        Flagged {formatAdminDate(item.flaggedAt)}
+                      </div>
+                      {item.generation ? (
+                        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>
+                          {item.generation.brief}
+                        </div>
+                      ) : null}
+                      {reason ? (
+                        <div className="t-small" style={{ marginBottom: 6 }}>
+                          Reason: {reason}
+                        </div>
+                      ) : null}
+                      {item.workspace ? (
+                        <div className="t-small">
+                          Workspace:{" "}
+                          <Link
+                            href={`/admin/users/${item.workspace.id}`}
+                            style={{ color: "var(--cal-link)", textDecoration: "underline" }}
+                          >
+                            {item.workspace.name}
+                          </Link>
+                          <span style={{ marginLeft: 8 }}>
+                            <AdminStatus status={item.workspace.status} />
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {item.generationId ? (
+                        <Link
+                          href={`/admin/generations/${item.generationId}`}
+                          className="btn btn--secondary btn--sm"
+                          style={{ textDecoration: "none" }}
+                        >
+                          <I.Search size={11} />
+                          Inspect
+                        </Link>
+                      ) : null}
+                      {item.workspace && item.workspace.status !== "suspended" ? (
+                        <button
+                          type="button"
+                          className="btn btn--secondary btn--danger btn--sm"
+                          disabled={actionLoading !== null}
+                          onClick={() =>
+                            void suspendWorkspace(item.workspace!.id, item.generationId)
+                          }
+                        >
+                          <I.Lock size={11} />
+                          {actionLoading === item.workspace.id
+                            ? "Suspending…"
+                            : "Suspend Workspace"}
+                        </button>
+                      ) : (
+                        <span className="t-small">Already suspended</span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </AdminSection>
       )}
-    </div>
+    </AdminPage>
   );
 }

@@ -63,7 +63,9 @@ prompt: |
   {{overlay_summary}}
 
   Leave intentional clean, low-detail space for headline, offer, CTA, logo, and legal overlays.
+  Keep the main visual subject fully inside the frame with all edges visible; zoom out rather than crop.
   Do not render readable campaign text, prices, QR codes, URLs, phone numbers, or logos inside the image.
 negative_prompt: |
   misspelled text, unreadable text, fake CTA, fake price, fake QR code, fake URL,
-  fake phone number, fake logo, watermark, cluttered copy space
+  fake phone number, fake logo, watermark, cluttered copy space,
+  cropped main subject, subject cut off, out-of-frame subject

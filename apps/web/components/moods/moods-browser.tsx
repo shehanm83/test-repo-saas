@@ -65,7 +65,9 @@ export function MoodsBrowser({ moods, locked = false }: { moods: Mood[]; locked?
             <I.Lock size={28} />
           </div>
           <div className="empty__title">Moods are not available on Free</div>
-          <div className="empty__sub">Subscribe or buy credits to unlock the full mood library.</div>
+          <div className="empty__sub">
+            Subscribe or buy credits to unlock the full mood library.
+          </div>
           <div style={{ marginTop: 16 }}>
             <button
               type="button"
@@ -78,24 +80,26 @@ export function MoodsBrowser({ moods, locked = false }: { moods: Mood[]; locked?
         </div>
       ) : null}
 
-      {!locked ? <div className="tabs" style={{ marginBottom: 24 }}>
-        {(
-          [
-            ["all", "All"],
-            ["now", "This season"],
-            ["always", "Evergreen"],
-            ["soon", "Upcoming"],
-          ] as const
-        ).map(([k, l]) => (
-          <div
-            key={k}
-            className={`tab ${tab === k ? "is-active" : ""}`}
-            onClick={() => setTab(k)}
-          >
-            {l}
-          </div>
-        ))}
-      </div> : null}
+      {!locked ? (
+        <div className="tabs" style={{ marginBottom: 24 }}>
+          {(
+            [
+              ["all", "All"],
+              ["now", "This season"],
+              ["always", "Evergreen"],
+              ["soon", "Upcoming"],
+            ] as const
+          ).map(([k, l]) => (
+            <div
+              key={k}
+              className={`tab ${tab === k ? "is-active" : ""}`}
+              onClick={() => setTab(k)}
+            >
+              {l}
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       {!locked && filtered.length === 0 ? (
         <div className="empty card">
@@ -114,12 +118,7 @@ export function MoodsBrowser({ moods, locked = false }: { moods: Mood[]; locked?
           }}
         >
           {filtered.map((m) => (
-            <Link
-              key={m.id}
-              href={`/generate?mood=${m.id}`}
-              className="card"
-              style={{ padding: 0, overflow: "hidden", cursor: "pointer", textDecoration: "none" }}
-            >
+            <article key={m.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
               <div
                 style={{
                   aspectRatio: "1/1",
@@ -144,9 +143,7 @@ export function MoodsBrowser({ moods, locked = false }: { moods: Mood[]; locked?
                     }}
                   />
                 ) : null}
-                <div
-                  style={{ position: "absolute", left: 12, top: 12, display: "flex", gap: 6 }}
-                >
+                <div style={{ position: "absolute", left: 12, top: 12, display: "flex", gap: 6 }}>
                   <span className="pill pill--ring" style={{ height: 22, fontSize: 11 }}>
                     {m.kind}
                   </span>
@@ -177,22 +174,27 @@ export function MoodsBrowser({ moods, locked = false }: { moods: Mood[]; locked?
                 ) : null}
               </div>
               <div style={{ padding: 14 }}>
-                <div style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--fg-1)" }}>
+                <div
+                  style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--fg-1)" }}
+                >
                   {m.name}
                 </div>
                 <div className="t-small" style={{ marginTop: 4, fontSize: 12 }}>
                   {seasonLabel(m)}
                 </div>
+                <Link
+                  href={`/generate?mood=${m.id}`}
+                  className="btn btn--secondary btn--sm"
+                  style={{ marginTop: 12, textDecoration: "none", width: "100%" }}
+                >
+                  Use in Generate
+                </Link>
               </div>
-            </Link>
+            </article>
           ))}
         </div>
       ) : null}
-      <UpgradeModal
-        feature="moods"
-        open={upgradeOpen}
-        onClose={() => setUpgradeOpen(false)}
-      />
+      <UpgradeModal feature="moods" open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
     </div>
   );
 }

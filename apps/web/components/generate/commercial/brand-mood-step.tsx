@@ -3,6 +3,8 @@
 import type { BrandLite, BrandFlags, MoodLite } from "./types";
 import { UpgradeInline } from "@/components/billing/upgrade-inline";
 
+import { MoodPickerControl } from "./mood-picker-dialog";
+
 export function BrandMoodStep(props: {
   brands: BrandLite[];
   moods: MoodLite[];
@@ -16,25 +18,40 @@ export function BrandMoodStep(props: {
 }) {
   const activeBrand = props.brands.find((brand) => brand.id === props.brandId);
   const hasBrand = Boolean(activeBrand);
+  const colors = (activeBrand?.palette ?? []).filter(Boolean).slice(0, 6);
 
   return (
     <div className="cg-step-stack">
       <div className="cg-field-row">
         <label>
           <span className="label">Brand</span>
-          <select className="select" value={props.brandId} onChange={(event) => props.onBrandChange(event.target.value)}>
+          <select
+            className="select"
+            value={props.brandId}
+            onChange={(event) => props.onBrandChange(event.target.value)}
+          >
             <option value="">Select a brand</option>
             {props.brands.map((brand) => (
-              <option key={brand.id} value={brand.id}>{brand.name}</option>
+              <option key={brand.id} value={brand.id}>
+                {brand.name}
+              </option>
             ))}
           </select>
         </label>
         <div>
           <span className="label">Brand palette</span>
           <div className="cg-palette">
-            {(activeBrand?.palette ?? []).slice(0, 6).map((color) => (
-              <span key={color} style={{ background: color }} />
-            ))}
+            {colors.length > 0 ? (
+              colors.map((color, index) => (
+                <span
+                  key={`${color}-${index}`}
+                  title={`${brandColorLabel(index)}: ${color}`}
+                  style={{ background: color }}
+                />
+              ))
+            ) : (
+              <small>{hasBrand ? "No saved colors" : "Select a brand"}</small>
+            )}
           </div>
         </div>
       </div>
@@ -42,49 +59,25 @@ export function BrandMoodStep(props: {
         <span className="label">Mood</span>
         {props.disabledMoods ? (
           <p className="qc-empty-note" style={{ margin: "6px 0 10px" }}>
-            <UpgradeInline
-              feature="moods"
-              label="Moods are not available on the Free plan."
-            />
+            <UpgradeInline feature="moods" label="Moods are not available on the Free plan." />
           </p>
         ) : null}
-        <div className="cg-mood-grid">
-          <button
-            type="button"
-            className={`cg-mood-card ${props.moodId === null ? "is-selected" : ""}`}
-            onClick={() => props.onMoodChange(null)}
-          >
-            <span className="cg-mood-swatch" />
-            <strong>Just my brand</strong>
-            <small>Default</small>
-          </button>
-          {props.moods.slice(0, 7).map((mood) => (
-            <button
-              type="button"
-              key={mood.id}
-              disabled={props.disabledMoods}
-              className={`cg-mood-card ${props.moodId === mood.id ? "is-selected" : ""}`}
-              onClick={() => props.onMoodChange(mood.id)}
-            >
-              {mood.img ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={mood.img} alt="" />
-              ) : (
-                <span className="cg-mood-swatch" style={{ background: mood.colors?.[0] ?? "#E4E3FC" }} />
-              )}
-              <strong>{mood.name}</strong>
-              <small>{mood.kind}</small>
-            </button>
-          ))}
-        </div>
+        <MoodPickerControl
+          moods={props.moods}
+          moodId={props.moodId}
+          disabled={props.disabledMoods}
+          onMoodChange={props.onMoodChange}
+        />
       </div>
       <div className="cg-toggle-grid">
-        {([
-          ["useBrandColors", "Brand colors"],
-          ["useBrandLogo", "Brand logo"],
-          ["useBrandFonts", "Brand fonts"],
-          ["brandStrict", "Strict brand mode"],
-        ] as const).map(([key, label]) => (
+        {(
+          [
+            ["useBrandColors", "Brand colors"],
+            ["useBrandLogo", "Brand logo"],
+            ["useBrandFonts", "Brand fonts"],
+            ["brandStrict", "Strict brand mode"],
+          ] as const
+        ).map(([key, label]) => (
           <button
             key={key}
             type="button"
@@ -98,5 +91,12 @@ export function BrandMoodStep(props: {
         ))}
       </div>
     </div>
+  );
+}
+
+function brandColorLabel(index: number): string {
+  return (
+    ["Primary", "Secondary", "Accent", "Extra 1", "Extra 2", "Extra 3"][index] ??
+    `Color ${index + 1}`
   );
 }

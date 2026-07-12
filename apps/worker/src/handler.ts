@@ -18,7 +18,12 @@ import type {
   NormalizedCommercialGenerationInput,
   ResolvedOutputTarget,
 } from "@layertone/shared";
-import { buildQuickCreatePrompt, type BuiltPrompt } from "@layertone/shared/prompt-templates";
+import {
+  buildQuickCreatePrompt,
+  NO_CROP_NEGATIVE_PROMPT,
+  NO_CROP_PROMPT_INSTRUCTION,
+  type BuiltPrompt,
+} from "@layertone/shared/prompt-templates";
 import { keys } from "@layertone/storage";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
@@ -91,6 +96,7 @@ function buildLegacyPromptParts(args: {
   if (args.hasTextSafeZones) {
     promptParts.push("Leave the indicated negative space visually quiet for headline overlay.");
   }
+  promptParts.push(NO_CROP_PROMPT_INSTRUCTION);
   return promptParts;
 }
 
@@ -475,7 +481,11 @@ export class GenerationWorker {
       settings.usePremiumModel || openAIOnlyRealMode
         ? this.config.ai.openaiImageModel
         : tpl.preferredModel;
-    const negPrompt = combineNegativePrompts(quickPrompt?.negativePrompt, mood?.negativePrompts);
+    const negPrompt = combineNegativePrompts(
+      quickPrompt?.negativePrompt,
+      mood?.negativePrompts,
+      quickPrompt ? undefined : NO_CROP_NEGATIVE_PROMPT,
+    );
     const baseReq: AIImageRequest = {
       modelCode,
       prompt: promptParts.join("\n\n"),

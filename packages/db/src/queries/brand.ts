@@ -37,6 +37,10 @@ export async function updateBrand(
   brandId: string,
   patch: Partial<typeof brands.$inferInsert>,
 ): Promise<typeof brands.$inferSelect | null> {
+  if (Object.keys(patch).length === 0) {
+    return getBrand(db, workspaceId, brandId);
+  }
+
   return withWorkspace(db, workspaceId, async (tx) => {
     const [brand] = await tx.update(brands).set(patch).where(eq(brands.id, brandId)).returning();
     return brand ?? null;

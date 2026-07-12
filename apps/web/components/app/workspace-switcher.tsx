@@ -22,6 +22,7 @@ export function WorkspaceSwitcher(props: {
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [switchError, setSwitchError] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,12 +35,17 @@ export function WorkspaceSwitcher(props: {
 
   async function pick(nextWorkspaceId: string) {
     setOpen(false);
+    setSwitchError("");
     if (nextWorkspaceId === props.workspaceId) return;
-    await fetch("/api/workspaces/switch", {
+    const res = await fetch("/api/workspaces/switch", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ workspaceId: nextWorkspaceId }),
     });
+    if (!res.ok) {
+      setSwitchError("Could not switch workspace. Refresh and try again.");
+      return;
+    }
     startTransition(() => router.refresh());
   }
 
@@ -96,10 +102,7 @@ export function WorkspaceSwitcher(props: {
               />
               <span>{w.name}</span>
               {w.id === props.workspaceId ? (
-                <I.Check
-                  size={14}
-                  style={{ marginLeft: "auto", color: "var(--fg-1)" }}
-                />
+                <I.Check size={14} style={{ marginLeft: "auto", color: "var(--fg-1)" }} />
               ) : null}
             </button>
           ))}
@@ -108,10 +111,26 @@ export function WorkspaceSwitcher(props: {
             type="button"
             className="menu-item"
             style={{ width: "100%", textAlign: "left" }}
-            onClick={() => { setOpen(false); setModalOpen(true); }}
+            onClick={() => {
+              setOpen(false);
+              setModalOpen(true);
+            }}
           >
             <I.Plus size={14} /> Create new workspace
           </button>
+        </div>
+      ) : null}
+      {switchError ? (
+        <div
+          role="status"
+          style={{
+            color: "var(--danger, #b42318)",
+            fontSize: 12,
+            marginTop: 6,
+            maxWidth: 240,
+          }}
+        >
+          {switchError}
         </div>
       ) : null}
       <CreateWorkspaceModal open={modalOpen} onClose={() => setModalOpen(false)} />

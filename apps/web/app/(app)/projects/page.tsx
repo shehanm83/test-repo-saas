@@ -153,7 +153,7 @@ export default async function ProjectsPage() {
                           <img
                             src={thumb}
                             alt=""
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            style={{ width: "100%", height: "100%", objectFit: "contain" }}
                           />
                         ) : (
                           <I.Image size={16} />

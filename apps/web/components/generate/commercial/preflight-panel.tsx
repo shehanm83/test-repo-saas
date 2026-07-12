@@ -14,16 +14,16 @@ export function PreflightPanel(props: {
 
   if (props.loading) {
     return (
-      <div className="cg-preflight cg-preflight--muted">
+      <div className="cg-preflight cg-preflight--muted" aria-live="polite">
         <span className="cg-dot is-pending" />
-        Checking campaign readiness...
+        Checking campaign readiness…
       </div>
     );
   }
 
   if (props.error) {
     return (
-      <div className="cg-preflight cg-preflight--error">
+      <div className="cg-preflight cg-preflight--error" aria-live="polite">
         <I.HelpCircle size={16} />
         {props.error}
       </div>
@@ -32,7 +32,7 @@ export function PreflightPanel(props: {
 
   if (blocking.length === 0 && warnings.length === 0) {
     return (
-      <div className="cg-preflight cg-preflight--ok">
+      <div className="cg-preflight cg-preflight--ok" aria-live="polite">
         <I.Check size={16} />
         Ready for generation.
       </div>

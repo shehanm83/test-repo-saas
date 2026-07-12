@@ -39,6 +39,22 @@ const nextConfig: NextConfig = {
     "@layertone/storage",
     "@layertone/worker",
   ],
+  webpack(config, { isServer }) {
+    if (isServer) {
+      config.externals = [
+        ...(Array.isArray(config.externals)
+          ? config.externals
+          : [config.externals].filter(Boolean)),
+        {
+          "@resvg/resvg-js": "commonjs @resvg/resvg-js",
+          "@resvg/resvg-js-linux-x64-gnu": "commonjs @resvg/resvg-js-linux-x64-gnu",
+          "@resvg/resvg-js-linux-x64-musl": "commonjs @resvg/resvg-js-linux-x64-musl",
+        },
+      ];
+    }
+
+    return config;
+  },
 };
 
 export default nextConfig;

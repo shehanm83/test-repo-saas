@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 
 import { I } from "@/components/icons";
-import { ProductStep } from "./product-step";
 import { UpgradeInline } from "@/components/billing/upgrade-inline";
+
+import { MoodPickerControl } from "./mood-picker-dialog";
+import { ProductStep } from "./product-step";
 import type {
   BrandFlags,
   BrandLite,
@@ -70,6 +72,7 @@ const EMPTY_CAMPAIGN: CampaignDetails = {
   benefitsText: "",
   targetAudience: "",
 };
+const CREATIVE_BRIEF_MAX_LENGTH = 4000;
 
 export function QuickCreate(props: {
   state: GenerateState;
@@ -143,12 +146,14 @@ export function QuickCreate(props: {
             value={props.state.brief}
             onChange={(e) => props.onBriefChange(e.target.value)}
             placeholder={"Christmas sale, cozy living room with a glowing tree, 30% off…"}
-            maxLength={500}
+            maxLength={CREATIVE_BRIEF_MAX_LENGTH}
             autoComplete="off"
           />
         </label>
         <div className="qc-brief-meta" aria-live="polite">
-          <span>{props.state.brief.length} / 500</span>
+          <span>
+            {props.state.brief.length} / {CREATIVE_BRIEF_MAX_LENGTH}
+          </span>
           <span>
             {outputs.variants} sample{outputs.variants === 1 ? "" : "s"}
           </span>
@@ -559,7 +564,13 @@ export function QuickCreate(props: {
   );
 }
 
-type StockPickerCategory = "all" | "food-dietary" | "food-safety" | "cosmetics" | "manufacturing" | "wellness";
+type StockPickerCategory =
+  | "all"
+  | "food-dietary"
+  | "food-safety"
+  | "cosmetics"
+  | "manufacturing"
+  | "wellness";
 
 const PICKER_CATEGORIES: Array<{ key: StockPickerCategory; label: string }> = [
   { key: "all", label: "All" },
@@ -632,7 +643,11 @@ function StockPicker({
               <div className="qc-stock-tile__img">
                 {asset.url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={asset.url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  <img
+                    src={asset.url}
+                    alt=""
+                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  />
                 ) : (
                   <I.Image size={20} style={{ color: "var(--fg-3)" }} />
                 )}
@@ -663,7 +678,7 @@ function QuickBrandSection(props: {
   const activeBrand = props.brands.find((brand) => brand.id === props.brandId);
   const hasBrand = Boolean(activeBrand);
   const logoAssets = activeBrand?.logoAssets ?? [];
-  const colors = (activeBrand?.palette ?? []).slice(0, 4);
+  const colors = (activeBrand?.palette ?? []).filter(Boolean).slice(0, 6);
   const initials = (activeBrand?.name ?? "Brand").slice(0, 2).toUpperCase();
   const selectedLogoIds = props.selectedLogoAssetIds.filter((id) =>
     logoAssets.some((asset) => asset.id === id),
@@ -716,9 +731,17 @@ function QuickBrandSection(props: {
           }
         >
           <div className="qc-color-strips">
-            {colors.map((color, index) => (
-              <span key={`${color}-${index}`} style={{ background: color }} />
-            ))}
+            {colors.length > 0 ? (
+              colors.map((color, index) => (
+                <span
+                  key={`${color}-${index}`}
+                  title={`${brandColorLabel(index)}: ${color}`}
+                  style={{ background: color }}
+                />
+              ))
+            ) : (
+              <small>No saved colors</small>
+            )}
           </div>
         </BrandAssetToggle>
 
@@ -792,6 +815,13 @@ function QuickBrandSection(props: {
   );
 }
 
+function brandColorLabel(index: number): string {
+  return (
+    ["Primary", "Secondary", "Accent", "Extra 1", "Extra 2", "Extra 3"][index] ??
+    `Color ${index + 1}`
+  );
+}
+
 function BrandAssetToggle(props: {
   label: string;
   checked: boolean;
@@ -828,44 +858,15 @@ function QuickMoodSection(props: {
     <div className="qc-mood-stack">
       {props.disabled ? (
         <div className="qc-empty-note">
-          <UpgradeInline
-            feature="moods"
-            label="Moods are not available on the Free plan."
-          />
+          <UpgradeInline feature="moods" label="Moods are not available on the Free plan." />
         </div>
       ) : null}
-      <div className="qc-mood-choice-grid">
-        <button
-          type="button"
-          className={`cg-mood-card ${props.moodId === null ? "is-selected" : ""}`}
-          onClick={() => props.onMoodChange(null)}
-        >
-          <span className="cg-mood-swatch" />
-          <strong>Just my brand</strong>
-          <small>Default</small>
-        </button>
-        {props.moods.slice(0, 7).map((mood) => (
-          <button
-            type="button"
-            key={mood.id}
-            disabled={props.disabled}
-            className={`cg-mood-card ${props.moodId === mood.id ? "is-selected" : ""}`}
-            onClick={() => props.onMoodChange(mood.id)}
-          >
-            {mood.img ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={mood.img} alt="" />
-            ) : (
-              <span
-                className="cg-mood-swatch"
-                style={{ background: mood.colors?.[0] ?? "#E4E3FC" }}
-              />
-            )}
-            <strong>{mood.name}</strong>
-            <small>{mood.kind}</small>
-          </button>
-        ))}
-      </div>
+      <MoodPickerControl
+        moods={props.moods}
+        moodId={props.moodId}
+        disabled={props.disabled}
+        onMoodChange={props.onMoodChange}
+      />
 
       {previewImages.length > 0 ? (
         <div className="qc-mood-preview">

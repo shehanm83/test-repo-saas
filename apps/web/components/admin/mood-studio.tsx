@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useMemo, useRef, useState } from "react";
 
 import { I } from "@/components/icons";
+import { AdminEmpty, AdminSection, AdminStatus } from "@/components/admin/ui";
 
 interface MoodLite {
   id: string;
@@ -31,27 +32,30 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="card" style={{ padding: 20 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-        <span
-          style={{
-            width: 22,
-            height: 22,
-            borderRadius: 6,
-            background: "var(--cal-gray-100)",
-            display: "grid",
-            placeItems: "center",
-            fontFamily: "var(--font-mono)",
-            fontSize: 11,
-            color: "var(--fg-2)",
-          }}
-        >
-          {letter}
+    <AdminSection
+      title={
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <span
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 6,
+              background: "var(--cal-gray-100)",
+              display: "grid",
+              placeItems: "center",
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--fg-2)",
+            }}
+          >
+            {letter}
+          </span>
+          {title}
         </span>
-        <h3 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 16 }}>{title}</h3>
-      </div>
+      }
+    >
       {children}
-    </div>
+    </AdminSection>
   );
 }
 
@@ -66,7 +70,8 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(
-    () => moods.filter((m) => (search ? m.name.toLowerCase().includes(search.toLowerCase()) : true)),
+    () =>
+      moods.filter((m) => (search ? m.name.toLowerCase().includes(search.toLowerCase()) : true)),
     [moods, search],
   );
   const mood = useMemo(
@@ -90,6 +95,8 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
   const [imgUploading, setImgUploading] = useState(false);
   const [pending, setPending] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmRemovePreview, setConfirmRemovePreview] = useState(false);
 
   // Sync all fields when selected mood changes
   React.useEffect(() => {
@@ -104,6 +111,8 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
     setNegative(mood.negativePrompts ?? "");
     setPalette(mood.accentPalette ?? []);
     setPreviewImgUrl(mood.previewImgUrl ?? null);
+    setConfirmDelete(false);
+    setConfirmRemovePreview(false);
   }, [mood?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function toSlug(s: string) {
@@ -149,10 +158,18 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
     }
   }
 
-  async function archive() {
+  async function deleteMood() {
     if (!mood) return;
-    if (!confirm("Archive this mood? It will be hidden from users.")) return;
-    await save("archived");
+    setPending(true);
+    try {
+      await fetch(`/api/admin/moods/${mood.id}`, { method: "DELETE" });
+      setToastMsg("Mood deleted");
+      router.refresh();
+    } finally {
+      setPending(false);
+      setConfirmDelete(false);
+      setTimeout(() => setToastMsg(null), 2400);
+    }
   }
 
   async function newMood() {
@@ -200,37 +217,30 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
   }
 
   async function removePreview() {
-    if (!mood || !confirm("Remove preview image?")) return;
+    if (!mood) return;
+    if (!confirmRemovePreview) {
+      setConfirmRemovePreview(true);
+      setToastMsg("Click Remove image again to remove the preview.");
+      setTimeout(() => setToastMsg(null), 2400);
+      return;
+    }
     setImgUploading(true);
     try {
       await fetch(`/api/admin/moods/${mood.id}/preview`, { method: "DELETE" });
       setPreviewImgUrl(null);
+      setConfirmRemovePreview(false);
     } finally {
       setImgUploading(false);
     }
   }
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "320px 1fr",
-        height: "calc(100vh - var(--header-h))",
-      }}
-    >
+    <div className="admin-split">
       {/* Sidebar */}
-      <div
-        style={{
-          borderRight: "1px solid var(--cal-gray-200)",
-          background: "var(--cal-gray-50)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ padding: 16, borderBottom: "1px solid var(--cal-gray-200)" }}>
-          <div className="t-eyebrow" style={{ marginBottom: 8 }}>
-            <I.Shield size={11} style={{ verticalAlign: "-1px" }} /> Mood Studio
+      <div className="admin-split__rail">
+        <div className="admin-split__rail-head">
+          <div className="admin-eyebrow" style={{ marginBottom: 8 }}>
+            <I.Shield size={12} /> Mood Studio
           </div>
           <div style={{ position: "relative" }}>
             <I.Search
@@ -239,6 +249,9 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
             />
             <input
               className="input"
+              aria-label="Search moods"
+              name="moodSearch"
+              autoComplete="off"
               placeholder="Search moods…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -253,10 +266,10 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
             disabled={pending}
           >
             <I.Plus size={12} />
-            New mood
+            New Mood
           </button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: 8 }}>
+        <div className="admin-split__rail-body">
           {filtered.map((m) => {
             const isSelected = mood?.id === m.id;
             return (
@@ -264,45 +277,33 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                 key={m.id}
                 type="button"
                 onClick={() => setSelectedId(m.id)}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "32px 1fr auto",
-                  gap: 10,
-                  padding: 8,
-                  alignItems: "center",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  background: isSelected ? "white" : "transparent",
-                  boxShadow: isSelected ? "var(--shadow-ring)" : "none",
-                  marginBottom: 2,
-                  width: "100%",
-                  textAlign: "left",
-                  border: 0,
-                }}
+                className={`admin-rail-item${isSelected ? " is-active" : ""}`}
               >
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 6,
-                    overflow: "hidden",
-                    background: "var(--cal-gray-200)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      height: "100%",
-                      background: m.accentPalette?.[0] ?? "var(--cal-gray-200)",
-                    }}
-                  />
+                <div className="admin-rail-item__thumb">
+                  {m.previewImgUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={m.previewImgUrl}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        height: "100%",
+                        background: m.accentPalette?.[0] ?? "var(--cal-gray-200)",
+                      }}
+                    />
+                  )}
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>{m.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--fg-3)" }}>{m.kind ?? "evergreen"}</div>
+                  <span className="admin-rail-item__title">{m.name}</span>
+                  <span className="admin-rail-item__meta">{m.kind ?? "evergreen"}</span>
                 </div>
                 <span
+                  aria-label={m.status}
                   style={{
                     width: 8,
                     height: 8,
@@ -322,49 +323,26 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
       </div>
 
       {/* Editor */}
-      <div style={{ overflowY: "auto", paddingBottom: 80, position: "relative" }}>
+      <div className="admin-split__main" style={{ paddingBottom: 80, position: "relative" }}>
         {!mood ? (
-          <div className="empty" style={{ padding: 80 }}>
-            <div className="empty__art">
-              <I.Library size={28} />
-            </div>
-            <div className="empty__title">No moods</div>
-            <div className="empty__sub">Create a new mood to get started.</div>
+          <div style={{ padding: 32 }}>
+            <AdminEmpty icon={<I.Library size={28} />} title="No Moods">
+              Create a mood to start curating user-facing seasonal and evergreen styles.
+            </AdminEmpty>
           </div>
         ) : (
           <>
-            <div
-              style={{
-                padding: "20px 32px",
-                borderBottom: "1px solid var(--cal-gray-200)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
+            <div className="admin-editor-header">
               <div>
-                <h2 className="t-h3" style={{ margin: 0 }}>
-                  {mood.name}
-                </h2>
-                <div className="t-small mono">moods/{mood.slug}</div>
+                <h1>{mood.name}</h1>
+                <p className="mono">moods/{mood.slug}</p>
               </div>
               <div style={{ display: "flex", gap: 6 }}>
-                {mood.status === "published" ? (
-                  <span className="pill pill--green">
-                    <I.CheckCircle size={11} />
-                    Published
-                  </span>
-                ) : mood.status === "draft" ? (
-                  <span className="pill">Draft</span>
-                ) : (
-                  <span className="pill pill--amber">{mood.status}</span>
-                )}
+                <AdminStatus status={mood.status} />
               </div>
             </div>
 
-            <div
-              style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 24 }}
-            >
+            <div className="admin-editor-body">
               {/* A — Identity */}
               <Section letter="A" title="Identity">
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 160px", gap: 16 }}>
@@ -493,11 +471,11 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                 <div className="hint" style={{ marginBottom: 12 }}>
                   Shown on mood cards. Not used in generation.
                 </div>
-	                <label
-	                  style={{
-	                    display: "block",
-	                    width: "min(420px, 100%)",
-	                    aspectRatio: "16/9",
+                <label
+                  style={{
+                    display: "block",
+                    width: "min(420px, 100%)",
+                    aspectRatio: "16/9",
                     borderRadius: 10,
                     overflow: "hidden",
                     position: "relative",
@@ -591,7 +569,7 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                     disabled={imgUploading}
                   >
                     <I.Trash size={12} />
-                    Remove image
+                    {confirmRemovePreview ? "Confirm remove" : "Remove image"}
                   </button>
                 )}
               </Section>
@@ -604,9 +582,7 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                     <PaletteSwatch
                       key={i}
                       color={color}
-                      onChange={(c) =>
-                        setPalette((prev) => prev.map((x, j) => (j === i ? c : x)))
-                      }
+                      onChange={(c) => setPalette((prev) => prev.map((x, j) => (j === i ? c : x)))}
                       onRemove={() => setPalette((prev) => prev.filter((_, j) => j !== i))}
                     />
                   ))}
@@ -631,31 +607,18 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                   )}
                 </div>
               </Section>
-
             </div>
 
             {/* Footer */}
-            <div
-              style={{
-                position: "sticky",
-                bottom: 0,
-                padding: 16,
-                background: "rgba(255,255,255,0.95)",
-                backdropFilter: "blur(8px)",
-                borderTop: "1px solid var(--cal-gray-200)",
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 8,
-              }}
-            >
+            <div className="admin-sticky-actions">
               <button
                 type="button"
                 className="btn btn--ghost btn--danger"
-                onClick={() => void archive()}
-                disabled={pending || mood.status === "archived"}
+                onClick={() => setConfirmDelete(true)}
+                disabled={pending}
               >
                 <I.Trash size={14} />
-                Archive
+                Delete
               </button>
               <button
                 type="button"
@@ -663,7 +626,7 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                 onClick={() => void save("draft")}
                 disabled={pending}
               >
-                Save draft
+                Save Draft
               </button>
               <button
                 type="button"
@@ -672,15 +635,41 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                 disabled={pending}
               >
                 <I.CheckCircle size={14} />
-                {pending ? "Saving…" : "Publish"}
+                {pending ? "Saving…" : "Publish Mood"}
               </button>
             </div>
           </>
         )}
       </div>
 
+      {confirmDelete && mood && (
+        <div className="admin-confirm-overlay">
+          <div className="admin-confirm-dialog">
+            <p>Permanently delete <strong>{mood.name}</strong>? This cannot be undone.</p>
+            <div className="admin-confirm-dialog__actions">
+              <button
+                type="button"
+                className="btn btn--danger btn--sm"
+                disabled={pending}
+                onClick={() => void deleteMood()}
+              >
+                {pending ? "Deleting…" : "Yes, delete"}
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                disabled={pending}
+                onClick={() => setConfirmDelete(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {toastMsg ? (
-        <div className="toast-root">
+        <div className="toast-root" aria-live="polite">
           <div className="toast">
             <I.CheckCircle size={16} />
             {toastMsg}

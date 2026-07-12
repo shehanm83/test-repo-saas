@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { Db } from "../client";
 import { moods, moodTemplateBindings, templates } from "../schema";
@@ -10,12 +10,7 @@ export async function listAvailableMoods(
   db: Db,
   args: { aspectRatio?: AspectRatio; now?: Date } = {},
 ) {
-  const now = args.now ?? new Date();
-  const conditions = [
-    eq(moods.status, "published"),
-    or(isNull(moods.validFrom), lte(moods.validFrom, now)),
-    or(isNull(moods.validTo), gte(moods.validTo, now)),
-  ];
+  const conditions = [eq(moods.status, "published")];
 
   if (args.aspectRatio) {
     conditions.push(sql`${args.aspectRatio} = ANY(${moods.supportedAspectRatios})`);
@@ -48,6 +43,10 @@ export async function adminUpdateMood(
     .where(eq(moods.id, id))
     .returning();
   return mood ?? null;
+}
+
+export async function adminDeleteMood(db: Db, id: string) {
+  await db.delete(moods).where(eq(moods.id, id));
 }
 
 export async function adminBindings(db: Db, moodId: string) {

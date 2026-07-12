@@ -4,7 +4,7 @@ import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
 import { getSessionWorkspace } from "@/lib/auth/server";
-import { createServerAdapters } from "@/lib/server/adapters";
+import { createGlobalStorageAdapter } from "@/lib/server/adapters";
 import { UpgradeInline } from "@/components/billing/upgrade-inline";
 
 export default async function StockPage() {
@@ -12,22 +12,19 @@ export default async function StockPage() {
   const isFree = billingSegmentFor(workspace?.planCode) === "free";
   const allItems = await new StockApi(loadConfig(), {} as never).adminList().catch(() => []);
   const items = isFree ? allItems.slice(0, 6) : allItems;
-  const adapters = createServerAdapters();
+  const storage = createGlobalStorageAdapter();
   const itemsWithUrls = await Promise.all(
     items.map(async (item) => ({
       ...item,
-      url: await adapters.storage.getSignedUrl(item.s3Key, 60 * 60).catch(() => null),
-    }))
+      url: await storage.getSignedUrl(item.s3Key, 60 * 60).catch(() => null),
+    })),
   );
 
   return (
     <div className="page page--wide">
       <div className="page__head">
         <div>
-          <div
-            className="t-eyebrow"
-            style={{ color: "var(--layertone-violet)", marginBottom: 6 }}
-          >
+          <div className="t-eyebrow" style={{ color: "var(--layertone-violet)", marginBottom: 6 }}>
             <I.Image size={11} style={{ verticalAlign: "-1px" }} /> Reference assets
           </div>
           <h1 className="page__title">Stock library</h1>
@@ -35,10 +32,7 @@ export default async function StockPage() {
             {isFree ? (
               <>
                 Free workspaces can preview a limited stock set.{" "}
-                <UpgradeInline
-                  feature="stock"
-                  buttonLabel="Unlock the full library →"
-                />
+                <UpgradeInline feature="stock" buttonLabel="Unlock the full library →" />
               </>
             ) : (
               "Curated stock used by moods, templates, and editorial references."
@@ -90,10 +84,20 @@ export default async function StockPage() {
                 transition: "transform 160ms",
               }}
             >
-              <div style={{ aspectRatio: "1/1", background: "var(--cal-gray-100)", overflow: "hidden" }}>
+              <div
+                style={{
+                  aspectRatio: "1/1",
+                  background: "var(--cal-gray-100)",
+                  overflow: "hidden",
+                }}
+              >
                 {item.url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.url} alt={item.kind} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img
+                    src={item.url}
+                    alt={item.kind}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
                 ) : null}
               </div>
               <div style={{ padding: "10px 14px" }}>
@@ -112,11 +116,7 @@ export default async function StockPage() {
                     <span style={{ color: "var(--fg-4)" }}>untagged</span>
                   ) : (
                     item.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="pill"
-                        style={{ height: 18, fontSize: 10 }}
-                      >
+                      <span key={t} className="pill" style={{ height: 18, fontSize: 10 }}>
                         {t}
                       </span>
                     ))

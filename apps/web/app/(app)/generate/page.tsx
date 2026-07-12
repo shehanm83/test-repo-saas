@@ -1,6 +1,13 @@
 import { Ledger } from "@layertone/billing";
 import { billingSegmentFor } from "@layertone/billing";
-import { adminListStock, createDb, listAvailableMoods, listBrandAssets, listBrands, listProducts } from "@layertone/db";
+import {
+  adminListStock,
+  createDb,
+  listAvailableMoods,
+  listBrandAssets,
+  listBrands,
+  listProducts,
+} from "@layertone/db";
 import { loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
 
@@ -32,14 +39,16 @@ export default async function GeneratePage() {
     })),
   );
 
-  const moodPayload = await Promise.all(moods.map(async (m) => ({
-    id: m.id,
-    name: m.name,
-    kind: m.kind ?? "Evergreen",
-    group: moodGroup(m),
-    img: await signedPreviewUrl(moodPreviewStorage, m.previewS3Key),
-    colors: m.accentPalette ?? undefined,
-  })));
+  const moodPayload = await Promise.all(
+    moods.map(async (m) => ({
+      id: m.id,
+      name: m.name,
+      kind: m.kind ?? "Evergreen",
+      group: moodGroup(m),
+      img: await signedPreviewUrl(moodPreviewStorage, m.previewS3Key),
+      colors: m.accentPalette ?? undefined,
+    })),
+  );
 
   const brandPayload = await Promise.all(
     brands.map(async (b) => {
@@ -48,11 +57,7 @@ export default async function GeneratePage() {
       return {
         id: b.id,
         name: b.name,
-        palette: Array.isArray((b.palette as { colors?: string[] } | null)?.colors)
-          ? (b.palette as { colors?: string[] }).colors!
-          : Object.values((b.palette as Record<string, string> | null) ?? {}).filter(
-              (v): v is string => typeof v === "string",
-            ),
+        palette: brandPaletteColors(b.palette),
         logoAssets: await Promise.all(
           logos.map(async (asset) => ({
             id: asset.id,
@@ -98,6 +103,49 @@ export default async function GeneratePage() {
   );
 }
 
+function brandPaletteColors(palette: unknown): string[] {
+  if (!palette || typeof palette !== "object") return [];
+
+  if (Array.isArray(palette)) {
+    return palette.filter(
+      (color): color is string => typeof color === "string" && color.trim().length > 0,
+    );
+  }
+
+  const value = palette as {
+    colors?: unknown;
+    primary?: unknown;
+    secondary?: unknown;
+    accent?: unknown;
+    extras?: unknown;
+  };
+
+  const ordered = [
+    value.primary,
+    value.secondary,
+    value.accent,
+    ...(Array.isArray(value.extras) ? value.extras : []),
+  ].filter((color): color is string => typeof color === "string" && color.trim().length > 0);
+
+  if (ordered.length > 0) return ordered;
+
+  if (Array.isArray(value.colors)) {
+    return value.colors.filter(
+      (color): color is string => typeof color === "string" && color.trim().length > 0,
+    );
+  }
+
+  return Object.values(value).flatMap((entry) => {
+    if (typeof entry === "string" && entry.trim().length > 0) return [entry];
+    if (Array.isArray(entry)) {
+      return entry.filter(
+        (color): color is string => typeof color === "string" && color.trim().length > 0,
+      );
+    }
+    return [];
+  });
+}
+
 function createStorage(config: ReturnType<typeof loadConfig>, bucket: string) {
   return new S3StorageAdapter({
     region: config.storage.region,
@@ -114,7 +162,33 @@ async function signedPreviewUrl(storage: S3StorageAdapter, key: string | null) {
   return storage.getSignedUrl(key, 60 * 60).catch(() => null);
 }
 
-function moodGroup(mood: { kind: string; validFrom: Date | string | null }) {
-  if (mood.validFrom && new Date(mood.validFrom) > new Date()) return "soon" as const;
-  return mood.kind === "seasonal" ? ("now" as const) : ("always" as const);
+function moodGroup(mood: {
+  kind: string;
+  validFrom: Date | string | null;
+  validTo: Date | string | null;
+}) {
+  if (mood.kind !== "seasonal") return "always" as const;
+  if (!mood.validFrom && !mood.validTo) return "now" as const;
+
+  const now = new Date();
+  const nowMs = now.getTime();
+  const start = mood.validFrom ? dateWithYear(new Date(mood.validFrom), now.getUTCFullYear()) : now;
+  let end = mood.validTo ? dateWithYear(new Date(mood.validTo), now.getUTCFullYear()) : start;
+  if (end < start) end = dateWithYear(new Date(mood.validTo!), now.getUTCFullYear() + 1);
+
+  return start.getTime() <= nowMs && end.getTime() >= nowMs ? ("now" as const) : ("soon" as const);
+}
+
+function dateWithYear(date: Date, year: number) {
+  return new Date(
+    Date.UTC(
+      year,
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+      date.getUTCMilliseconds(),
+    ),
+  );
 }

@@ -9,6 +9,13 @@ import type {
 } from "@layertone/shared/home-showcase";
 
 import { I } from "@/components/icons";
+import {
+  AdminAlert,
+  AdminPage,
+  AdminSection,
+  AdminStat,
+  AdminStatGrid,
+} from "@/components/admin/ui";
 
 function cloneView(view: HomeShowcaseView): HomeShowcaseView {
   return JSON.parse(JSON.stringify(view)) as HomeShowcaseView;
@@ -94,45 +101,73 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
   }
 
   return (
-    <div className="page page--wide" style={{ display: "grid", gap: 24 }}>
-      <div className="page__header">
-        <div>
-          <div className="t-eyebrow">Homepage</div>
-          <h1 className="page__title">Home showcase</h1>
-          <p className="page__subtitle">
-            Configure the output gallery and the three supporting message cards on the homepage.
-          </p>
-        </div>
+    <AdminPage
+      wide
+      eyebrow={
+        <>
+          <I.Layout size={12} />
+          Homepage
+        </>
+      }
+      title="Home Showcase"
+      description="Configure the output gallery and the three supporting message cards on the homepage."
+      actions={
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn btn-secondary" onClick={refresh} type="button">
+          <button className="btn btn--secondary" onClick={refresh} type="button">
+            <I.Refresh size={14} />
             Refresh
           </button>
-          <button className="btn btn-primary" disabled={saving} onClick={save} type="button">
-            {saving ? "Saving..." : "Save"}
+          <button className="btn btn--primary" disabled={saving} onClick={save} type="button">
+            <I.Save size={14} />
+            {saving ? "Saving…" : "Save Showcase"}
           </button>
         </div>
-      </div>
+      }
+    >
+      <AdminStatGrid>
+        <AdminStat
+          label="Images"
+          value={view.images.length}
+          detail={imageReady ? "Homepage rotation ready" : "Needs at least 6 images"}
+          icon={<I.Image size={14} />}
+          tone={imageReady ? "success" : "warning"}
+        />
+        <AdminStat
+          label="Cards"
+          value={draft.cards.length}
+          detail="Supporting messages"
+          icon={<I.Layout size={14} />}
+        />
+        <AdminStat
+          label="Preview Set"
+          value={previewImages.length}
+          detail="Images sampled for preview"
+          icon={<I.Grid size={14} />}
+        />
+        <AdminStat
+          label="State"
+          value={saving || uploading ? "Working" : "Idle"}
+          detail="Latest admin action"
+          icon={<I.Loader size={14} />}
+        />
+      </AdminStatGrid>
 
       {message ? (
-        <div className="card" style={{ padding: 12, color: "var(--cal-charcoal)" }}>
+        <AdminAlert
+          tone={message === "Saved" || message === "Images uploaded" ? "success" : "danger"}
+        >
           {message}
-        </div>
+        </AdminAlert>
       ) : null}
 
       {!imageReady ? (
-        <div
-          className="card"
-          style={{ padding: 16, borderColor: "#E8C66B", background: "#FFF9E8" }}
-        >
+        <AdminAlert tone="warning">
           Upload more than 5 images. The homepage uses fallback showcase content until this section
           has at least 6 images.
-        </div>
+        </AdminAlert>
       ) : null}
 
-      <section className="card" style={{ padding: 24 }}>
-        <h2 className="t-h3" style={{ marginTop: 0 }}>
-          Text
-        </h2>
+      <AdminSection title="Text">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <label style={{ display: "grid", gap: 6 }}>
             <span className="t-label">Gallery kicker</span>
@@ -162,22 +197,15 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
             />
           </label>
         </div>
-      </section>
+      </AdminSection>
 
-      <section className="card" style={{ padding: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <h2 className="t-h3" style={{ margin: 0 }}>
-              Gallery images
-            </h2>
-            <p className="t-body-muted" style={{ margin: "6px 0 0" }}>
-              {view.images.length} uploaded. The homepage randomly shows 5 once there are more than
-              5 images.
-            </p>
-          </div>
-          <label className="btn btn-secondary" style={{ cursor: "pointer" }}>
+      <AdminSection
+        title="Gallery Images"
+        description={`${view.images.length} uploaded. The homepage randomly shows 5 once there are more than 5 images.`}
+        actions={
+          <label className="btn btn--secondary" style={{ cursor: "pointer" }}>
             <I.Upload size={16} />
-            {uploading ? "Uploading..." : "Upload images"}
+            {uploading ? "Uploading…" : "Upload Images"}
             <input
               accept="image/png,image/jpeg,image/webp"
               multiple
@@ -186,7 +214,8 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
               type="file"
             />
           </label>
-        </div>
+        }
+      >
         <div
           style={{
             display: "grid",
@@ -226,7 +255,8 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
               >
                 <span className="t-label">#{index + 1}</span>
                 <button
-                  className="btn btn-ghost"
+                  className="btn btn--ghost"
+                  aria-label={`Delete showcase image ${index + 1}`}
                   onClick={() => deleteImage(image.id)}
                   style={{ height: 30, padding: "0 8px" }}
                   type="button"
@@ -237,12 +267,9 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
             </div>
           ))}
         </div>
-      </section>
+      </AdminSection>
 
-      <section className="card" style={{ padding: 24 }}>
-        <h2 className="t-h3" style={{ marginTop: 0 }}>
-          Supporting message cards
-        </h2>
+      <AdminSection title="Supporting Message Cards">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
           {draft.cards.map((card, index) => (
             <div key={index} style={{ display: "grid", gap: 10 }}>
@@ -323,12 +350,9 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
             </div>
           ))}
         </div>
-      </section>
+      </AdminSection>
 
-      <section className="card" style={{ padding: 24 }}>
-        <h2 className="t-h3" style={{ marginTop: 0 }}>
-          Preview sample
-        </h2>
+      <AdminSection title="Preview Sample">
         <div
           style={{
             display: "grid",
@@ -356,7 +380,7 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
             </div>
           ))}
         </div>
-      </section>
-    </div>
+      </AdminSection>
+    </AdminPage>
   );
 }
