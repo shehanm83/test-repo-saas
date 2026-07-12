@@ -88,15 +88,15 @@ export default async function ProjectsPage() {
     <div className="page">
       <div className="page__head">
         <div>
-          <div className="t-eyebrow" style={{ color: "var(--layertone-violet)", marginBottom: 6 }}>
-            <I.Folder size={11} style={{ verticalAlign: "-1px" }} /> Saved work
-          </div>
+          <p className="mb-1.5 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-brand">
+            <I.Folder size={11} /> Saved work
+          </p>
           <h1 className="page__title">Projects</h1>
           <p className="page__sub">
             {projects.length} saved Quick Create projects with generated content.
           </p>
         </div>
-        <Link href="/generate" className="btn btn--accent" style={{ textDecoration: "none" }}>
+        <Link href="/generate" className="btn btn--accent">
           <I.Sparkle size={14} />
           New generation
         </Link>
@@ -105,103 +105,61 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         <ProjectsEmpty />
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 16,
-          }}
-        >
-            {projects.map((project) => (
-              <Link
-                key={project.id}
-                href={`/projects/${project.id}`}
-                className="card"
-                style={{
-                  padding: 0,
-                  overflow: "hidden",
-                  textDecoration: "none",
-                  display: "flex",
-                  flexDirection: "column",
-                  color: "inherit",
-                }}
-              >
-                <div
-                  style={{
-                    height: 120,
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 2,
-                    background: "var(--cal-gray-100)",
-                    borderBottom: "1px solid var(--cal-gray-200)",
-                  }}
-                >
-                  {[0, 1, 2, 3].map((index) => {
-                    const thumb = project.thumbs[index] ?? null;
-                    return (
-                      <div
-                        key={index}
-                        style={{
-                          background: "var(--cal-gray-200)",
-                          display: "grid",
-                          placeItems: "center",
-                          color: "var(--fg-4)",
-                        }}
-                      >
-                        {thumb ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={thumb}
-                            alt=""
-                            style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                          />
-                        ) : (
-                          <I.Image size={16} />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div style={{ padding: 16, display: "grid", gap: 12, flex: 1 }}>
-                  <div>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+          {projects.map((project) => (
+            <Link
+              key={project.id}
+              href={`/projects/${project.id}`}
+              className="card group flex flex-col overflow-hidden !p-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-float"
+            >
+              <div className="grid h-[140px] grid-cols-2 gap-0.5 border-b border-ink/8 bg-cream-deep">
+                {[0, 1, 2, 3].map((index) => {
+                  const thumb = project.thumbs[index] ?? null;
+                  return (
                     <div
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontSize: 18,
-                        lineHeight: 1.2,
-                        color: "var(--fg-1)",
-                      }}
+                      key={index}
+                      className="grid place-items-center overflow-hidden bg-cream-deep text-ink-soft/40"
                     >
-                      {project.name}
+                      {thumb ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={thumb}
+                          alt=""
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <I.Image size={16} />
+                      )}
                     </div>
-                    <div className="row" style={{ gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-                      <span className="pill">{project.brandName ?? "Unbranded"}</span>
-                      <span className="pill">{project.generationCount} generations</span>
-                      <span className="pill">{project.imageCount} images</span>
-                      {project.captionCount > 0 ? (
-                        <span className="pill">{project.captionCount} captions</span>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      borderTop: "1px solid var(--cal-gray-200)",
-                      paddingTop: 12,
-                      marginTop: "auto",
-                    }}
-                  >
-                    <div className="t-small">Updated {relativeTime(project.latestGenerationAt)}</div>
-                    <span className="btn btn--icon btn--ghost" aria-hidden="true">
-                      <I.ArrowRight size={14} />
-                    </span>
+                  );
+                })}
+              </div>
+              <div className="flex flex-1 flex-col gap-3 p-4">
+                <div>
+                  <div className="font-display text-lg leading-tight text-ink">{project.name}</div>
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    <span className="pill">{project.brandName ?? "Unbranded"}</span>
+                    <span className="pill">{project.generationCount} generations</span>
+                    <span className="pill">{project.imageCount} images</span>
+                    {project.captionCount > 0 ? (
+                      <span className="pill">{project.captionCount} captions</span>
+                    ) : null}
                   </div>
                 </div>
-              </Link>
-            ))}
+                <div className="mt-auto flex items-center justify-between gap-3 border-t border-ink/8 pt-3">
+                  <span className="text-xs text-ink-soft">
+                    Updated {relativeTime(project.latestGenerationAt)}
+                  </span>
+                  <span
+                    className="grid h-7 w-7 place-items-center rounded-full text-ink-soft transition-all duration-200 group-hover:bg-brand-50 group-hover:text-brand"
+                    aria-hidden="true"
+                  >
+                    <I.ArrowRight size={14} />
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </div>

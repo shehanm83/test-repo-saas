@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
-
-import { I } from "@/components/icons";
+import { AlertCircle, Check, History, Loader2, Search, Sparkles, X } from "lucide-react";
 
 interface Item {
   id: string;
@@ -35,6 +34,31 @@ function relativeTime(iso: string): string {
   if (diffSec < 86400 * 2) return "Yesterday";
   if (diffSec < 86400 * 7) return `${Math.floor(diffSec / 86400)} days ago`;
   return new Date(iso).toLocaleDateString();
+}
+
+function StatusPill({ status }: { status: string }) {
+  if (status === "completed") {
+    return (
+      <span className="pill pill--green">
+        <Check size={11} />
+        Complete
+      </span>
+    );
+  }
+  if (status === "failed" || status === "failed_safety") {
+    return (
+      <span className="pill pill--red">
+        <AlertCircle size={11} />
+        Failed
+      </span>
+    );
+  }
+  return (
+    <span className="pill pill--amber">
+      <Loader2 size={11} className="animate-spin" />
+      {status}
+    </span>
+  );
 }
 
 export function HistoryList(props: {
@@ -81,59 +105,42 @@ export function HistoryList(props: {
     <div className="page">
       <div className="page__head">
         <div>
-          <h1 className="page__title">History</h1>
-          <p className="page__sub">
-            {props.items.length} generations across all brands.
+          <p className="mb-1.5 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-brand">
+            <History size={11} /> Your work
           </p>
+          <h1 className="page__title">History</h1>
+          <p className="page__sub">{props.items.length} generations across all brands.</p>
         </div>
-        <Link
-          href="/generate"
-          className="btn btn--accent"
-          style={{ textDecoration: "none" }}
-        >
-          <I.Sparkle size={14} />
+        <Link href="/generate" className="btn btn--accent">
+          <Sparkles size={14} />
           New generation
         </Link>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
-          <I.Search
-            size={14}
-            style={{ position: "absolute", left: 12, top: 11, color: "var(--fg-3)" }}
-          />
+      <div className="mb-5 flex flex-wrap gap-2">
+        <div className="relative max-w-[360px] flex-1">
+          <Search size={14} className="absolute left-3.5 top-[11px] text-ink-soft/70" />
           <input
-            className="input"
+            className="input !rounded-full !pl-9"
             placeholder="Search briefs…"
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
             onKeyDown={handleSearchKeyDown}
-            style={{ paddingLeft: 36, paddingRight: props.search ? 36 : undefined }}
+            style={{ paddingRight: props.search ? 36 : undefined }}
           />
           {props.search ? (
             <button
               type="button"
               onClick={handleClearSearch}
-              style={{
-                position: "absolute",
-                right: 10,
-                top: 9,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--fg-3)",
-                display: "flex",
-                alignItems: "center",
-              }}
+              className="absolute right-3 top-[9px] flex items-center text-ink-soft/70 hover:text-ink"
               aria-label="Clear search"
             >
-              <I.X size={14} />
+              <X size={14} />
             </button>
           ) : null}
         </div>
         <select
-          className="select"
-          style={{ width: 160 }}
+          className="select !w-40 !rounded-full"
           value={brandFilter}
           onChange={(e) => setBrandFilter(e.target.value)}
         >
@@ -144,36 +151,26 @@ export function HistoryList(props: {
             </option>
           ))}
         </select>
-        <select className="select" style={{ width: 160 }} defaultValue="all">
-          <option value="all">All moods</option>
-        </select>
-        <select className="select" style={{ width: 140 }} defaultValue="all">
-          <option value="all">All statuses</option>
-        </select>
-        <select className="select" style={{ width: 160 }} defaultValue="30">
+        <select className="select !w-40 !rounded-full" defaultValue="30">
           <option value="30">Last 30 days</option>
         </select>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="empty card" style={{ marginTop: 24 }}>
+        <div className="empty card mt-6">
           <div className="empty__art">
-            <I.Inbox size={32} />
+            <History size={32} />
           </div>
           <div className="empty__title">No generations yet</div>
           <div className="empty__sub">Try one — it&apos;s quick.</div>
-          <Link
-            href="/generate"
-            className="btn btn--accent"
-            style={{ textDecoration: "none" }}
-          >
-            <I.Sparkle size={14} />
+          <Link href="/generate" className="btn btn--accent">
+            <Sparkles size={14} />
             New generation
           </Link>
         </div>
       ) : (
-        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-          {filtered.map((g, i) => (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((g) => (
             <div
               key={g.id}
               role="button"
@@ -182,60 +179,28 @@ export function HistoryList(props: {
               onKeyDown={(e) => {
                 if (e.key === "Enter") router.push(`/generations/${g.id}`);
               }}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "72px 1fr auto",
-                gap: 16,
-                padding: 16,
-                alignItems: "center",
-                cursor: "pointer",
-                borderBottom:
-                  i < filtered.length - 1 ? "1px solid var(--cal-gray-200)" : "0",
-              }}
+              className="card group flex cursor-pointer flex-col overflow-hidden !p-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-float"
             >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 2,
-                  width: 72,
-                  height: 72,
-                  borderRadius: 8,
-                  overflow: "hidden",
-                  boxShadow: "var(--shadow-ring)",
-                }}
-              >
-                {[0, 1, 2, 3].map((j) => {
+              <div className="grid aspect-[2/1] grid-cols-2 gap-0.5 bg-cream-deep">
+                {[0, 1].map((j) => {
                   const im = g.thumbs[j] ?? null;
                   return (
-                    <div key={j} style={{ background: "var(--cal-gray-200)" }}>
+                    <div key={j} className="overflow-hidden bg-cream-deep">
                       {im ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={im}
                           alt=""
-                          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                         />
                       ) : null}
                     </div>
                   );
                 })}
               </div>
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    color: "var(--fg-1)",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {g.brief}
-                </div>
-                <div
-                  style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}
-                >
+              <div className="flex flex-1 flex-col gap-3 p-4">
+                <p className="line-clamp-2 text-sm leading-snug text-ink">{g.brief}</p>
+                <div className="flex flex-wrap items-center gap-1.5">
                   <span className="pill">
                     <span className="dot" style={{ background: dot(g.brandId ?? "unbranded") }} />
                     {g.brandName}
@@ -243,26 +208,11 @@ export function HistoryList(props: {
                   {g.moodName ? <span className="pill">{g.moodName}</span> : null}
                   <span className="pill">{g.ar}</span>
                 </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                {g.status === "completed" ? (
-                  <span className="pill pill--green">
-                    <I.Check size={11} />
-                    Complete
+                <div className="mt-auto flex items-center justify-between border-t border-ink/8 pt-3">
+                  <StatusPill status={g.status} />
+                  <span className="font-mono text-[11px] text-ink-soft/80">
+                    {g.credits} cr · {relativeTime(g.createdAt)}
                   </span>
-                ) : g.status === "failed" || g.status === "failed_safety" ? (
-                  <span className="pill pill--red">
-                    <I.AlertCircle size={11} />
-                    Failed
-                  </span>
-                ) : (
-                  <span className="pill pill--amber">
-                    <I.Loader size={11} className="spin" />
-                    {g.status}
-                  </span>
-                )}
-                <div className="t-small" style={{ marginTop: 6, fontSize: 11 }}>
-                  {g.credits} credits · {relativeTime(g.createdAt)}
                 </div>
               </div>
             </div>
@@ -271,22 +221,14 @@ export function HistoryList(props: {
       )}
 
       {(props.page > 0 || props.hasMore) && (
-        <div style={{ display: "flex", gap: 8, marginTop: 16, justifyContent: "center" }}>
+        <div className="mt-6 flex justify-center gap-2">
           {props.page > 0 ? (
-            <Link
-              href={buildSearchHref(props.search, props.page - 1)}
-              className="btn btn--secondary btn--sm"
-              style={{ textDecoration: "none" }}
-            >
+            <Link href={buildSearchHref(props.search, props.page - 1)} className="btn btn--secondary btn--sm">
               Previous
             </Link>
           ) : null}
           {props.hasMore ? (
-            <Link
-              href={buildSearchHref(props.search, props.page + 1)}
-              className="btn btn--secondary btn--sm"
-              style={{ textDecoration: "none" }}
-            >
+            <Link href={buildSearchHref(props.search, props.page + 1)} className="btn btn--secondary btn--sm">
               Next
             </Link>
           ) : null}
