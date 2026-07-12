@@ -2130,6 +2130,72 @@ hr {
   box-shadow: var(--lt-shadow-card);
 }
 
+/* App sidebar collapses to a slide-in drawer on small screens */
+.app-nav-toggle,
+.app-nav-overlay {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-areas: "main";
+  }
+  .app__main {
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .app__sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 288px;
+    z-index: 8200;
+    background: #f7f2e9;
+    transform: translateX(-105%);
+    transition: transform 0.24s var(--ease-standard);
+  }
+  .app--nav-open .app__sidebar {
+    transform: translateX(0);
+    box-shadow: 4px 0 32px rgba(17, 17, 17, 0.18);
+  }
+  .app-nav-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 8199;
+    background: rgba(17, 17, 17, 0.32);
+    cursor: pointer;
+  }
+  .app--nav-open .app-nav-overlay {
+    display: block;
+  }
+  .app-nav-toggle {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: var(--cal-white);
+    box-shadow: var(--lt-shadow-pill);
+    color: var(--fg-1);
+    z-index: 8201;
+    border: 0;
+    cursor: pointer;
+  }
+  .app--nav-open .app-nav-toggle {
+    display: none;
+  }
+  /* Clear the floating hamburger */
+  .page,
+  .cg-page {
+    padding-top: 68px;
+  }
+}
+
 /* ---------- Top bar ---------- */
 .topbar {
   display: flex;
@@ -4036,6 +4102,7 @@ hr {
     transform: translateX(-100%);
     transition: transform 0.24s var(--ease-standard);
     box-shadow: none;
+    background: linear-gradient(180deg, rgba(94, 92, 230, 0.12), transparent 320px), #131313;
   }
 
   .admin-sidebar.is-open {
@@ -4081,10 +4148,14 @@ hr {
     background: var(--cal-gray-50);
   }
 
-  /* Push page content down so hamburger doesn't overlap */
+  /* Push page content down so hamburger doesn't overlap; drop the framed inset */
   .admin-content {
     overflow: visible;
     padding-top: 64px;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    max-height: none;
   }
 
   .admin-split__rail {

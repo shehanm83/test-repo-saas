@@ -4,6 +4,7 @@ import { Ledger } from "@layertone/billing";
 import { createDb, listBrands } from "@layertone/db";
 import { loadConfig } from "@layertone/shared/config";
 
+import { AppShell } from "./app-shell";
 import { Sidebar } from "./sidebar";
 
 export async function AppFrame(props: {
@@ -28,8 +29,8 @@ export async function AppFrame(props: {
     null;
 
   return (
-    <div className="app">
-      <div className="app__sidebar">
+    <AppShell
+      sidebar={
         <Sidebar
           brands={brands.map((b) => ({ id: b.id, name: b.name }))}
           planCode={activeWorkspace?.planCode ?? "free"}
@@ -41,8 +42,9 @@ export async function AppFrame(props: {
           workspaces={props.session.workspaces.map((w) => ({ id: w.id, name: w.name }))}
           activeWorkspaceName={activeWorkspace?.name ?? "Workspace"}
         />
-      </div>
-      <div className="app__main">{props.children}</div>
-    </div>
+      }
+    >
+      {props.children}
+    </AppShell>
   );
 }
