@@ -19,7 +19,7 @@
   --layertone-red: #c2362c;
 
   --header-h: 68px;
-  --sidebar-w: 234px;
+  --sidebar-w: 268px;
 
   /* Redesign 2026 — layered editorial shadows shared with the Tailwind theme */
   --lt-shadow-pill:
@@ -2103,20 +2103,19 @@ hr {
 }
 
 /* ---------- App shell layout ----------
-   Redesign 2026 — cream frame with a floating white content canvas */
+   Redesign 2026 — single command sidebar on a cream frame,
+   content floats as a full-height white canvas (no top bar). */
 .app {
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;
-  grid-template-rows: var(--header-h) 1fr;
-  grid-template-areas:
-    "sidebar topbar"
-    "sidebar main";
+  grid-template-rows: 1fr;
+  grid-template-areas: "sidebar main";
   height: 100vh;
   overflow: hidden;
   background: #f7f2e9;
 }
 .app__topbar {
-  grid-area: topbar;
+  display: none;
 }
 .app__sidebar {
   grid-area: sidebar;
@@ -2126,7 +2125,7 @@ hr {
   grid-area: main;
   overflow-y: auto;
   background: #fffdf9;
-  margin: 0 14px 14px 0;
+  margin: 14px 14px 14px 0;
   border-radius: 24px;
   box-shadow: var(--lt-shadow-card);
 }
@@ -2167,18 +2166,20 @@ hr {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 204px;
-  height: 34px;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
   padding: 0 12px;
-  border: 1px solid #e3e7ef;
-  border-radius: 10px;
+  border: 0;
+  border-radius: 12px;
   background: #fff;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+  box-shadow: var(--shadow-ring);
+  transition: box-shadow var(--duration-fast) var(--ease-standard);
 }
 .workspace-switcher:hover {
   background: #fff;
-  border-color: #d8deea;
+  box-shadow: var(--lt-shadow-pill);
 }
 .workspace-switcher__dot {
   width: 8px;
@@ -3372,15 +3373,13 @@ hr {
 
 /* ---------- Admin UI ---------- */
 .admin-shell {
-  --admin-sidebar-w: 248px;
+  --admin-sidebar-w: 256px;
   /* Admin has no app header — zero out the offset so sidebar fills full viewport height */
   --header-h: 0px;
   min-height: 100vh;
   display: grid;
   grid-template-columns: var(--admin-sidebar-w) minmax(0, 1fr);
-  background:
-    linear-gradient(180deg, rgba(250, 250, 250, 0.88), rgba(255, 255, 255, 0) 280px),
-    var(--cal-white);
+  background: linear-gradient(180deg, rgba(94, 92, 230, 0.12), transparent 320px), #131313;
 }
 
 .admin-sidebar {
@@ -3393,8 +3392,8 @@ hr {
   gap: 18px;
   overflow-y: auto;
   color: rgba(255, 255, 255, 0.78);
-  background: linear-gradient(180deg, rgba(94, 92, 230, 0.14), transparent 180px), #171717;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  border-right: 0;
 }
 
 .admin-sidebar__brand {
@@ -3475,18 +3474,8 @@ hr {
 
 .admin-nav-link.is-active {
   color: var(--cal-white);
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.admin-nav-link.is-active::before {
-  content: "";
-  position: absolute;
-  left: -14px;
-  width: 3px;
-  height: 20px;
-  border-radius: 999px;
   background: var(--layertone-violet);
+  box-shadow: var(--lt-shadow-pill-dark);
 }
 
 .admin-sidebar__footer {
@@ -3517,6 +3506,11 @@ hr {
 .admin-content {
   min-width: 0;
   overflow: auto;
+  margin: 14px 14px 14px 0;
+  border-radius: 24px;
+  background: #fffdf9;
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.2), 0 12px 40px rgba(0, 0, 0, 0.35);
+  max-height: calc(100vh - 28px);
 }
 
 .admin-page {

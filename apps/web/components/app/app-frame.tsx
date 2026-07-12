@@ -5,7 +5,6 @@ import { createDb, listBrands } from "@layertone/db";
 import { loadConfig } from "@layertone/shared/config";
 
 import { Sidebar } from "./sidebar";
-import { TopBar } from "./top-bar";
 
 export async function AppFrame(props: {
   session: {
@@ -30,8 +29,10 @@ export async function AppFrame(props: {
 
   return (
     <div className="app">
-      <div className="app__topbar">
-        <TopBar
+      <div className="app__sidebar">
+        <Sidebar
+          brands={brands.map((b) => ({ id: b.id, name: b.name }))}
+          planCode={activeWorkspace?.planCode ?? "free"}
           balance={balance}
           email={props.session.email}
           authMode={config.auth.mode}
@@ -39,12 +40,6 @@ export async function AppFrame(props: {
           workspaceId={props.session.workspaceId}
           workspaces={props.session.workspaces.map((w) => ({ id: w.id, name: w.name }))}
           activeWorkspaceName={activeWorkspace?.name ?? "Workspace"}
-        />
-      </div>
-      <div className="app__sidebar">
-        <Sidebar
-          brands={brands.map((b) => ({ id: b.id, name: b.name }))}
-          planCode={activeWorkspace?.planCode ?? "free"}
         />
       </div>
       <div className="app__main">{props.children}</div>

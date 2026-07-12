@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 import {
+  Bell,
   Briefcase,
   ChevronDown,
   FolderOpen,
@@ -14,9 +15,13 @@ import {
   Settings,
   Sparkles,
   Tag,
+  Zap,
 } from "lucide-react";
 
 import { LayertoneMark } from "@/components/brand/layertone-mark";
+
+import { AvatarMenu } from "./avatar-menu";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 
 const NAV_ITEM =
   "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-ink-soft " +
@@ -52,6 +57,13 @@ function NavItem({
 export function Sidebar(props: {
   brands: Array<{ id: string; name: string }>;
   planCode: string;
+  balance: number;
+  email: string;
+  authMode: "clerk" | "dev";
+  isAdmin: boolean;
+  workspaceId: string | null;
+  workspaces: Array<{ id: string; name: string }>;
+  activeWorkspaceName: string;
 }) {
   const pathname = usePathname() ?? "/";
   const planName =
@@ -70,12 +82,20 @@ export function Sidebar(props: {
 
   return (
     <div className="flex min-h-full flex-col gap-1 px-4 py-5 font-sans">
-      <Link href="/" className="mb-4 flex items-center gap-2 px-2">
+      <Link href="/" className="mb-3 flex items-center gap-2 px-1">
         <LayertoneMark size={38} />
         <span className="font-display text-[17px] tracking-tight text-ink">
           Layer<b>tone</b>
         </span>
       </Link>
+
+      <div className="mb-3">
+        <WorkspaceSwitcher
+          workspaceId={props.workspaceId}
+          workspaces={props.workspaces}
+          activeWorkspaceName={props.activeWorkspaceName}
+        />
+      </div>
 
       <Link
         href="/generate"
@@ -123,16 +143,39 @@ export function Sidebar(props: {
 
       <NavItem href="/settings" icon={Settings} label="Settings" active={isActive("/settings")} />
       <NavItem href="/help" icon={HelpCircle} label="Help" active={false} />
-      <Link
-        href="/billing"
-        className="mt-2 flex items-center gap-2.5 rounded-2xl bg-white px-3 py-2.5 shadow-card transition-transform duration-150 hover:-translate-y-px"
-      >
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-100 font-display text-xs text-brand-700">
-          {planName[0]}
-        </span>
-        <span className="flex-1 text-[13px] font-semibold text-ink">{planName} plan</span>
-        <ChevronDown size={14} className="text-ink-soft" />
-      </Link>
+
+      <div className="mt-3 flex items-center gap-2">
+        <Link
+          href="/billing"
+          className="flex flex-1 items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[13px] font-semibold text-ink shadow-pill transition-transform duration-150 hover:-translate-y-px"
+        >
+          <Zap size={13} className="fill-brand text-brand" />
+          <span>{props.balance.toLocaleString()} credits</span>
+        </Link>
+        <button
+          className="grid h-9 w-9 place-items-center rounded-full text-ink-soft transition-colors hover:bg-ink/5 hover:text-ink"
+          type="button"
+          title="Notifications"
+        >
+          <Bell size={15} strokeWidth={2} />
+        </button>
+      </div>
+
+      <div className="mt-2 flex items-center gap-2.5 rounded-2xl bg-white p-2.5 shadow-card">
+        <AvatarMenu
+          authMode={props.authMode}
+          email={props.email}
+          isAdmin={props.isAdmin}
+          dropUp
+        />
+        <Link href="/billing" className="min-w-0 flex-1">
+          <span className="block truncate text-[13px] font-semibold leading-tight text-ink">
+            {planName} plan
+          </span>
+          <span className="block truncate text-[11px] text-ink-soft">{props.email}</span>
+        </Link>
+        <ChevronDown size={14} className="rotate-180 text-ink-soft" />
+      </div>
     </div>
   );
 }

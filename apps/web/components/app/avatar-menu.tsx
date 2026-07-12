@@ -6,7 +6,12 @@ import { SignOutButton } from "@clerk/nextjs";
 
 import { I } from "@/components/icons";
 
-export function AvatarMenu(props: { authMode: "clerk" | "dev"; email: string; isAdmin: boolean }) {
+export function AvatarMenu(props: {
+  authMode: "clerk" | "dev";
+  email: string;
+  isAdmin: boolean;
+  dropUp?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -40,7 +45,13 @@ export function AvatarMenu(props: { authMode: "clerk" | "dev"; email: string; is
       {open ? (
         <div
           className="menu"
-          style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, minWidth: 220 }}
+          style={{
+            position: "absolute",
+            ...(props.dropUp
+              ? { bottom: "calc(100% + 6px)", left: 0 }
+              : { top: "calc(100% + 6px)", right: 0 }),
+            minWidth: 220,
+          }}
         >
           <div style={{ padding: "8px 10px" }}>
             <div style={{ fontSize: 14, fontWeight: 500 }}>{props.email}</div>
