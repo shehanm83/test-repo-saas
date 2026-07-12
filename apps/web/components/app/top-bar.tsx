@@ -15,7 +15,7 @@ export function TopBar(props: {
   activeWorkspaceName: string;
 }) {
   return (
-    <div className="flex h-full items-center gap-3 border-b border-ink/8 bg-white px-4 font-sans">
+    <div className="flex h-full items-center gap-3 px-5 pr-8 font-sans">
       <WorkspaceSwitcher
         workspaceId={props.workspaceId}
         workspaces={props.workspaces}

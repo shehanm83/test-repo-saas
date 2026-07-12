@@ -2102,7 +2102,8 @@ hr {
   animation: paint 3s ease-in-out infinite;
 }
 
-/* ---------- App shell layout ---------- */
+/* ---------- App shell layout ----------
+   Redesign 2026 — cream frame with a floating white content canvas */
 .app {
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;
@@ -2112,6 +2113,7 @@ hr {
     "sidebar main";
   height: 100vh;
   overflow: hidden;
+  background: #f7f2e9;
 }
 .app__topbar {
   grid-area: topbar;
@@ -2123,7 +2125,10 @@ hr {
 .app__main {
   grid-area: main;
   overflow-y: auto;
-  background: #faf8f3;
+  background: #fffdf9;
+  margin: 0 14px 14px 0;
+  border-radius: 24px;
+  box-shadow: var(--lt-shadow-card);
 }
 
 /* ---------- Top bar ---------- */

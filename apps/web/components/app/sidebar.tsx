@@ -69,7 +69,7 @@ export function Sidebar(props: {
     pathname === path || pathname.startsWith(path + "/");
 
   return (
-    <div className="flex min-h-full flex-col gap-1 border-r border-ink/8 bg-cream/60 px-3 py-4 font-sans">
+    <div className="flex min-h-full flex-col gap-1 px-4 py-5 font-sans">
       <Link href="/" className="mb-4 flex items-center gap-2 px-2">
         <LayertoneMark size={38} />
         <span className="font-display text-[17px] tracking-tight text-ink">
