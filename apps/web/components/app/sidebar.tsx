@@ -3,9 +3,51 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import {
+  Briefcase,
+  ChevronDown,
+  FolderOpen,
+  HelpCircle,
+  History,
+  Images,
+  Palette,
+  Settings,
+  Sparkles,
+  Tag,
+} from "lucide-react";
 
 import { LayertoneMark } from "@/components/brand/layertone-mark";
-import { I } from "@/components/icons";
+
+const NAV_ITEM =
+  "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-ink-soft " +
+  "transition-colors duration-150 hover:bg-ink/5 hover:text-ink";
+const NAV_ACTIVE = "!bg-brand-50 !text-brand-700";
+
+function NavItem({
+  href,
+  icon: Icon,
+  label,
+  active,
+  count,
+}: {
+  href: string;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  label: string;
+  active: boolean;
+  count?: number;
+}) {
+  return (
+    <Link href={href} className={`${NAV_ITEM} ${active ? NAV_ACTIVE : ""}`}>
+      <Icon size={16} strokeWidth={2} className={active ? "text-brand" : "text-ink-soft/80"} />
+      <span className="flex-1">{label}</span>
+      {typeof count === "number" ? (
+        <span className="rounded-full bg-ink/6 px-2 py-0.5 font-mono text-[11px] text-ink-soft">
+          {count}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
 
 export function Sidebar(props: {
   brands: Array<{ id: string; name: string }>;
@@ -17,113 +59,80 @@ export function Sidebar(props: {
       ? "Subscription"
       : props.planCode === "payg"
         ? "Pay As You Go"
-        : props.planCode === "pro" || props.planCode === "starter" || props.planCode === "business" || props.planCode === "agency"
+        : props.planCode === "pro" ||
+            props.planCode === "starter" ||
+            props.planCode === "business" ||
+            props.planCode === "agency"
           ? "Subscription"
           : "Free";
   const isActive = (path: string): boolean =>
     pathname === path || pathname.startsWith(path + "/");
 
   return (
-    <div className="sidebar">
-      <Link href="/" className="sidebar__brand" style={{ textDecoration: "none" }}>
-        <LayertoneMark size={42} />
-        <span>
+    <div className="flex min-h-full flex-col gap-1 border-r border-ink/8 bg-cream/60 px-3 py-4 font-sans">
+      <Link href="/" className="mb-4 flex items-center gap-2 px-2">
+        <LayertoneMark size={38} />
+        <span className="font-display text-[17px] tracking-tight text-ink">
           Layer<b>tone</b>
         </span>
       </Link>
 
       <Link
         href="/generate"
-        className={`nav-item nav-item--cta ${isActive("/generate") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
+        className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${
+          isActive("/generate")
+            ? "bg-ink-deep text-white shadow-pill-dark"
+            : "bg-white text-ink shadow-card hover:-translate-y-px"
+        }`}
       >
-        <I.Sparkle size={18} className="nav-item__icon" />
-        <span>Generate</span>
-        <span className="nav-item__shortcut">G</span>
+        <Sparkles
+          size={16}
+          strokeWidth={2.2}
+          className={isActive("/generate") ? "text-brand-300" : "text-brand"}
+        />
+        <span className="flex-1">Generate</span>
+        <kbd
+          className={`rounded-md px-1.5 font-mono text-[11px] ${
+            isActive("/generate") ? "bg-white/15" : "bg-ink/6 text-ink-soft"
+          }`}
+        >
+          G
+        </kbd>
       </Link>
 
-      <Link
-        href="/history"
-        className={`nav-item ${isActive("/history") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.History size={16} className="nav-item__icon" />
-        <span>History</span>
-      </Link>
+      <div className="mt-2">
+        <NavItem href="/history" icon={History} label="History" active={isActive("/history")} />
+      </div>
 
-      <div className="sidebar__section-title">Assets</div>
-
-      <Link
+      <p className="mb-1 mt-5 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/60">
+        Assets
+      </p>
+      <NavItem
         href="/brands"
-        className={`nav-item ${isActive("/brands") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.Briefcase size={16} className="nav-item__icon" />
-        <span>Brands</span>
-        <span className="nav-item__count">{props.brands.length}</span>
-      </Link>
-
-      <Link
-        href="/products"
-        className={`nav-item ${isActive("/products") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.Tag size={16} className="nav-item__icon" />
-        <span>Products</span>
-      </Link>
-
-      <Link
-        href="/projects"
-        className={`nav-item ${isActive("/projects") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.Folder size={16} className="nav-item__icon" />
-        <span>Projects</span>
-      </Link>
-
-      <Link
-        href="/moods"
-        className={`nav-item ${isActive("/moods") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.Library size={16} className="nav-item__icon" />
-        <span>Mood library</span>
-      </Link>
-
-      <Link
-        href="/stock"
-        className={`nav-item ${isActive("/stock") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.Image size={16} className="nav-item__icon" />
-        <span>Stock library</span>
-      </Link>
+        icon={Briefcase}
+        label="Brands"
+        active={isActive("/brands")}
+        count={props.brands.length}
+      />
+      <NavItem href="/products" icon={Tag} label="Products" active={isActive("/products")} />
+      <NavItem href="/projects" icon={FolderOpen} label="Projects" active={isActive("/projects")} />
+      <NavItem href="/moods" icon={Palette} label="Mood library" active={isActive("/moods")} />
+      <NavItem href="/stock" icon={Images} label="Stock library" active={isActive("/stock")} />
 
       <div className="grow" />
 
-      <div className="sidebar__bottom">
-        <Link
-          href="/settings"
-          className={`nav-item ${isActive("/settings") ? "is-active" : ""}`}
-          style={{ textDecoration: "none" }}
-        >
-          <I.Settings size={16} className="nav-item__icon" />
-          <span>Settings</span>
-        </Link>
-        <Link href="/help" className="nav-item" style={{ textDecoration: "none" }}>
-          <I.HelpCircle size={16} className="nav-item__icon" />
-          <span>Help</span>
-        </Link>
-        <Link
-          href="/billing"
-          className="sidebar__plan"
-          style={{ textDecoration: "none" }}
-        >
-          <span className="sidebar__avatar">N</span>
-          <strong>{planName} plan</strong>
-          <I.ChevronDown size={14} />
-        </Link>
-      </div>
+      <NavItem href="/settings" icon={Settings} label="Settings" active={isActive("/settings")} />
+      <NavItem href="/help" icon={HelpCircle} label="Help" active={false} />
+      <Link
+        href="/billing"
+        className="mt-2 flex items-center gap-2.5 rounded-2xl bg-white px-3 py-2.5 shadow-card transition-transform duration-150 hover:-translate-y-px"
+      >
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-100 font-display text-xs text-brand-700">
+          {planName[0]}
+        </span>
+        <span className="flex-1 text-[13px] font-semibold text-ink">{planName} plan</span>
+        <ChevronDown size={14} className="text-ink-soft" />
+      </Link>
     </div>
   );
 }

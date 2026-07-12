@@ -1,7 +1,6 @@
 import Link from "next/link";
 import React from "react";
-
-import { I } from "@/components/icons";
+import { Bell, Zap } from "lucide-react";
 
 import { AvatarMenu } from "./avatar-menu";
 import { WorkspaceSwitcher } from "./workspace-switcher";
@@ -16,7 +15,7 @@ export function TopBar(props: {
   activeWorkspaceName: string;
 }) {
   return (
-    <div className="topbar">
+    <div className="flex h-full items-center gap-3 border-b border-ink/8 bg-white px-4 font-sans">
       <WorkspaceSwitcher
         workspaceId={props.workspaceId}
         workspaces={props.workspaces}
@@ -25,13 +24,20 @@ export function TopBar(props: {
 
       <div className="grow" />
 
-      <Link href="/billing" className="topbar__credits" style={{ textDecoration: "none" }}>
-        <I.Zap size={12} style={{ color: "var(--layertone-violet)" }} />
+      <Link
+        href="/billing"
+        className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[13px] font-semibold text-ink shadow-pill transition-transform duration-150 hover:-translate-y-px"
+      >
+        <Zap size={13} className="fill-brand text-brand" />
         <span>{props.balance.toLocaleString()} credits</span>
       </Link>
 
-      <button className="btn btn--icon btn--ghost" type="button" title="Notifications">
-        <I.Bell size={16} />
+      <button
+        className="grid h-9 w-9 place-items-center rounded-full text-ink-soft transition-colors hover:bg-ink/5 hover:text-ink"
+        type="button"
+        title="Notifications"
+      >
+        <Bell size={16} strokeWidth={2} />
       </button>
 
       <AvatarMenu authMode={props.authMode} email={props.email} isAdmin={props.isAdmin} />

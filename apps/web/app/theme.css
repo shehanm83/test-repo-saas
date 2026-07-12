@@ -47,6 +47,8 @@
   --animate-marquee: marquee 45s linear infinite;
   --animate-marquee-slow: marquee 90s linear infinite;
   --animate-marquee-reverse: marquee-reverse 60s linear infinite;
+  --animate-marquee-y: marquee-y 42s linear infinite;
+  --animate-marquee-y-reverse: marquee-y-reverse 55s linear infinite;
   --animate-fade-in-up: fade-in-up 0.8s var(--ease-out-soft, ease-out) forwards;
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -61,6 +63,19 @@
     }
     to {
       transform: translateX(0);
+    }
+  }
+  @keyframes marquee-y {
+    to {
+      transform: translateY(-50%);
+    }
+  }
+  @keyframes marquee-y-reverse {
+    from {
+      transform: translateY(-50%);
+    }
+    to {
+      transform: translateY(0);
     }
   }
   @keyframes fade-in-up {
