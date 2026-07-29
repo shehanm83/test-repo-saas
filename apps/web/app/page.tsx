@@ -2,6 +2,7 @@ import React from "react";
 
 import { createDb, eq, moods } from "@layertone/db";
 import { HomeShowcaseApi } from "@layertone/api/home-showcase";
+import { LandingHeroApi } from "@layertone/api/landing-hero";
 import { DEFAULT_HOME_SHOWCASE_VIEW } from "@layertone/shared/home-showcase";
 import { loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
@@ -12,6 +13,16 @@ import { getServerSession } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
 
 export const dynamic = "force-dynamic";
+
+async function loadCampaignSpotlight() {
+  try {
+    const api = new LandingHeroApi(loadConfig(), createServerAdapters() as never);
+    const published = await api.listPublishedSets();
+    return api.pickSetForRequest(published);
+  } catch {
+    return null;
+  }
+}
 
 async function loadHomeShowcase() {
   try {
@@ -107,10 +118,11 @@ function dateWithYear(date: Date, year: number) {
 }
 
 export default async function HomePage() {
-  const [session, showcase, moods] = await Promise.all([
+  const [session, showcase, moods, campaign] = await Promise.all([
     getServerSession(),
     loadHomeShowcase(),
     loadMoods(),
+    loadCampaignSpotlight(),
   ]);
   return (
     <LandingV2
@@ -118,6 +130,7 @@ export default async function HomePage() {
       showcase={showcase}
       moods={moods.preview}
       moodCount={moods.total}
+      campaign={campaign}
     />
   );
 }

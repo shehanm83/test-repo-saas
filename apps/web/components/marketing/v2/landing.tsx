@@ -1,9 +1,11 @@
 import React from "react";
 
 import type { HomeShowcaseView } from "@layertone/shared/home-showcase";
+import type { LandingHeroSetView } from "@layertone/shared/landing-hero";
 
 import type { LandingMood } from "./types";
 
+import { CampaignSpotlight } from "./campaign-spotlight";
 import { CtaTrail } from "./cta-trail";
 import { FloatingNav } from "./floating-nav";
 import { Footer } from "./footer";
@@ -21,11 +23,13 @@ export function LandingV2({
   showcase,
   moods,
   moodCount,
+  campaign,
 }: {
   isAuthed?: boolean;
   showcase: HomeShowcaseView;
   moods: LandingMood[];
   moodCount: number;
+  campaign?: LandingHeroSetView | null;
 }) {
   return (
     <div className="min-h-screen scroll-smooth bg-cream font-sans text-ink antialiased">
@@ -33,6 +37,7 @@ export function LandingV2({
       <main>
         <Hero isAuthed={isAuthed} />
         <MarqueeStrip />
+        {campaign ? <CampaignSpotlight campaign={campaign} isAuthed={isAuthed} /> : null}
         <HowItWorks />
         <Moods moods={moods} moodCount={moodCount} />
         <Showcase showcase={showcase} />
