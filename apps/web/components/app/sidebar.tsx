@@ -6,13 +6,13 @@ import React from "react";
 import {
   Bell,
   Briefcase,
-  ChevronDown,
   FolderOpen,
   HelpCircle,
   History,
   Images,
   Palette,
   Settings,
+  Shield,
   Sparkles,
   Tag,
   Zap,
@@ -139,6 +139,25 @@ export function Sidebar(props: {
       <NavItem href="/moods" icon={Palette} label="Mood library" active={isActive("/moods")} />
       <NavItem href="/stock" icon={Images} label="Stock library" active={isActive("/stock")} />
 
+      {props.isAdmin ? (
+        <>
+          <p className="mb-1 mt-5 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/60">
+            Operator
+          </p>
+          <Link
+            href="/admin/generations"
+            className={`${NAV_ITEM} ${isActive("/admin") ? NAV_ACTIVE : ""}`}
+          >
+            <Shield
+              size={16}
+              strokeWidth={2}
+              className={isActive("/admin") ? "text-brand" : "text-ink-soft/80"}
+            />
+            <span className="flex-1">Admin console</span>
+          </Link>
+        </>
+      ) : null}
+
       <div className="grow" />
 
       <NavItem href="/settings" icon={Settings} label="Settings" active={isActive("/settings")} />
@@ -161,20 +180,14 @@ export function Sidebar(props: {
         </button>
       </div>
 
-      <div className="mt-2 flex items-center gap-2.5 rounded-2xl bg-white p-2.5 shadow-card">
+      <div className="mt-2 rounded-2xl bg-white p-1.5 shadow-card">
         <AvatarMenu
           authMode={props.authMode}
           email={props.email}
           isAdmin={props.isAdmin}
           dropUp
+          identity={{ primary: `${planName} plan`, secondary: props.email }}
         />
-        <Link href="/billing" className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-semibold leading-tight text-ink">
-            {planName} plan
-          </span>
-          <span className="block truncate text-[11px] text-ink-soft">{props.email}</span>
-        </Link>
-        <ChevronDown size={14} className="rotate-180 text-ink-soft" />
       </div>
     </div>
   );
