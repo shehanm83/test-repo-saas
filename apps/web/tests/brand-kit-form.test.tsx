@@ -154,4 +154,19 @@ describe("BrandKitForm", () => {
     expect(String(patch?.[0])).toContain(`/assets/${logos[1]!.id}`);
     expect(JSON.parse(patch?.[1]?.body as string)).toEqual({ isPrimary: true });
   });
+
+  it("opens a large logo preview and closes it with Escape", () => {
+    const logosWithPreview = [{ ...logos[0]!, url: "/atlas-logo.svg" }, logos[1]!];
+    render(<BrandKitForm brand={brand} assets={logosWithPreview} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Magnify Main lockup on light artwork" }));
+
+    expect(screen.getByRole("dialog", { name: "Main lockup preview" })).toBeInTheDocument();
+    expect(screen.getByAltText("Main lockup on light artwork")).toBeInTheDocument();
+    expect(screen.getByAltText("Main lockup on dark artwork")).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(screen.queryByRole("dialog", { name: "Main lockup preview" })).not.toBeInTheDocument();
+  });
 });
