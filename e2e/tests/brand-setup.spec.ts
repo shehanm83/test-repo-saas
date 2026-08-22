@@ -1,24 +1,46 @@
 import { expect, test } from "@playwright/test";
 
-test("brand setup wizard completes all 6 steps", async ({ page }) => {
-  await page.goto("/onboarding/brand/1-identify");
-  await page.getByLabel(/brand name/i).fill("Atlas Coffee");
-  await page.getByRole("button", { name: /continue|next/i }).click();
+const brandId = "11111111-1111-4111-8111-111111111111";
 
-  await expect(page).toHaveURL(/\/onboarding\/brand\/2-logo/);
-  await page.getByRole("button", { name: /skip|continue|next/i }).first().click();
+test("legacy onboarding opens the single brand screen and autosaves the kit", async ({ page }) => {
+  let createPayload: Record<string, unknown> | null = null;
+  const patches: Record<string, unknown>[] = [];
 
-  await expect(page).toHaveURL(/\/onboarding\/brand\/3-palette/);
-  await page.getByRole("button", { name: /continue|next/i }).click();
+  await page.route("https://fonts.googleapis.com/**", (route) => route.abort());
+  await page.route("**/api/brands", async (route) => {
+    createPayload = (await route.request().postDataJSON()) as Record<string, unknown>;
+    await route.fulfill({ json: { id: brandId } });
+  });
+  await page.route(`**/api/brands/${brandId}`, async (route) => {
+    patches.push((await route.request().postDataJSON()) as Record<string, unknown>);
+    await route.fulfill({ json: { id: brandId } });
+  });
 
-  await expect(page).toHaveURL(/\/onboarding\/brand\/4-fonts/);
-  await page.getByRole("button", { name: /continue|next/i }).click();
+  await page.goto("/onboarding/brand/identify");
+  await expect(page).toHaveURL(/\/brands\/new$/);
+  await expect(page.getByRole("heading", { name: "New brand" })).toBeVisible();
 
-  await expect(page).toHaveURL(/\/onboarding\/brand\/5-voice/);
-  await page.getByRole("button", { name: /continue|next/i }).click();
+  await page.getByLabel("Brand name").fill("Atlas Coffee");
+  await page.getByLabel("Brand name").press("Tab");
 
-  await expect(page).toHaveURL(/\/onboarding\/brand\/6-references/);
-  await page.getByRole("button", { name: /finish|done|complete/i }).click();
+  await expect(page).toHaveURL(new RegExp(`/brands/${brandId}$`));
+  await expect.poll(() => createPayload).toEqual({ name: "Atlas Coffee" });
 
-  await expect(page).toHaveURL(/\/(generate|brands|$)/);
+  await page.getByLabel("Website").fill("atlas.example");
+  await page.getByLabel("Website").press("Tab");
+  await expect.poll(() => patches).toContainEqual({ sourceUrl: "https://atlas.example" });
+
+  await page.getByRole("combobox", { name: "Headline font family" }).click();
+  await page.getByLabel("Search headline fonts").fill("Pacifico");
+  await page.getByRole("option", { name: /Pacifico/i }).click();
+
+  await expect
+    .poll(() => patches)
+    .toContainEqual({
+      fonts: {
+        heading: { family: "Pacifico", weight: "400" },
+        body: { family: "Inter", weight: "400" },
+      },
+    });
+  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
 });

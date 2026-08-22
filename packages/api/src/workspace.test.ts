@@ -26,7 +26,7 @@ vi.mock("@layertone/db", () => ({
   revokeMember: mocks.revokeMember,
 }));
 
-vi.mock("@layertone/shared", () => ({
+vi.mock("@layertone/shared/adapters", () => ({
   createAdapters: () => ({
     auth: {
       setActiveWorkspace: mocks.setActiveWorkspace,

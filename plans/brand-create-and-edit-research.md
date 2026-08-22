@@ -1,6 +1,6 @@
 # Brand kit — "New brand" + "Edit brand": research and enhancement plan
 
-**Status:** Slices A–D implemented. Slice E (URL/logo extraction) and Slice F (form/e2e tests) remain.
+**Status:** Slices A–D and F implemented. Slice E (URL/logo extraction) is intentionally deferred.
 **Scope of this doc:** the create screen (`/brands/new/[step]`) primarily, the edit screen
 (`/brands/[id]`) as the thing it must converge with.
 **Why now:** the brand kit is the input to *every* downstream surface — Quick Create, Campaign
@@ -188,8 +188,8 @@ the renderer, never generated" line already used in the campaign rail.
 | **B — font catalogue** ✅ | One shared curated Google-Fonts catalogue module with verified weights; both screens consume it; server-side validation. | Removes the render-failure class before the UI is rebuilt on top of it. |
 | **C — schema** ✅ | asset role/background/label/is_primary + brand descriptor/voice fields + migration. | Unblocks the UI. |
 | **D — `BrandKitForm`** ✅ | The single-screen create/edit component, create-then-autosave, Tailwind editorial system. Replaces both the wizard and the editor. | The main event. |
-| **E — URL import** | Review-card flow over the existing extractor + "extract from logo" palette. | Highest perceived value; lands on a stable form. |
-| **F — tests** | RTL for the form (validation, autosave, role enforcement), rewrite `e2e/tests/brand-setup.spec.ts` against the real routes. | Current e2e is dead code. |
+| **E — URL import** — deferred | Review-card flow over the existing extractor + "extract from logo" palette. | Highest perceived value; lands on a stable form. |
+| **F — tests** ✅ | RTL for the form (validation, autosave, role enforcement), rewrite `e2e/tests/brand-setup.spec.ts` against the real routes. | Current e2e is dead code. |
 
 ---
 

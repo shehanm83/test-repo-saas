@@ -15,7 +15,10 @@ export function useBrandFontPreview(families: readonly string[], weight?: string
   useEffect(() => {
     const url = brandFontStylesheetUrl(key.split("|").filter(Boolean), weight);
     if (!url) return;
-    if (document.querySelector(`link[data-brand-font="${CSS.escape(url)}"]`)) return;
+    const alreadyLoaded = Array.from(
+      document.querySelectorAll<HTMLLinkElement>("link[data-brand-font]"),
+    ).some((link) => link.dataset.brandFont === url);
+    if (alreadyLoaded) return;
 
     const link = document.createElement("link");
     link.rel = "stylesheet";

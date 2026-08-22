@@ -2,6 +2,7 @@ node_modules/
 dist/
 dist-types/
 .next/
+.next-e2e/
 .open-next/
 .swc/
 .turbo/

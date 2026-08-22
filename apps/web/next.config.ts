@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Playwright uses its own directory so its dev server can run beside a
+  // developer's normal `next dev` process without fighting over the lockfile.
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   experimental: {
     webpackBuildWorker: false,
   },

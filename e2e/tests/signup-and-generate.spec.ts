@@ -1,16 +1,21 @@
 import { expect, test } from "@playwright/test";
 
-test("signup → onboarding → generate → download", async ({ page }) => {
-  await page.goto("/onboarding/brand/identify");
+test("signup → brand kit → generate → download", async ({ page }) => {
+  await page.goto("/brands/new");
   await page.getByLabel(/brand name/i).fill("Test Brand");
-  await page.getByRole("button", { name: /continue|next/i }).click();
+  await page.getByLabel(/brand name/i).press("Tab");
+  await expect(page).toHaveURL(/\/brands\/[0-9a-f-]+$/);
 
   await page.goto("/generate");
   await page.getByLabel(/product name/i).fill("Holiday candle");
   await page.getByRole("button", { name: /add product draft/i }).click();
-  await page.getByLabel(/creative brief/i).fill("Christmas sale 30% off, cozy living room with tree");
+  await page
+    .getByLabel(/creative brief/i)
+    .fill("Christmas sale 30% off, cozy living room with tree");
   await page.getByLabel(/cta/i).fill("Shop now");
-  await expect(page.getByRole("button", { name: /^generate images/i })).toBeEnabled({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: /^generate images/i })).toBeEnabled({
+    timeout: 15_000,
+  });
   await page.getByRole("button", { name: /^generate images/i }).click();
 
   await expect(page).toHaveURL(/\/generations\//, { timeout: 30_000 });
@@ -36,7 +41,11 @@ test("campaign builder submits a mocked campaign package", async ({ page }) => {
       json: {
         blocking: [],
         warnings: [],
-        estimate: { credits: 36, balance: 120, lineItems: [{ label: "Campaign formats", credits: 36 }] },
+        estimate: {
+          credits: 36,
+          balance: 120,
+          lineItems: [{ label: "Campaign formats", credits: 36 }],
+        },
       },
     });
   });
@@ -61,7 +70,9 @@ test("campaign builder submits a mocked campaign package", async ({ page }) => {
   await page.getByRole("button", { name: /instagram story/i }).click();
   await page.getByRole("button", { name: /next/i }).click();
 
-  await expect(page.getByRole("button", { name: /^generate package/i })).toBeEnabled({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: /^generate package/i })).toBeEnabled({
+    timeout: 15_000,
+  });
   await page.getByRole("button", { name: /^generate package/i }).click();
   await expect(page).toHaveURL(/\/generations\/66666666-6666-4666-8666-666666666666/);
 });
