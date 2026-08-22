@@ -46,13 +46,15 @@ export function SampleDesign(props: {
       style={{ background: primary!, padding: props.compact ? 20 : 28 }}
     >
       {props.logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={props.logoUrl}
-          alt=""
-          className="mb-4 max-h-7 w-auto object-contain"
-          style={{ maxWidth: "40%" }}
-        />
+        <div className={`mb-5 flex items-center ${props.compact ? "min-h-20" : "min-h-24"}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={props.logoUrl}
+            alt="Brand logo preview"
+            className={`block w-auto object-contain ${props.compact ? "max-h-20" : "max-h-24"}`}
+            style={{ maxWidth: props.compact ? "82%" : "75%" }}
+          />
+        </div>
       ) : null}
       <p
         className="font-mono uppercase"
