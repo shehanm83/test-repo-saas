@@ -116,14 +116,22 @@ describe("BrandKitForm", () => {
     });
   });
 
-  it("searches verified fonts, selects a rendered family, and autosaves its valid weight", async () => {
+  it("starts with empty font slots and saves once both verified families are selected", async () => {
     render(<BrandKitForm brand={brand} />);
+
+    expect(screen.getAllByText("Choose font")).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("combobox", { name: "Headline font family" }));
     fireEvent.change(screen.getByLabelText("Search headline fonts"), {
       target: { value: "Pacifico" },
     });
     fireEvent.click(screen.getByRole("option", { name: /Pacifico/i }));
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Body font family" }));
+    fireEvent.change(screen.getByLabelText("Search body fonts"), {
+      target: { value: "Inter" },
+    });
+    fireEvent.click(screen.getByRole("option", { name: /Inter/i }));
 
     await waitFor(
       () =>

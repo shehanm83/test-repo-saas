@@ -56,7 +56,8 @@ function FontField(props: {
   value: BrandFontChoice;
   onChange: (choice: BrandFontChoice) => void;
 }) {
-  const weights = findBrandFont(props.value.family)?.weights ?? ["400"];
+  const selectedFont = findBrandFont(props.value.family);
+  const weights = selectedFont?.weights ?? [];
 
   return (
     <div className="rounded-2xl bg-white p-4 shadow-card">
@@ -71,7 +72,7 @@ function FontField(props: {
             props.onChange(
               resolveBrandFont(props.role, {
                 family,
-                weight: props.value.weight,
+                ...(props.value.weight ? { weight: props.value.weight } : {}),
               }),
             )
           }
@@ -79,11 +80,13 @@ function FontField(props: {
         <select
           className="select h-9 text-[13px]"
           aria-label={`${props.label} font weight`}
-          value={props.value.weight}
+          value={selectedFont ? props.value.weight : ""}
+          disabled={!selectedFont}
           onChange={(event) =>
             props.onChange({ family: props.value.family, weight: event.target.value })
           }
         >
+          {!selectedFont ? <option value="">Weight</option> : null}
           {weights.map((weight) => (
             <option key={weight} value={weight}>
               {weight}
@@ -91,20 +94,26 @@ function FontField(props: {
           ))}
         </select>
       </div>
-      <p
-        className="mt-3.5 text-ink"
-        style={{
-          fontFamily: fontStack(
-            props.value.family,
-            props.role === "heading" ? "serif" : "sans-serif",
-          ),
-          fontWeight: Number(props.value.weight),
-          fontSize: props.size,
-          lineHeight: 1.25,
-        }}
-      >
-        {props.sample}
-      </p>
+      {selectedFont ? (
+        <p
+          className="mt-3.5 text-ink"
+          style={{
+            fontFamily: fontStack(
+              props.value.family,
+              props.role === "heading" ? "serif" : "sans-serif",
+            ),
+            fontWeight: Number(props.value.weight),
+            fontSize: props.size,
+            lineHeight: 1.25,
+          }}
+        >
+          {props.sample}
+        </p>
+      ) : (
+        <div className="mt-3.5 grid min-h-[46px] place-items-center rounded-xl border border-dashed border-ink/15 bg-cream/50 px-3 text-center text-[12px] text-ink-soft/60">
+          Choose a {props.label.toLowerCase()} font to preview it.
+        </div>
+      )}
     </div>
   );
 }
@@ -158,8 +167,11 @@ function FontFamilyPicker(props: {
         aria-haspopup="listbox"
         onClick={() => setOpen((current) => !current)}
       >
-        <span className="min-w-0 truncate" style={{ fontFamily: fontStack(props.value) }}>
-          {props.value}
+        <span
+          className={`min-w-0 truncate ${selected ? "" : "text-ink-soft/60"}`}
+          style={selected ? { fontFamily: fontStack(props.value) } : undefined}
+        >
+          {props.value || "Choose font"}
         </span>
         <ChevronDown size={13} className="shrink-0 text-ink-soft" />
       </button>

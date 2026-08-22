@@ -15,13 +15,35 @@ export function SampleDesign(props: {
   logoUrl?: string | null;
   compact?: boolean;
 }) {
-  const [primary = "#242424", secondary = "#f6efe2", accent = "#5e5ce6"] = props.palette;
-  const headline = readableInk(primary);
+  const [primary, secondary, accent] = props.palette;
+  const configured = Boolean(
+    primary && secondary && accent && props.fonts.heading.family && props.fonts.body.family,
+  );
+
+  if (!configured) {
+    return (
+      <div
+        className="grid min-h-[220px] place-items-center rounded-2xl border border-dashed border-ink/15 bg-white px-8 text-center shadow-card"
+        style={{ padding: props.compact ? 20 : 28 }}
+      >
+        <div>
+          <p className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-soft/50">
+            Brand preview
+          </p>
+          <p className="mt-2 text-[12.5px] leading-relaxed text-ink-soft/70">
+            Choose your colours and fonts to see the preview.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const headline = readableInk(primary!);
 
   return (
     <div
       className="overflow-hidden rounded-2xl shadow-card"
-      style={{ background: primary, padding: props.compact ? 20 : 28 }}
+      style={{ background: primary!, padding: props.compact ? 20 : 28 }}
     >
       {props.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -71,8 +93,8 @@ export function SampleDesign(props: {
       <span
         className="mt-4 inline-flex rounded-full px-4 py-2 text-[12.5px] font-semibold"
         style={{
-          background: accent,
-          color: readableInk(accent),
+          background: accent!,
+          color: readableInk(accent!),
           fontFamily: fontStack(props.fonts.body.family),
         }}
       >

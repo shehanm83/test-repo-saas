@@ -116,7 +116,14 @@ export function BrandKitForm(props: { brand?: BrandKitBrand; assets?: BrandKitAs
               palette={draft.palette}
               canExtract={false}
               extracting={false}
-              onChange={(palette) => commit({ palette, paletteConfigured: true })}
+              onChange={(palette) => {
+                const patch = {
+                  palette,
+                  paletteConfigured: palette.slice(0, 3).every(Boolean),
+                };
+                if (palette[0]) commit(patch);
+                else edit(patch);
+              }}
               onExtract={() => undefined}
             />
           </Section>
@@ -124,7 +131,14 @@ export function BrandKitForm(props: { brand?: BrandKitBrand; assets?: BrandKitAs
           <Section title="Typography" hint="Rendered into every image, so only fonts we can fetch.">
             <TypeSection
               fonts={draft.fonts}
-              onChange={(fonts) => commit({ fonts, fontsConfigured: true })}
+              onChange={(fonts) => {
+                const patch = {
+                  fonts,
+                  fontsConfigured: Boolean(fonts.heading.family && fonts.body.family),
+                };
+                if (patch.fontsConfigured) commit(patch);
+                else edit(patch);
+              }}
             />
           </Section>
 

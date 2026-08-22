@@ -21,7 +21,7 @@ export interface BrandKitDraft {
   descriptor: string;
   /** Index 0 is primary, 1 secondary, 2 accent, the rest extras. 3–6 entries. */
   palette: string[];
-  /** Preview defaults are useful, but do not count as brand data until chosen. */
+  /** True once the three required colour roles have been chosen. */
   paletteConfigured: boolean;
   fonts: { heading: BrandFontChoice; body: BrandFontChoice };
   fontsConfigured: boolean;
@@ -66,16 +66,17 @@ export const LOGO_BACKGROUND_LABELS: Record<LogoBackground, string> = {
   any: "Works on anything",
 };
 
-const STARTER_PALETTE = ["#242424", "#f6efe2", "#5e5ce6"];
+const EMPTY_PALETTE = ["", "", ""];
+const EMPTY_FONT: BrandFontChoice = { family: "", weight: "" };
 
 export function emptyDraft(): BrandKitDraft {
   return {
     name: "",
     sourceUrl: "",
     descriptor: "",
-    palette: [...STARTER_PALETTE],
+    palette: [...EMPTY_PALETTE],
     paletteConfigured: false,
-    fonts: { heading: resolveBrandFont("heading"), body: resolveBrandFont("body") },
+    fonts: { heading: { ...EMPTY_FONT }, body: { ...EMPTY_FONT } },
     fontsConfigured: false,
     voiceNotes: "",
     tone: [],
@@ -85,26 +86,28 @@ export function emptyDraft(): BrandKitDraft {
 }
 
 export function draftFromBrand(brand: BrandKitBrand): BrandKitDraft {
-  const palette = brand.palette
+  const storedPalette = brand.palette
     ? [
         brand.palette.primary,
-        brand.palette.secondary,
-        brand.palette.accent,
+        brand.palette.secondary ?? "",
+        brand.palette.accent ?? "",
         ...(brand.palette.extras ?? []),
-      ]
-        .filter((color): color is string => Boolean(color))
-        .slice(0, MAX_PALETTE)
+      ].slice(0, MAX_PALETTE)
     : [];
+  const palette = [...storedPalette];
+  while (palette.length < MIN_PALETTE) palette.push("");
 
   return {
     name: brand.name,
     sourceUrl: brand.sourceUrl ?? "",
     descriptor: brand.descriptor ?? "",
-    palette: palette.length >= MIN_PALETTE ? palette : [...STARTER_PALETTE],
-    paletteConfigured: palette.length >= MIN_PALETTE,
+    palette,
+    paletteConfigured: palette.slice(0, MIN_PALETTE).every(Boolean),
     fonts: {
-      heading: resolveBrandFont("heading", brand.fonts?.heading),
-      body: resolveBrandFont("body", brand.fonts?.body),
+      heading: brand.fonts?.heading
+        ? resolveBrandFont("heading", brand.fonts.heading)
+        : { ...EMPTY_FONT },
+      body: brand.fonts?.body ? resolveBrandFont("body", brand.fonts.body) : { ...EMPTY_FONT },
     },
     fontsConfigured: brand.fonts !== null,
     voiceNotes: brand.voiceNotes ?? "",
@@ -115,8 +118,8 @@ export function draftFromBrand(brand: BrandKitBrand): BrandKitDraft {
 }
 
 /**
- * The PATCH body for /api/brands/[id]. Passing fields keeps the create screen
- * from storing preview defaults that the user never chose.
+ * The PATCH body for /api/brands/[id]. Incomplete colour and font slots stay
+ * local rather than being replaced with made-up brand choices.
  */
 export function toBrandPatch(
   draft: BrandKitDraft,
@@ -135,17 +138,19 @@ export function toBrandPatch(
     ...(includes("name") ? { name: draft.name.trim() } : {}),
     ...(includes("sourceUrl") ? { sourceUrl: normalizeUrl(draft.sourceUrl) } : {}),
     ...(includes("descriptor") ? { descriptor: draft.descriptor.trim() || null } : {}),
-    ...(includes("palette")
+    ...(includes("palette") && primary
       ? {
           palette: {
-            primary: primary ?? "#242424",
+            primary,
             ...(secondary ? { secondary } : {}),
             ...(accent ? { accent } : {}),
-            extras,
+            extras: extras.filter(Boolean),
           },
         }
       : {}),
-    ...(includes("fonts") ? { fonts: draft.fonts } : {}),
+    ...(includes("fonts") && draft.fonts.heading.family && draft.fonts.body.family
+      ? { fonts: draft.fonts }
+      : {}),
     ...(includes("voiceNotes") ? { voiceNotes: draft.voiceNotes } : {}),
     ...(includes("tone", "avoid", "example")
       ? { voice: Object.keys(voice).length ? voice : null }

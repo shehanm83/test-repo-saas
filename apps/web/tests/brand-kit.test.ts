@@ -15,6 +15,12 @@ describe("brand kit draft", () => {
     expect(toBrandPatch(draft, new Set(["name"]))).toEqual({ name: "Atlas Coffee" });
     expect(draft.paletteConfigured).toBe(false);
     expect(draft.fontsConfigured).toBe(false);
+    expect(draft.palette).toEqual(["", "", ""]);
+    expect(draft.fonts).toEqual({
+      heading: { family: "", weight: "" },
+      body: { family: "", weight: "" },
+    });
+    expect(toBrandPatch(draft, new Set(["palette", "fonts"]))).toEqual({});
   });
 
   it("groups the structured voice fields into the API shape", () => {
@@ -34,7 +40,7 @@ describe("brand kit draft", () => {
     });
   });
 
-  it("distinguishes stored brand data from preview fallbacks", () => {
+  it("keeps missing brand colours and fonts as empty slots", () => {
     const draft = draftFromBrand({
       id: "brand-1",
       name: "Atlas",
@@ -47,8 +53,27 @@ describe("brand kit draft", () => {
     });
 
     expect(draft.palette).toHaveLength(3);
+    expect(draft.palette).toEqual(["", "", ""]);
     expect(draft.paletteConfigured).toBe(false);
     expect(draft.fontsConfigured).toBe(false);
+    expect(draft.fonts.heading.family).toBe("");
+    expect(draft.fonts.body.family).toBe("");
+  });
+
+  it("preserves empty colour roles instead of shifting later colours forward", () => {
+    const draft = draftFromBrand({
+      id: "brand-1",
+      name: "Atlas",
+      sourceUrl: null,
+      descriptor: null,
+      voiceNotes: null,
+      voice: null,
+      palette: { primary: "#111111", accent: "#ff5500" },
+      fonts: null,
+    });
+
+    expect(draft.palette).toEqual(["#111111", "", "#ff5500"]);
+    expect(draft.paletteConfigured).toBe(false);
   });
 });
 
