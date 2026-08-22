@@ -10,9 +10,16 @@ const mocks = vi.hoisted(() => ({
     ...input,
   })),
   updateBrand: vi.fn(async () => ({ id: "b1" })),
-  addBrandAsset: vi.fn(async () => ({ id: "asset_1" })),
+  addBrandAsset: vi.fn(async (_db: unknown, _w: string, asset: object) => ({
+    id: "asset_1",
+    ...asset,
+  })),
   listBrandAssets: vi.fn(async () => [{ id: "asset_1" }]),
-  deleteBrandAsset: vi.fn(async () => ({ id: "asset_1", s3Key: "logo.png" })),
+  deleteBrandAsset: vi.fn(async () => ({ id: "asset_1", s3Key: "logo.png", isPrimary: true })),
+  updateBrandAsset: vi.fn(async (_db: unknown, _w: string, _b: string, id: string, patch: object) => ({
+    id,
+    ...patch,
+  })),
   getBrandQuotaStatus: vi.fn(async () => ({ used: 0, limit: 3 })),
   putBytes: vi.fn(async () => undefined),
   deleteObject: vi.fn(async () => undefined),
@@ -35,6 +42,7 @@ vi.mock("@layertone/db", () => ({
   addBrandAsset: mocks.addBrandAsset,
   listBrandAssets: mocks.listBrandAssets,
   deleteBrandAsset: mocks.deleteBrandAsset,
+  updateBrandAsset: mocks.updateBrandAsset,
   getBrandQuotaStatus: mocks.getBrandQuotaStatus,
 }));
 
@@ -129,6 +137,7 @@ describe("BrandApi", () => {
   beforeEach(() => {
     mocks.getBrandQuotaStatus.mockResolvedValue({ used: 0, limit: 3 });
     mocks.getBrand.mockResolvedValue({ id: "b1", name: "Brand" } as never);
+    mocks.listBrandAssets.mockResolvedValue([{ id: "asset_1" }] as never);
   });
 
   it("creates a brand", async () => {
@@ -198,7 +207,7 @@ describe("BrandApi", () => {
     ).rejects.toMatchObject({ code: "validation.invalid_image", httpStatus: 415 });
   });
 
-  it("repoints the brand logo key when the named logo asset is deleted", async () => {
+  it("promotes the next logo when the primary one is deleted", async () => {
     mocks.getBrand.mockResolvedValue({ id: "b1", logoS3Key: "logo.png" } as never);
     mocks.listBrandAssets.mockResolvedValue([
       { id: "asset_2", kind: "logo", s3Key: "other-logo.png" },
@@ -206,10 +215,65 @@ describe("BrandApi", () => {
 
     await api.deleteAsset("w1", "b1", "asset_1");
 
-    expect(mocks.updateBrand).toHaveBeenCalledWith(expect.anything(), "w1", "b1", {
-      logoS3Key: "other-logo.png",
-    });
+    expect(mocks.updateBrandAsset).toHaveBeenCalledWith(
+      expect.anything(),
+      "w1",
+      "b1",
+      "asset_2",
+      { isPrimary: true },
+    );
     expect(mocks.deleteObject).toHaveBeenCalledWith("logo.png");
+  });
+
+  it("clears the logo key when the last logo is deleted", async () => {
+    mocks.getBrand.mockResolvedValue({ id: "b1", logoS3Key: "logo.png" } as never);
+    mocks.listBrandAssets.mockResolvedValue([
+      { id: "asset_9", kind: "reference", s3Key: "ref.png" },
+    ] as never);
+
+    await api.deleteAsset("w1", "b1", "asset_1");
+
+    expect(mocks.updateBrand).toHaveBeenCalledWith(expect.anything(), "w1", "b1", {
+      logoS3Key: null,
+    });
+  });
+
+  it("makes the first logo primary and describes it", async () => {
+    mocks.listBrandAssets.mockResolvedValue([] as never);
+
+    const result = await api.uploadLogo(
+      "w1",
+      "b1",
+      { bytes: PNG_BYTES, mimeType: "image/png", filename: "mark.png" },
+      { variant: "mark", background: "dark", label: "White mark" },
+    );
+
+    expect(result).toMatchObject({
+      isPrimary: true,
+      variant: "mark",
+      background: "dark",
+      label: "White mark",
+    });
+    expect(mocks.updateBrand).toHaveBeenCalledWith(
+      expect.anything(),
+      "w1",
+      "b1",
+      expect.objectContaining({ logoS3Key: expect.stringContaining(".png") }),
+    );
+  });
+
+  it("leaves the primary slot alone for a second logo", async () => {
+    mocks.listBrandAssets.mockResolvedValue([
+      { id: "asset_1", kind: "logo", isPrimary: true },
+    ] as never);
+
+    const result = await api.uploadLogo("w1", "b1", {
+      bytes: PNG_BYTES,
+      mimeType: "image/png",
+      filename: "alt.png",
+    });
+
+    expect(result.isPrimary).toBe(false);
   });
 
   it("normalizes brand fonts to a weight the renderer can fetch", async () => {

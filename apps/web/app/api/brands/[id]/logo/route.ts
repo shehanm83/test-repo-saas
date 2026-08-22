@@ -26,11 +26,20 @@ export async function POST(
   const adapters = createServerAdapters();
   const api = new BrandApi(loadConfig(), adapters as never);
   try {
-    const payload = await api.uploadLogo(session.workspaceId, id, {
-      bytes: Buffer.from(await file.arrayBuffer()),
-      mimeType: file.type,
-      filename: file.name,
-    });
+    const payload = await api.uploadLogo(
+      session.workspaceId,
+      id,
+      {
+        bytes: Buffer.from(await file.arrayBuffer()),
+        mimeType: file.type,
+        filename: file.name,
+      },
+      {
+        ...(formData.get("variant") ? { variant: formData.get("variant") } : {}),
+        ...(formData.get("background") ? { background: formData.get("background") } : {}),
+        ...(formData.get("label") ? { label: formData.get("label") } : {}),
+      },
+    );
     return NextResponse.json({
       ...payload,
       kind: "logo",

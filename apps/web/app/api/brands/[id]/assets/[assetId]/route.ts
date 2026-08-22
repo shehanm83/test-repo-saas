@@ -7,6 +7,28 @@ import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
 import { apiError } from "@/lib/server/api-error";
 
+export async function PATCH(
+  request: Request,
+  props: { params: Promise<{ id: string; assetId: string }> },
+) {
+  const { id, assetId } = await props.params;
+  const { session } = await getSessionWorkspace();
+  if (!session.workspaceId) {
+    return NextResponse.json({ error: "no-workspace" }, { status: 400 });
+  }
+
+  const api = new BrandApi(loadConfig(), createServerAdapters() as never);
+  try {
+    const asset = await api.updateAsset(session.workspaceId, id, assetId, await request.json());
+    if (!asset) {
+      return NextResponse.json({ error: "not-found" }, { status: 404 });
+    }
+    return NextResponse.json(asset);
+  } catch (error) {
+    return apiError(error);
+  }
+}
+
 export async function DELETE(
   _request: Request,
   props: { params: Promise<{ id: string; assetId: string }> },

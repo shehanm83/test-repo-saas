@@ -24,6 +24,10 @@ export async function GET(
     assets.map(async (asset) => ({
       id: asset.id,
       kind: asset.kind,
+      variant: asset.variant,
+      background: asset.background,
+      label: asset.label,
+      isPrimary: asset.isPrimary,
       s3Key: asset.s3Key,
       mimeType: asset.mimeType,
       width: asset.width,

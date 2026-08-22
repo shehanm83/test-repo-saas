@@ -83,6 +83,43 @@ export async function listBrandAssets(db: Db, workspaceId: string, brandId: stri
   );
 }
 
+export async function updateBrandAsset(
+  db: Db,
+  workspaceId: string,
+  brandId: string,
+  assetId: string,
+  patch: Partial<typeof brandAssets.$inferInsert>,
+) {
+  return withWorkspace(db, workspaceId, async (tx) => {
+    // The partial unique index allows one primary logo per brand, so the
+    // outgoing primary has to stand down inside the same transaction.
+    if (patch.isPrimary) {
+      await tx
+        .update(brandAssets)
+        .set({ isPrimary: false })
+        .where(and(eq(brandAssets.brandId, brandId), eq(brandAssets.isPrimary, true)));
+    }
+
+    const [asset] = await tx
+      .update(brandAssets)
+      .set(patch)
+      .where(
+        and(
+          eq(brandAssets.id, assetId),
+          eq(brandAssets.brandId, brandId),
+          eq(brandAssets.workspaceId, workspaceId),
+        ),
+      )
+      .returning();
+
+    if (asset?.isPrimary) {
+      await tx.update(brands).set({ logoS3Key: asset.s3Key }).where(eq(brands.id, brandId));
+    }
+
+    return asset ?? null;
+  });
+}
+
 export async function deleteBrandAsset(
   db: Db,
   workspaceId: string,

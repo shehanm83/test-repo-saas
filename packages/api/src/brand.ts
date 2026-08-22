@@ -10,6 +10,7 @@ import {
   listBrandAssets,
   listBrands,
   updateBrand,
+  updateBrandAsset,
 } from "@layertone/db";
 import type { Adapters } from "@layertone/shared/adapters";
 import type { Config } from "@layertone/shared/config";
@@ -70,6 +71,26 @@ const BrandUpdateInput = z.object({
     })
     .optional(),
   voiceNotes: z.string().max(2000).optional(),
+  descriptor: z.string().max(200).nullable().optional(),
+  voice: z
+    .object({
+      tone: z.array(z.string().max(40)).max(8).optional(),
+      avoid: z.array(z.string().max(40)).max(8).optional(),
+      example: z.string().max(280).optional(),
+    })
+    .nullable()
+    .optional(),
+});
+
+/** How a logo is described once it is in the kit. */
+const LogoMeta = z.object({
+  variant: z.enum(["lockup", "mark", "wordmark", "other"]).optional(),
+  background: z.enum(["light", "dark", "any"]).optional(),
+  label: z.string().max(80).nullable().optional(),
+});
+
+const BrandAssetUpdateInput = LogoMeta.extend({
+  isPrimary: z.literal(true).optional(),
 });
 
 const MAX_ASSET_BYTES = 10 * 1024 * 1024;
@@ -153,6 +174,15 @@ export class BrandApi {
         }
       : undefined;
     const fonts = args.fonts;
+    // exactOptionalPropertyTypes: drop absent keys rather than storing undefined.
+    const voice =
+      args.voice == null
+        ? args.voice
+        : {
+            ...(args.voice.tone ? { tone: args.voice.tone } : {}),
+            ...(args.voice.avoid ? { avoid: args.voice.avoid } : {}),
+            ...(args.voice.example ? { example: args.voice.example } : {}),
+          };
 
     const patch = {
       ...(args.name ? { name: args.name } : {}),
@@ -160,6 +190,8 @@ export class BrandApi {
       ...(palette ? { palette } : {}),
       ...(fonts ? { fonts } : {}),
       ...(args.voiceNotes !== undefined ? { voiceNotes: args.voiceNotes } : {}),
+      ...(args.descriptor !== undefined ? { descriptor: args.descriptor } : {}),
+      ...(args.voice !== undefined ? { voice } : {}),
     };
 
     if (Object.keys(patch).length === 0) {
@@ -173,7 +205,9 @@ export class BrandApi {
     workspaceId: string,
     brandId: string,
     file: { bytes: Buffer; mimeType: string; filename: string },
+    meta?: unknown,
   ) {
+    const described = LogoMeta.parse(meta ?? {});
     assertWithinSizeLimit(file.bytes);
 
     const assetId = randomUUID();
@@ -210,12 +244,20 @@ export class BrandApi {
     }
 
     await this.adapters.storage.putBytes(storedKey, storedBytes, storedMime);
-    await updateBrand(this.db(), workspaceId, brandId, { logoS3Key: storedKey });
+
+    // The first logo a brand gets is the one the renderer will reach for.
+    const existing = await listBrandAssets(this.db(), workspaceId, brandId);
+    const isPrimary = !existing.some((candidate) => candidate.isPrimary);
+
     const asset = await addBrandAsset(this.db(), workspaceId, {
       id: assetId,
       workspaceId,
       brandId,
       kind: "logo",
+      variant: described.variant ?? "lockup",
+      background: described.background ?? "any",
+      label: described.label ?? null,
+      isPrimary,
       s3Key: storedKey,
       mimeType: storedMime,
       width,
@@ -224,7 +266,21 @@ export class BrandApi {
       embedding: null,
     });
 
-    return { id: asset.id, s3Key: storedKey, mimeType: storedMime, width, height };
+    if (isPrimary) {
+      await updateBrand(this.db(), workspaceId, brandId, { logoS3Key: storedKey });
+    }
+
+    return {
+      id: asset.id,
+      s3Key: storedKey,
+      mimeType: storedMime,
+      width,
+      height,
+      variant: asset.variant,
+      background: asset.background,
+      label: asset.label,
+      isPrimary: asset.isPrimary,
+    };
   }
 
   async uploadReference(
@@ -268,17 +324,29 @@ export class BrandApi {
     return listBrandAssets(this.db(), workspaceId, brandId);
   }
 
+  async updateAsset(workspaceId: string, brandId: string, assetId: string, input: unknown) {
+    const patch = BrandAssetUpdateInput.parse(input);
+    return updateBrandAsset(this.db(), workspaceId, brandId, assetId, {
+      ...(patch.variant ? { variant: patch.variant } : {}),
+      ...(patch.background ? { background: patch.background } : {}),
+      ...(patch.label !== undefined ? { label: patch.label } : {}),
+      ...(patch.isPrimary ? { isPrimary: true } : {}),
+    });
+  }
+
   async deleteAsset(workspaceId: string, brandId: string, assetId: string) {
     const asset = await deleteBrandAsset(this.db(), workspaceId, brandId, assetId);
     if (!asset) return asset;
 
     const brand = await getBrand(this.db(), workspaceId, brandId);
-    if (brand?.logoS3Key === asset.s3Key) {
+    if (asset.isPrimary || brand?.logoS3Key === asset.s3Key) {
       const remaining = await listBrandAssets(this.db(), workspaceId, brandId);
       const nextLogo = remaining.find((candidate) => candidate.kind === "logo");
-      await updateBrand(this.db(), workspaceId, brandId, {
-        logoS3Key: nextLogo?.s3Key ?? null,
-      });
+      if (nextLogo) {
+        await updateBrandAsset(this.db(), workspaceId, brandId, nextLogo.id, { isPrimary: true });
+      } else {
+        await updateBrand(this.db(), workspaceId, brandId, { logoS3Key: null });
+      }
     }
 
     if (asset.s3Key) {

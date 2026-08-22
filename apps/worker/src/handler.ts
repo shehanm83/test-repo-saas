@@ -339,9 +339,10 @@ export class GenerationWorker {
 
     const commercial = settings.commercial;
     const selectedLogoIds = commercial?.brand_logo_asset_ids ?? [];
+    const useBrandLogo = settings.flags?.useBrandLogo ?? true;
     let selectedLogoAssets: LogoAssetRow[] = [];
     let selectedLogoRefs: { s3Key: string; role: "brand_reference"; weight: number }[] = [];
-    if (gen.brandId && (settings.flags?.useBrandLogo ?? true) && selectedLogoIds.length > 0) {
+    if (gen.brandId && useBrandLogo && selectedLogoIds.length > 0) {
       selectedLogoAssets = await dbAdmin
         .select({
           s3Key: brandAssets.s3Key,
@@ -365,6 +366,29 @@ export class GenerationWorker {
           weight: 0.95,
         }));
       }
+    }
+
+    // Nothing named a logo, so fall back to the one the brand kit marks primary.
+    // Overlay only — an unrequested logo should not steer the image model.
+    let primaryLogoAsset: LogoAssetRow | undefined;
+    if (gen.brandId && useBrandLogo && selectedLogoAssets.length === 0) {
+      [primaryLogoAsset] = await dbAdmin
+        .select({
+          s3Key: brandAssets.s3Key,
+          mimeType: brandAssets.mimeType,
+          width: brandAssets.width,
+          height: brandAssets.height,
+        })
+        .from(brandAssets)
+        .where(
+          and(
+            eq(brandAssets.workspaceId, job.workspaceId),
+            eq(brandAssets.brandId, gen.brandId),
+            eq(brandAssets.kind, "logo"),
+            eq(brandAssets.isPrimary, true),
+          ),
+        )
+        .limit(1);
     }
 
     // Brand grounding via embedding similarity. Logo assets are handled explicitly above.
@@ -561,7 +585,10 @@ export class GenerationWorker {
     await this.adapters.storage.putBytes(bgKey, imageRes.imageBytes, "image/png");
 
     // Render template overlay
-    const logoOverlay = await loadRendererLogo(this.adapters.storage, selectedLogoAssets[0]);
+    const logoOverlay = await loadRendererLogo(
+      this.adapters.storage,
+      selectedLogoAssets[0] ?? primaryLogoAsset,
+    );
     const overlaySlots = quickPrompt?.overlaySlots;
     const renderSlots = {
       headline: overlaySlots?.headline ?? gen.brief,

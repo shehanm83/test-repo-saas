@@ -134,6 +134,13 @@
       "when": 1779840000000,
       "tag": "0019_quick_create_strict_contain_template",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1779926400000,
+      "tag": "0020_brand_kit",
+      "breakpoints": true
     }
   ]
 }
