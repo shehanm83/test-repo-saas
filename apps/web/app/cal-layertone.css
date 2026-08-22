@@ -2670,6 +2670,28 @@ hr {
     radial-gradient(circle at 78% 22%, rgba(255, 255, 255, 0.44), transparent 28%);
 }
 
+.brand-card__logo {
+  position: absolute;
+  inset: 14px 18px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(7px);
+}
+
+.brand-card__logo img {
+  display: block;
+  width: auto;
+  max-width: 82%;
+  max-height: 68px;
+  object-fit: contain;
+}
+
 .brand-card__mark {
   position: absolute;
   left: 18px;
@@ -2696,6 +2718,10 @@ hr {
   padding: 36px 18px 18px;
   display: grid;
   gap: 12px;
+}
+
+.brand-card__body--with-logo {
+  padding-top: 18px;
 }
 
 .brand-card__title-row {

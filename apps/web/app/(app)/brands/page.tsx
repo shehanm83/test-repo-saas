@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { createDb, listBrands } from "@layertone/db";
 import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import { I } from "@/components/icons";
 import { getSessionWorkspace } from "@/lib/auth/server";
@@ -13,11 +14,34 @@ function dot(id: string): string {
   return DOT_COLORS[h % DOT_COLORS.length]!;
 }
 
+function createStorage(config: ReturnType<typeof loadConfig>) {
+  return new S3StorageAdapter({
+    region: config.storage.region,
+    bucket: config.storage.bucketApp,
+    forcePathStyle: config.storage.mode === "minio",
+    ...(config.storage.endpoint ? { endpoint: config.storage.endpoint } : {}),
+    ...(config.storage.accessKeyId ? { accessKeyId: config.storage.accessKeyId } : {}),
+    ...(config.storage.secretAccessKey ? { secretAccessKey: config.storage.secretAccessKey } : {}),
+  });
+}
+
 export default async function BrandsPage() {
   const { session } = await getSessionWorkspace();
-  const brands = session.workspaceId
-    ? await listBrands(createDb(loadConfig().db.url, "app_user"), session.workspaceId)
+  const config = loadConfig();
+  const brandRows = session.workspaceId
+    ? await listBrands(createDb(config.db.url, "app_user"), session.workspaceId)
     : [];
+  const storage = createStorage(config);
+  const brands = await Promise.all(
+    brandRows.map(async (brand) => {
+      if (!brand.logoS3Key) return { ...brand, logoUrl: null };
+      try {
+        return { ...brand, logoUrl: await storage.getSignedUrl(brand.logoS3Key, 60 * 60) };
+      } catch {
+        return { ...brand, logoUrl: null };
+      }
+    }),
+  );
 
   return (
     <div className="page page--wide brand-page">
@@ -80,17 +104,26 @@ export default async function BrandsPage() {
             return (
               <Link key={brand.id} className="brand-card" href={`/brands/${brand.id}`}>
                 <div className="brand-card__cover" style={{ background: heroBg }}>
-                  <span
-                    className="brand-card__mark"
-                    style={{
-                      background: palColors[0] ?? dot(brand.id),
-                      color: palColors[2] ?? "white",
-                    }}
-                  >
-                    <span translate="no">{brand.name.slice(0, 2).toUpperCase()}</span>
-                  </span>
+                  {brand.logoUrl ? (
+                    <span className="brand-card__logo">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={brand.logoUrl} alt={`${brand.name} logo`} />
+                    </span>
+                  ) : (
+                    <span
+                      className="brand-card__mark"
+                      style={{
+                        background: palColors[0] ?? dot(brand.id),
+                        color: palColors[2] ?? "white",
+                      }}
+                    >
+                      <span translate="no">{brand.name.slice(0, 2).toUpperCase()}</span>
+                    </span>
+                  )}
                 </div>
-                <div className="brand-card__body">
+                <div
+                  className={`brand-card__body ${brand.logoUrl ? "brand-card__body--with-logo" : ""}`}
+                >
                   <div className="brand-card__title-row">
                     <h2>{brand.name}</h2>
                     <I.ArrowRight size={15} />
