@@ -3,6 +3,7 @@ export const CODES = {
   AUTH_INSUFFICIENT_ROLE: "auth.insufficient_role",
   BILLING_INSUFFICIENT_CREDITS: "billing.insufficient_credits",
   BILLING_WORKSPACE_READ_ONLY: "billing.workspace_read_only",
+  BILLING_BRAND_QUOTA_EXCEEDED: "billing.brand_quota_exceeded",
   GENERATION_MODEL_UNAVAILABLE: "generation.model_unavailable",
   GENERATION_TEMPLATE_NOT_FOUND: "generation.template_not_found",
   GENERATION_CONCURRENT_CAP: "generation.concurrent_cap",

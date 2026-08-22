@@ -5,6 +5,7 @@ import { loadConfig } from "@layertone/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
+import { apiError } from "@/lib/server/api-error";
 
 export async function GET(
   _request: Request,
@@ -51,14 +52,18 @@ export async function POST(
 
   const adapters = createServerAdapters();
   const api = new BrandApi(loadConfig(), adapters as never);
-  const payload = await api.uploadReference(session.workspaceId, id, {
-    bytes: Buffer.from(await file.arrayBuffer()),
-    mimeType: file.type,
-    filename: file.name,
-  });
-  const s3Key = (payload as { s3Key?: string }).s3Key;
-  return NextResponse.json({
-    ...payload,
-    url: s3Key ? await adapters.storage.getSignedUrl(s3Key, 60 * 60).catch(() => null) : null,
-  });
+  try {
+    const payload = await api.uploadReference(session.workspaceId, id, {
+      bytes: Buffer.from(await file.arrayBuffer()),
+      mimeType: file.type,
+      filename: file.name,
+    });
+    const s3Key = (payload as { s3Key?: string }).s3Key;
+    return NextResponse.json({
+      ...payload,
+      url: s3Key ? await adapters.storage.getSignedUrl(s3Key, 60 * 60).catch(() => null) : null,
+    });
+  } catch (error) {
+    return apiError(error);
+  }
 }

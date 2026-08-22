@@ -6,13 +6,17 @@ import {
   createDb,
   deleteBrandAsset,
   getBrand,
+  getBrandQuotaStatus,
   listBrandAssets,
   listBrands,
   updateBrand,
 } from "@layertone/db";
 import type { Adapters } from "@layertone/shared/adapters";
 import type { Config } from "@layertone/shared/config";
+import { CODES } from "@layertone/shared/errors/codes";
+import { AppError } from "@layertone/shared/errors/app-error";
 import { keys } from "@layertone/storage";
+import { fileTypeFromBuffer } from "file-type";
 import { z } from "zod";
 import type { UrlExtraction } from "./url-extract";
 
@@ -41,21 +45,35 @@ const BrandUpdateInput = z.object({
   voiceNotes: z.string().max(2000).optional(),
 });
 
-const RASTER_IMAGE_EXTENSIONS: Record<string, { ext: "png" | "jpg" | "webp"; mimeType: string }> = {
-  "image/png": { ext: "png", mimeType: "image/png" },
-  "image/jpeg": { ext: "jpg", mimeType: "image/jpeg" },
-  "image/webp": { ext: "webp", mimeType: "image/webp" },
-};
+const MAX_ASSET_BYTES = 10 * 1024 * 1024;
+const MAX_LOGO_LONG_EDGE = 2048;
+const MAX_REFERENCE_LONG_EDGE = 2048;
 
-function rasterImageStorage(file: { mimeType: string; filename: string }) {
-  const normalizedMime = file.mimeType.toLowerCase();
-  if (RASTER_IMAGE_EXTENSIONS[normalizedMime]) return RASTER_IMAGE_EXTENSIONS[normalizedMime];
+/** Raster formats we accept for brand uploads, decided by magic bytes — never by the client. */
+const ALLOWED_RASTER_MIMES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
-  const name = file.filename.toLowerCase();
-  if (name.endsWith(".png")) return RASTER_IMAGE_EXTENSIONS["image/png"];
-  if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return RASTER_IMAGE_EXTENSIONS["image/jpeg"];
-  if (name.endsWith(".webp")) return RASTER_IMAGE_EXTENSIONS["image/webp"];
-  return null;
+function isSvgUpload(file: { mimeType: string; filename: string }): boolean {
+  return (
+    file.mimeType.toLowerCase() === "image/svg+xml" ||
+    file.filename.toLowerCase().endsWith(".svg")
+  );
+}
+
+async function assertRasterImage(bytes: Buffer): Promise<void> {
+  const sniffed = await fileTypeFromBuffer(bytes);
+  if (!sniffed || !ALLOWED_RASTER_MIMES.has(sniffed.mime)) {
+    throw new AppError(
+      CODES.VALIDATION_INVALID_IMAGE,
+      "That doesn't look like a supported image (PNG, JPG, WebP, or SVG).",
+      415,
+    );
+  }
+}
+
+function assertWithinSizeLimit(bytes: Buffer): void {
+  if (bytes.byteLength > MAX_ASSET_BYTES) {
+    throw new AppError(CODES.VALIDATION_FILE_TOO_LARGE, "File is too large (max 10 MB).", 413);
+  }
 }
 
 export class BrandApi {
@@ -78,6 +96,19 @@ export class BrandApi {
 
   async create(workspaceId: string, input: unknown) {
     const args = BrandCreateInput.parse(input);
+
+    const quota = await getBrandQuotaStatus(this.db(), workspaceId);
+    if (quota.used >= quota.limit) {
+      throw new AppError(
+        CODES.BILLING_BRAND_QUOTA_EXCEEDED,
+        quota.limit === 1
+          ? "Your plan includes one brand. Upgrade to add more."
+          : `Your plan includes ${quota.limit} brands. Upgrade to add more.`,
+        403,
+        { used: quota.used, limit: quota.limit },
+      );
+    }
+
     return createBrand(this.db(), workspaceId, {
       name: args.name,
       ...(args.sourceUrl ? { sourceUrl: args.sourceUrl } : {}),
@@ -127,32 +158,42 @@ export class BrandApi {
     brandId: string,
     file: { bytes: Buffer; mimeType: string; filename: string },
   ) {
-    if (file.bytes.byteLength > 10 * 1024 * 1024) {
-      throw new Error("file-too-large");
-    }
+    assertWithinSizeLimit(file.bytes);
 
+    const assetId = randomUUID();
     let storedKey: string;
     let storedMime: string;
+    let storedBytes: Buffer;
     let width: number | null = null;
     let height: number | null = null;
-    const assetId = randomUUID();
 
-    if (file.mimeType === "image/svg+xml" || file.filename.endsWith(".svg")) {
-      const { sanitizeSvg } = await import("./sanitize/svg");
+    if (isSvgUpload(file)) {
+      const { sanitizeSvg, svgDimensions } = await import("./sanitize/svg");
       const cleaned = sanitizeSvg(file.bytes.toString("utf8"));
+      const dimensions = svgDimensions(cleaned);
+      width = dimensions?.width ?? null;
+      height = dimensions?.height ?? null;
       storedKey = keys.brandAsset(workspaceId, brandId, assetId, "svg");
       storedMime = "image/svg+xml";
-      await this.adapters.storage.putBytes(storedKey, Buffer.from(cleaned, "utf8"), storedMime);
+      storedBytes = Buffer.from(cleaned, "utf8");
     } else {
-      const storage = rasterImageStorage(file);
-      if (!storage) {
-        throw new Error("unsupported-logo-format");
-      }
-      storedKey = keys.brandAsset(workspaceId, brandId, assetId, storage.ext);
-      storedMime = storage.mimeType;
-      await this.adapters.storage.putBytes(storedKey, file.bytes, storedMime);
+      await assertRasterImage(file.bytes);
+      // Re-encode to strip EXIF and any trailing payload, and to learn the real
+      // aspect ratio — the renderer composites the logo at these dimensions, so a
+      // missing size silently squashes every wordmark into a square.
+      const { reencodeImage } = await import("./sanitize/image");
+      const reencoded = await reencodeImage(file.bytes, {
+        format: "png",
+        maxLongEdge: MAX_LOGO_LONG_EDGE,
+      });
+      storedKey = keys.brandAsset(workspaceId, brandId, assetId, "png");
+      storedMime = reencoded.mimeType;
+      storedBytes = reencoded.bytes;
+      width = reencoded.width;
+      height = reencoded.height;
     }
 
+    await this.adapters.storage.putBytes(storedKey, storedBytes, storedMime);
     await updateBrand(this.db(), workspaceId, brandId, { logoS3Key: storedKey });
     const asset = await addBrandAsset(this.db(), workspaceId, {
       id: assetId,
@@ -163,7 +204,7 @@ export class BrandApi {
       mimeType: storedMime,
       width,
       height,
-      bytes: file.bytes.byteLength,
+      bytes: storedBytes.byteLength,
       embedding: null,
     });
 
@@ -175,33 +216,18 @@ export class BrandApi {
     brandId: string,
     file: { bytes: Buffer; mimeType: string; filename: string },
   ) {
+    assertWithinSizeLimit(file.bytes);
+    await assertRasterImage(file.bytes);
+
     const assetId = randomUUID();
-    const storage = rasterImageStorage(file);
-    if (!storage) {
-      throw new Error("unsupported-reference-format");
-    }
+    const { reencodeImage } = await import("./sanitize/image");
+    const reencoded = await reencodeImage(file.bytes, {
+      format: "png",
+      maxLongEdge: MAX_REFERENCE_LONG_EDGE,
+    });
 
-    let bytes = file.bytes;
-    let mimeType = storage.mimeType;
-    let width: number | null = null;
-    let height: number | null = null;
-    let ext = storage.ext;
-
-    try {
-      const { reencodeImage } = await import("./sanitize/image");
-      const reencoded = await reencodeImage(file.bytes, { format: "png", maxLongEdge: 2048 });
-      bytes = reencoded.bytes;
-      mimeType = reencoded.mimeType;
-      width = reencoded.width;
-      height = reencoded.height;
-      ext = "png";
-    } catch {
-      // In dev builds sharp can be unavailable. Store the original user image so
-      // brand setup remains functional; production installs should re-encode.
-    }
-
-    const storedKey = keys.brandAsset(workspaceId, brandId, assetId, ext);
-    await this.adapters.storage.putBytes(storedKey, bytes, mimeType);
+    const storedKey = keys.brandAsset(workspaceId, brandId, assetId, "png");
+    await this.adapters.storage.putBytes(storedKey, reencoded.bytes, reencoded.mimeType);
 
     const { description } = await this.adapters.ai.describeImage(storedKey);
     const { vector: embedding } = await this.adapters.ai
@@ -214,10 +240,10 @@ export class BrandApi {
       brandId,
       kind: "reference",
       s3Key: storedKey,
-      mimeType,
-      width,
-      height,
-      bytes: bytes.byteLength,
+      mimeType: reencoded.mimeType,
+      width: reencoded.width,
+      height: reencoded.height,
+      bytes: reencoded.bytes.byteLength,
       embedding,
     });
   }
@@ -228,7 +254,18 @@ export class BrandApi {
 
   async deleteAsset(workspaceId: string, brandId: string, assetId: string) {
     const asset = await deleteBrandAsset(this.db(), workspaceId, brandId, assetId);
-    if (asset?.s3Key) {
+    if (!asset) return asset;
+
+    const brand = await getBrand(this.db(), workspaceId, brandId);
+    if (brand?.logoS3Key === asset.s3Key) {
+      const remaining = await listBrandAssets(this.db(), workspaceId, brandId);
+      const nextLogo = remaining.find((candidate) => candidate.kind === "logo");
+      await updateBrand(this.db(), workspaceId, brandId, {
+        logoS3Key: nextLogo?.s3Key ?? null,
+      });
+    }
+
+    if (asset.s3Key) {
       await this.adapters.storage.delete(asset.s3Key).catch(() => undefined);
     }
     return asset;

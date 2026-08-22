@@ -1,7 +1,7 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 
 import type { Db } from "../client";
-import { brandAssets, brands } from "../schema";
+import { brandAssets, brands, workspaces } from "../schema";
 import { withWorkspace } from "../with-workspace";
 
 export async function listBrands(db: Db, workspaceId: string) {
@@ -14,6 +14,21 @@ export async function getBrand(db: Db, workspaceId: string, brandId: string) {
   return withWorkspace(db, workspaceId, async (tx) => {
     const [brand] = await tx.select().from(brands).where(eq(brands.id, brandId));
     return brand ?? null;
+  });
+}
+
+/** Brands already created against the workspace's plan allowance. */
+export async function getBrandQuotaStatus(
+  db: Db,
+  workspaceId: string,
+): Promise<{ used: number; limit: number }> {
+  return withWorkspace(db, workspaceId, async (tx) => {
+    const [used] = await tx.select({ value: count() }).from(brands);
+    const [workspace] = await tx
+      .select({ brandQuota: workspaces.brandQuota })
+      .from(workspaces)
+      .where(eq(workspaces.id, workspaceId));
+    return { used: Number(used?.value ?? 0), limit: workspace?.brandQuota ?? 0 };
   });
 }
 

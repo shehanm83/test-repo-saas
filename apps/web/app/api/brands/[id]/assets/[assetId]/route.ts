@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { and, brandAssets, createDb, eq } from "@layertone/db";
+import { BrandApi } from "@layertone/api/brand";
 import { loadConfig } from "@layertone/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
+import { apiError } from "@/lib/server/api-error";
 
 export async function DELETE(
   _request: Request,
@@ -16,21 +17,16 @@ export async function DELETE(
     return NextResponse.json({ error: "no-workspace" }, { status: 400 });
   }
 
-  const config = loadConfig();
-  const db = createDb(config.db.url, "app_user");
-  const [payload] = await db
-    .delete(brandAssets)
-    .where(
-      and(
-        eq(brandAssets.id, assetId),
-        eq(brandAssets.brandId, id),
-        eq(brandAssets.workspaceId, session.workspaceId),
-      ),
-    )
-    .returning();
-  if (!payload) {
-    return NextResponse.json({ error: "not-found" }, { status: 404 });
+  // Goes through BrandApi rather than deleting the row directly: the API also
+  // repoints brands.logo_s3_key when the deleted asset was the one it named.
+  const api = new BrandApi(loadConfig(), createServerAdapters() as never);
+  try {
+    const deleted = await api.deleteAsset(session.workspaceId, id, assetId);
+    if (!deleted) {
+      return NextResponse.json({ error: "not-found" }, { status: 404 });
+    }
+    return NextResponse.json({ deleted: true });
+  } catch (error) {
+    return apiError(error);
   }
-  await createServerAdapters().storage.delete(payload.s3Key).catch(() => undefined);
-  return NextResponse.json({ deleted: true });
 }
