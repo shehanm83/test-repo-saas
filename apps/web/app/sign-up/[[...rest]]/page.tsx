@@ -8,7 +8,7 @@ export default async function SignUpPage() {
   const config = loadConfig();
 
   if (config.auth.mode === "dev") {
-    redirect("/brands/new/identify?new=1");
+    redirect("/brands/new");
   }
 
   const { SignUp } = await import("@clerk/nextjs");

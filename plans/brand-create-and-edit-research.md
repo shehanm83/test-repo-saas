@@ -1,6 +1,6 @@
 # Brand kit — "New brand" + "Edit brand": research and enhancement plan
 
-**Status:** research complete, no code written yet.
+**Status:** Slices A–D implemented. Slice E (URL/logo extraction) and Slice F (form/e2e tests) remain.
 **Scope of this doc:** the create screen (`/brands/new/[step]`) primarily, the edit screen
 (`/brands/[id]`) as the thing it must converge with.
 **Why now:** the brand kit is the input to *every* downstream surface — Quick Create, Campaign
@@ -14,10 +14,10 @@ that data is the weakest screen in the app.
 
 | Piece | File | Lines | Notes |
 |---|---|---|---|
-| Create screen | `apps/web/components/onboarding/brand-wizard.tsx` | 1444 | 6 tabs: Brand · Logo · Colors · Fonts · Voice · References |
-| Create route | `apps/web/app/(app)/brands/new/[step]/page.tsx` | 23 | `?new=1` resets the sessionStorage draft |
-| Legacy route | `apps/web/app/onboarding/brand/[step]/page.tsx` | 15 | redirects to `/brands/new/*` |
-| Edit screen | `apps/web/components/brands/brand-editor.tsx` | 967 | 6 tabs: Logos · Colors · Fonts · Voice · References · Danger |
+| Create/edit screen | `apps/web/components/brands/kit/brand-kit-form.tsx` | — | One sectioned screen with a live right rail; create and edit share it |
+| Create route | `apps/web/app/(app)/brands/new/page.tsx` | — | Creates the row once the name is valid, then autosaves |
+| Legacy routes | `apps/web/app/(app)/brands/new/[step]/page.tsx`, `apps/web/app/onboarding/brand/[step]/page.tsx` | — | redirect old wizard links to `/brands/new` |
+| Edit route | `apps/web/app/(app)/brands/[id]/page.tsx` | — | loads the brand/assets and renders `BrandKitForm` |
 | List | `apps/web/app/(app)/brands/page.tsx` | 130 | fine, not in scope |
 | API | `packages/api/src/brand.ts` | 242 | create / update / uploadLogo / uploadReference / assets / deleteAsset / extractFromUrl |
 | Routes | `apps/web/app/api/brands/**` | — | POST, PATCH, logo, assets, assets/[id] DELETE, delete |
@@ -184,10 +184,10 @@ the renderer, never generated" line already used in the campaign rail.
 
 | Slice | Content | Why this order |
 |---|---|---|
-| **A — correctness floor** | §2.1 logo dimensions, §2.3 sanitisation, §2.4 500, §2.5 quota, §2.7 logoS3Key decision. API + worker only, no UI. | These are shipping bugs that degrade output today, independent of any redesign. |
-| **B — font catalogue** | One shared curated Google-Fonts catalogue module with verified weights; both screens consume it; server-side validation. | Removes the render-failure class before the UI is rebuilt on top of it. |
-| **C — schema** | asset role/background/label/is_primary + brand descriptor/voice fields + migration. | Unblocks the UI. |
-| **D — `BrandKitForm`** | The single-screen create/edit component, create-then-autosave, Tailwind editorial system. Replaces both the wizard and the editor. | The main event. |
+| **A — correctness floor** ✅ | §2.1 logo dimensions, §2.3 sanitisation, §2.4 500, §2.5 quota, §2.7 logoS3Key decision. API + worker only, no UI. | These are shipping bugs that degrade output today, independent of any redesign. |
+| **B — font catalogue** ✅ | One shared curated Google-Fonts catalogue module with verified weights; both screens consume it; server-side validation. | Removes the render-failure class before the UI is rebuilt on top of it. |
+| **C — schema** ✅ | asset role/background/label/is_primary + brand descriptor/voice fields + migration. | Unblocks the UI. |
+| **D — `BrandKitForm`** ✅ | The single-screen create/edit component, create-then-autosave, Tailwind editorial system. Replaces both the wizard and the editor. | The main event. |
 | **E — URL import** | Review-card flow over the existing extractor + "extract from logo" palette. | Highest perceived value; lands on a stable form. |
 | **F — tests** | RTL for the form (validation, autosave, role enforcement), rewrite `e2e/tests/brand-setup.spec.ts` against the real routes. | Current e2e is dead code. |
 

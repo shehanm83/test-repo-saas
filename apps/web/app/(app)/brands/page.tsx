@@ -37,7 +37,7 @@ export default async function BrandsPage() {
             </span>
           </div>
         </div>
-        <Link className="btn btn--accent btn--lg" href="/brands/new/identify?new=1">
+        <Link className="btn btn--accent btn--lg" href="/brands/new">
           <I.Plus size={14} />
           New Brand
         </Link>
@@ -54,7 +54,7 @@ export default async function BrandsPage() {
               Create your first brand kit, then use its colors, logo, fonts, and voice in every
               generation.
             </div>
-            <Link href="/brands/new/identify?new=1" className="btn btn--accent btn--lg">
+            <Link href="/brands/new" className="btn btn--accent btn--lg">
               <I.Sparkle size={14} /> Create First Brand
             </Link>
           </div>

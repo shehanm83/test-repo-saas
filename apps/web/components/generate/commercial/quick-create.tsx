@@ -716,8 +716,8 @@ function QuickBrandSection(props: {
       </label>
       {props.brands.length === 0 ? (
         <p className="qc-empty-note">
-          No saved brands yet. <a href="/brands/new/identify?new=1">Create a brand</a> to use brand
-          colors, logos, and fonts.
+          No saved brands yet. <a href="/brands/new">Create a brand</a> to use brand colors, logos,
+          and fonts.
         </p>
       ) : null}
 

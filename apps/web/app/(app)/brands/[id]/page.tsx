@@ -1,17 +1,13 @@
-import React from "react";
-
 import { createDb, generations, getBrand, listBrandAssets } from "@layertone/db";
 import { count, eq } from "@layertone/db/operators";
 import { loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
 
 import { I } from "@/components/icons";
-import { BrandEditor } from "@/components/brands/brand-editor";
+import { BrandKitForm } from "@/components/brands/kit/brand-kit-form";
 import { getSessionWorkspace } from "@/lib/auth/server";
 
-export default async function BrandDetailPage(props: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function BrandDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const { session } = await getSessionWorkspace();
   const config = loadConfig();
@@ -49,9 +45,7 @@ export default async function BrandDetailPage(props: {
     forcePathStyle: config.storage.mode === "minio",
     ...(config.storage.endpoint ? { endpoint: config.storage.endpoint } : {}),
     ...(config.storage.accessKeyId ? { accessKeyId: config.storage.accessKeyId } : {}),
-    ...(config.storage.secretAccessKey
-      ? { secretAccessKey: config.storage.secretAccessKey }
-      : {}),
+    ...(config.storage.secretAccessKey ? { secretAccessKey: config.storage.secretAccessKey } : {}),
   });
 
   const assets = await Promise.all(
@@ -68,41 +62,32 @@ export default async function BrandDetailPage(props: {
       return {
         id: a.id,
         kind: a.kind,
-        s3Key: s3Key ?? "",
+        variant: a.variant,
+        background: a.background,
+        label: a.label,
+        isPrimary: a.isPrimary,
         url,
+        width: a.width,
+        height: a.height,
       };
     }),
   );
 
-  const brandRow = brand as unknown as {
-    id: string;
-    name: string;
-    sourceUrl: string | null;
-    voiceNotes: string | null;
-    palette: BrandEditorBrand["palette"];
-    fonts: BrandEditorBrand["fonts"];
-    createdAt?: Date | null;
-  };
-
   return (
-    <BrandEditor
-      brand={(() => {
-        const base = {
-          id: brandRow.id,
-          name: brandRow.name,
-          sourceUrl: brandRow.sourceUrl,
-          voiceNotes: brandRow.voiceNotes,
-          palette: brandRow.palette,
-          fonts: brandRow.fonts,
-          generationCount,
-        };
-        return brandRow.createdAt
-          ? { ...base, createdAt: brandRow.createdAt.toISOString() }
-          : base;
-      })()}
+    <BrandKitForm
+      brand={{
+        id: brand.id,
+        name: brand.name,
+        sourceUrl: brand.sourceUrl,
+        descriptor: brand.descriptor,
+        voiceNotes: brand.voiceNotes,
+        voice: brand.voice,
+        palette: brand.palette,
+        fonts: brand.fonts,
+        createdAt: brand.createdAt.toISOString(),
+        generationCount,
+      }}
       assets={assets}
     />
   );
 }
-
-type BrandEditorBrand = React.ComponentProps<typeof BrandEditor>["brand"];
