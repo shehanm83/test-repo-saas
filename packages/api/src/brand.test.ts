@@ -212,6 +212,31 @@ describe("BrandApi", () => {
     expect(mocks.deleteObject).toHaveBeenCalledWith("logo.png");
   });
 
+  it("normalizes brand fonts to a weight the renderer can fetch", async () => {
+    await api.update("w1", "b1", {
+      fonts: { heading: { family: "Anton", weight: "700" }, body: { family: "Lora" } },
+    });
+
+    expect(mocks.updateBrand).toHaveBeenCalledWith(expect.anything(), "w1", "b1", {
+      // Anton publishes 400 only; Lora takes the body default.
+      fonts: {
+        heading: { family: "Anton", weight: "400" },
+        body: { family: "Lora", weight: "400" },
+      },
+    });
+  });
+
+  it("rejects a font family the renderer cannot resolve", async () => {
+    await expect(
+      api.update("w1", "b1", {
+        fonts: {
+          heading: { family: "Helvetica Neue", weight: "700" },
+          body: { family: "Inter" },
+        },
+      }),
+    ).rejects.toMatchObject({ name: "ZodError" });
+  });
+
   it("extracts metadata from a URL", async () => {
     const result = await api.extractFromUrl({ url: "https://example.com" });
     expect(result.title).toBe("Acme");

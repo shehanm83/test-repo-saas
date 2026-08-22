@@ -17,7 +17,8 @@
     "./landing-hero": "./src/landing-hero.ts",
     "./output-targets": "./src/output-targets/index.ts",
     "./prompt-templates": "./src/prompt-templates/index.ts",
-    "./templates/schema": "./src/templates/schema.ts"
+    "./templates/schema": "./src/templates/schema.ts",
+    "./brand/fonts": "./src/brand/fonts.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

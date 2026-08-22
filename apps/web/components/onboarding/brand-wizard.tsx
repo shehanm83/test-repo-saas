@@ -3,7 +3,15 @@
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
+import {
+  BRAND_FONTS,
+  BRAND_FONT_CATEGORY_LABELS,
+  resolveBrandFont,
+  type BrandFontCategory,
+} from "@layertone/shared/brand/fonts";
+
 import { I } from "@/components/icons";
+import { fontStack, useBrandFontPreview } from "@/components/brands/use-brand-fonts";
 
 // ── sections ───────────────────────────────────────────────────────────────
 const STEPS = ["identify", "logo", "palette", "fonts", "voice", "references"] as const;
@@ -61,106 +69,6 @@ const EMPTY_DATA: WizardData = {
   references: [],
 };
 
-// ── font catalogue ─────────────────────────────────────────────────────────
-const FONTS = [
-  {
-    name: "Inter",
-    category: "Sans-serif",
-    heading: "The Future of Design",
-    body: "Clean and modern, perfect for digital products.",
-  },
-  {
-    name: "Playfair Display",
-    category: "Serif",
-    heading: "Elegant & Timeless",
-    body: "Classic serif with high contrast strokes.",
-  },
-  {
-    name: "Montserrat",
-    category: "Geometric Sans",
-    heading: "Bold Statement",
-    body: "Geometric shapes inspired by urban signage.",
-  },
-  {
-    name: "Lora",
-    category: "Literary Serif",
-    heading: "Stories Worth Telling",
-    body: "A well-balanced serif for long-form reading.",
-  },
-  {
-    name: "Raleway",
-    category: "Art Deco",
-    heading: "Refined Elegance",
-    body: "Elegant thin strokes with Art Deco roots.",
-  },
-  {
-    name: "Poppins",
-    category: "Rounded Sans",
-    heading: "Friendly & Modern",
-    body: "Geometric and approachable, loved by startups.",
-  },
-  {
-    name: "Merriweather",
-    category: "Newspaper Serif",
-    heading: "Built to Be Read",
-    body: "Designed for comfortable on-screen reading.",
-  },
-  {
-    name: "Oswald",
-    category: "Condensed",
-    heading: "STRONG IMPACT",
-    body: "Reworked classic gothic style, ultra-condensed.",
-  },
-  {
-    name: "Nunito",
-    category: "Rounded",
-    heading: "Warm & Welcoming",
-    body: "Well-rounded terminals for a soft, friendly feel.",
-  },
-  {
-    name: "Roboto Slab",
-    category: "Slab Serif",
-    heading: "Grounded Authority",
-    body: "Mechanical skeleton with friendly open curves.",
-  },
-  {
-    name: "Space Grotesk",
-    category: "Quirky Geometric",
-    heading: "Designed in Space",
-    body: "Slightly quirky geometric with unique details.",
-  },
-  {
-    name: "DM Serif Display",
-    category: "High Contrast",
-    heading: "Sharp & Distinct",
-    body: "High contrast and dramatic for display use.",
-  },
-  {
-    name: "Crimson Pro",
-    category: "Classic Serif",
-    heading: "Scholarly & Refined",
-    body: "Inspired by old-style typography for long text.",
-  },
-  {
-    name: "Work Sans",
-    category: "Humanist Sans",
-    heading: "Clear & Direct",
-    body: "Optimised for on-screen text at medium sizes.",
-  },
-  {
-    name: "Libre Baskerville",
-    category: "Traditional",
-    heading: "Timeless & Trusted",
-    body: "Based on 1941 ATF Baskerville, digitised for web.",
-  },
-];
-
-// Build a single Google Fonts URL for all fonts
-const GF_URL =
-  "https://fonts.googleapis.com/css2?family=" +
-  FONTS.map((f) => f.name.replace(/ /g, "+") + ":wght@400;600;700;800").join("&family=") +
-  "&display=swap";
-
 const T = {
   bg: "#f8f9ff",
   card: "rgba(255,255,255,0.88)",
@@ -169,19 +77,6 @@ const T = {
   line: "#e6e8f0",
   primary: "#635bff",
 };
-
-// ── font loader ────────────────────────────────────────────────────────────
-function GoogleFontsLoader() {
-  useEffect(() => {
-    if (document.getElementById("gf-brand-wizard")) return;
-    const link = document.createElement("link");
-    link.id = "gf-brand-wizard";
-    link.rel = "stylesheet";
-    link.href = GF_URL;
-    document.head.appendChild(link);
-  }, []);
-  return null;
-}
 
 // ── shared primitives ──────────────────────────────────────────────────────
 function StepHeading({ title, sub }: { title: string; sub: string }) {
@@ -277,37 +172,61 @@ function SectionTabs({
 // ── font picker ────────────────────────────────────────────────────────────
 function FontPicker({
   label,
+  role,
   selected,
   onSelect,
 }: {
   label: string;
+  role: "heading" | "body";
   selected: string;
-  onSelect: (f: string) => void;
+  onSelect: (family: string) => void;
 }) {
+  const [category, setCategory] = useState<BrandFontCategory | "all">("all");
+  const shown = BRAND_FONTS.filter((font) => category === "all" || font.category === category);
+  // One weight per family for the grid; the selected family loads in full below.
+  useBrandFontPreview(shown.map((font) => font.family), role === "heading" ? "700" : "400");
+  useBrandFontPreview(selected ? [selected] : []);
+
   return (
     <div className="brand-font-picker">
       <div className="brand-font-picker__head">
         <span>{label}</span>
-        <strong style={{ fontFamily: selected ? `"${selected}", sans-serif` : "inherit" }}>
+        <strong style={{ fontFamily: selected ? fontStack(selected) : "inherit" }}>
           {selected || "None selected"}
         </strong>
       </div>
+      <div className="brand-wizard-tabs" role="tablist" aria-label={`${label} categories`}>
+        {(["all", ...CATEGORY_ORDER] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={category === value}
+            className={category === value ? "is-active" : ""}
+            onClick={() => setCategory(value)}
+          >
+            {value === "all" ? "All" : BRAND_FONT_CATEGORY_LABELS[value]}
+          </button>
+        ))}
+      </div>
       <div className="brand-font-grid">
-        {FONTS.map((f) => {
-          const active = selected === f.name;
+        {shown.map((font) => {
+          const active = selected === font.family;
           return (
             <button
-              key={f.name}
+              key={font.family}
               type="button"
               className={`brand-font-card${active ? " is-active" : ""}`}
               aria-pressed={active}
-              onClick={() => onSelect(f.name)}
+              onClick={() => onSelect(font.family)}
             >
-              <div className="brand-font-card__sample" style={{ fontFamily: `"${f.name}", serif` }}>
+              <div className="brand-font-card__sample" style={{ fontFamily: fontStack(font.family) }}>
                 Aa
               </div>
-              <div className="brand-font-card__name">{f.name}</div>
-              <div className="brand-font-card__category">{f.category}</div>
+              <div className="brand-font-card__name">{font.family}</div>
+              <div className="brand-font-card__category">
+                {BRAND_FONT_CATEGORY_LABELS[font.category]}
+              </div>
               {active && (
                 <span className="brand-font-card__check">
                   <I.Check size={11} />
@@ -319,19 +238,15 @@ function FontPicker({
       </div>
       {selected && (
         <div className="brand-font-preview">
-          <div>Live Preview · {selected}</div>
-          {label.toLowerCase().includes("heading") ? (
-            <p
-              className="brand-font-preview__heading"
-              style={{ fontFamily: `"${selected}", serif` }}
-            >
+          <div>
+            Live preview · {selected} {resolveBrandFont(role, { family: selected }).weight}
+          </div>
+          {role === "heading" ? (
+            <p className="brand-font-preview__heading" style={{ fontFamily: fontStack(selected, "serif") }}>
               Your brand, beautifully composed.
             </p>
           ) : (
-            <p
-              className="brand-font-preview__body"
-              style={{ fontFamily: `"${selected}", sans-serif` }}
-            >
+            <p className="brand-font-preview__body" style={{ fontFamily: fontStack(selected) }}>
               Great typography isn&apos;t noticed — it&apos;s felt. Every word carries your
               brand&apos;s tone, and the right typeface makes every message resonate with your
               audience.
@@ -342,6 +257,15 @@ function FontPicker({
     </div>
   );
 }
+
+const CATEGORY_ORDER: readonly BrandFontCategory[] = [
+  "sans",
+  "serif",
+  "slab",
+  "display",
+  "mono",
+  "handwriting",
+];
 
 function readStoredData(resetDraft = false): WizardData {
   if (typeof window === "undefined") return EMPTY_DATA;
@@ -575,8 +499,8 @@ export function BrandWizard({ step, resetDraft = false }: { step: Step; resetDra
           extras: data.palette.slice(3),
         },
         fonts: {
-          heading: { family: data.heading || "Inter" },
-          body: { family: data.body || "Inter" },
+          heading: resolveBrandFont("heading", { family: data.heading }),
+          body: resolveBrandFont("body", { family: data.body }),
         },
         voiceNotes: data.voice,
       }),
@@ -774,7 +698,6 @@ export function BrandWizard({ step, resetDraft = false }: { step: Step; resetDra
 
   return (
     <>
-      <GoogleFontsLoader />
       <div className="brand-wizard-page">
         <div className="brand-wizard-wrap brand-wizard-wrap--wide">
           <div className="brand-wizard-hero">
@@ -1179,11 +1102,13 @@ export function BrandWizard({ step, resetDraft = false }: { step: Step; resetDra
                   />
                   <FontPicker
                     label="Heading font"
+                    role="heading"
                     selected={data.heading}
                     onSelect={(f) => update("heading", f)}
                   />
                   <FontPicker
                     label="Body font"
+                    role="body"
                     selected={data.body}
                     onSelect={(f) => update("body", f)}
                   />

@@ -15,6 +15,7 @@ import type { Adapters } from "@layertone/shared/adapters";
 import type { Config } from "@layertone/shared/config";
 import { CODES } from "@layertone/shared/errors/codes";
 import { AppError } from "@layertone/shared/errors/app-error";
+import { findBrandFont, nearestBrandFontWeight } from "@layertone/shared/brand/fonts";
 import { keys } from "@layertone/storage";
 import { fileTypeFromBuffer } from "file-type";
 import { z } from "zod";
@@ -24,6 +25,32 @@ const BrandCreateInput = z.object({
   name: z.string().min(1).max(120),
   sourceUrl: z.string().url().optional(),
 });
+
+/**
+ * A brand font is only valid if the renderer can fetch it. Weights are snapped to
+ * the nearest the family publishes; unknown families are rejected outright rather
+ * than silently swapped, because a brand kit quietly changing typeface is worse
+ * than being told to pick again.
+ */
+function BrandFontInput(role: "heading" | "body") {
+  return z
+    .object({ family: z.string(), weight: z.string().optional() })
+    .transform((value, ctx) => {
+      const font = findBrandFont(value.family);
+      if (!font) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${value.family}" is not a supported ${role} font.`,
+          path: ["family"],
+        });
+        return z.NEVER;
+      }
+      return {
+        family: font.family,
+        weight: nearestBrandFontWeight(font, value.weight ?? (role === "heading" ? "700" : "400")),
+      };
+    });
+}
 
 const BrandUpdateInput = z.object({
   name: z.string().min(1).max(120).optional(),
@@ -38,8 +65,8 @@ const BrandUpdateInput = z.object({
     .optional(),
   fonts: z
     .object({
-      heading: z.object({ family: z.string(), weight: z.string().optional() }),
-      body: z.object({ family: z.string(), weight: z.string().optional() }),
+      heading: BrandFontInput("heading"),
+      body: BrandFontInput("body"),
     })
     .optional(),
   voiceNotes: z.string().max(2000).optional(),
@@ -125,18 +152,7 @@ export class BrandApi {
           ...(args.palette.extras ? { extras: args.palette.extras } : {}),
         }
       : undefined;
-    const fonts = args.fonts
-      ? {
-          heading: {
-            family: args.fonts.heading.family,
-            ...(args.fonts.heading.weight ? { weight: args.fonts.heading.weight } : {}),
-          },
-          body: {
-            family: args.fonts.body.family,
-            ...(args.fonts.body.weight ? { weight: args.fonts.body.weight } : {}),
-          },
-        }
-      : undefined;
+    const fonts = args.fonts;
 
     const patch = {
       ...(args.name ? { name: args.name } : {}),

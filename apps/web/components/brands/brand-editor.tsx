@@ -1,9 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+
+import {
+  BRAND_FONTS,
+  BRAND_FONT_CATEGORY_LABELS,
+  brandFontStylesheetUrl,
+  findBrandFont,
+  resolveBrandFont,
+  type BrandFontCategory,
+} from "@layertone/shared/brand/fonts";
 
 import { I } from "@/components/icons";
+import { fontStack, useBrandFontPreview } from "./use-brand-fonts";
 
 interface BrandEditorProps {
   brand: {
@@ -36,24 +46,10 @@ type FontsDraft = {
 type Message = { ok: boolean; text: string } | null;
 
 const DOT_COLORS = ["#1D3B2A", "#5E5CE6", "#C97A3F", "#7A0E0E", "#1F7A5A", "#B5651D"];
-const FONT_OPTIONS = [
-  "Inter",
-  "Cal Sans",
-  "Arial",
-  "Helvetica",
-  "Georgia",
-  "Times New Roman",
-  "Montserrat",
-  "Poppins",
-  "Playfair Display",
-  "Lato",
-  "Nunito",
-  "Roboto",
-  "Open Sans",
-  "Merriweather",
-  "Oswald",
-];
-const WEIGHT_OPTIONS = ["300", "400", "500", "600", "700", "800", "900"];
+const FONTS_BY_CATEGORY = BRAND_FONTS.reduce<Record<string, typeof BRAND_FONTS>>(
+  (grouped, font) => ({ ...grouped, [font.category]: [...(grouped[font.category] ?? []), font] }),
+  {},
+);
 
 function dot(id: string): string {
   let h = 0;
@@ -75,14 +71,8 @@ function normalizePalette(
 
 function normalizeFonts(fonts: BrandEditorProps["brand"]["fonts"]): FontsDraft {
   return {
-    heading: {
-      family: fonts?.heading.family || "Cal Sans",
-      weight: fonts?.heading.weight || "700",
-    },
-    body: {
-      family: fonts?.body.family || "Inter",
-      weight: fonts?.body.weight || "400",
-    },
+    heading: resolveBrandFont("heading", fonts?.heading),
+    body: resolveBrandFont("body", fonts?.body),
   };
 }
 
@@ -192,6 +182,7 @@ export function BrandEditor(props: BrandEditorProps) {
     normalizePalette(props.brand.palette, props.brand.id),
   );
   const [fonts, setFonts] = useState<FontsDraft>(() => normalizeFonts(props.brand.fonts));
+  useBrandFontPreview([fonts.heading.family, fonts.body.family]);
 
   const colors = useMemo(
     () => [palette.primary, palette.secondary, palette.accent, ...palette.extras].filter(Boolean),
@@ -274,12 +265,10 @@ export function BrandEditor(props: BrandEditorProps) {
       {
         fonts: {
           heading: {
-            family: fonts.heading.family.trim() || "Cal Sans",
-            ...(fonts.heading.weight ? { weight: fonts.heading.weight } : {}),
+            ...resolveBrandFont("heading", fonts.heading),
           },
           body: {
-            family: fonts.body.family.trim() || "Inter",
-            ...(fonts.body.weight ? { weight: fonts.body.weight } : {}),
+            ...resolveBrandFont("body", fonts.body),
           },
         },
       },
@@ -415,7 +404,7 @@ export function BrandEditor(props: BrandEditorProps) {
                 color: palette.accent || "white",
                 display: "grid",
                 placeItems: "center",
-                fontFamily: fonts.heading.family,
+                fontFamily: fontStack(fonts.heading.family, "serif"),
                 fontWeight: fonts.heading.weight,
                 fontSize: 28,
               }}
@@ -685,7 +674,7 @@ export function BrandEditor(props: BrandEditorProps) {
           >
             <div
               style={{
-                fontFamily: fonts.heading.family,
+                fontFamily: fontStack(fonts.heading.family, "serif"),
                 fontWeight: fonts.heading.weight,
                 fontSize: 32,
                 color: palette.accent,
@@ -695,7 +684,7 @@ export function BrandEditor(props: BrandEditorProps) {
             </div>
             <div
               style={{
-                fontFamily: fonts.body.family,
+                fontFamily: fontStack(fonts.body.family),
                 fontWeight: fonts.body.weight,
                 fontSize: 14,
                 color: palette.extras[0] ?? palette.accent,
@@ -724,11 +713,6 @@ export function BrandEditor(props: BrandEditorProps) {
 
       {tab === "fonts" ? (
         <div>
-          <datalist id="brand-font-options">
-            {FONT_OPTIONS.map((font) => (
-              <option key={font} value={font} />
-            ))}
-          </datalist>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
             {(
               [
@@ -759,21 +743,32 @@ export function BrandEditor(props: BrandEditorProps) {
                 >
                   <label>
                     <span className="label">Family</span>
-                    <input
-                      className="input"
-                      list="brand-font-options"
+                    <select
+                      className="select"
                       value={fonts[fontConfig.key].family}
                       onChange={(e) =>
                         setFonts((current) => ({
                           ...current,
-                          [fontConfig.key]: {
-                            ...current[fontConfig.key],
+                          [fontConfig.key]: resolveBrandFont(fontConfig.key, {
                             family: e.target.value,
-                          },
+                            weight: current[fontConfig.key].weight,
+                          }),
                         }))
                       }
-                      autoComplete="off"
-                    />
+                    >
+                      {Object.entries(FONTS_BY_CATEGORY).map(([category, families]) => (
+                        <optgroup
+                          key={category}
+                          label={BRAND_FONT_CATEGORY_LABELS[category as BrandFontCategory]}
+                        >
+                          {families.map((font) => (
+                            <option key={font.family} value={font.family}>
+                              {font.family}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     <span className="label">Weight</span>
@@ -790,18 +785,20 @@ export function BrandEditor(props: BrandEditorProps) {
                         }))
                       }
                     >
-                      {WEIGHT_OPTIONS.map((weight) => (
-                        <option key={weight} value={weight}>
-                          {weight}
-                        </option>
-                      ))}
+                      {(findBrandFont(fonts[fontConfig.key].family)?.weights ?? ["400"]).map(
+                        (weight) => (
+                          <option key={weight} value={weight}>
+                            {weight}
+                          </option>
+                        ),
+                      )}
                     </select>
                   </label>
                 </div>
                 <div
                   style={{
                     marginTop: 24,
-                    fontFamily: fonts[fontConfig.key].family,
+                    fontFamily: fontStack(fonts[fontConfig.key].family),
                     fontWeight: fonts[fontConfig.key].weight,
                     fontSize: fontConfig.size,
                     color: "var(--fg-2)",
