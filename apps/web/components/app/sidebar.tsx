@@ -11,6 +11,7 @@ import {
   History,
   Images,
   Palette,
+  Megaphone,
   Settings,
   Shield,
   Sparkles,
@@ -110,7 +111,7 @@ export function Sidebar(props: {
           strokeWidth={2.2}
           className={isActive("/generate") ? "text-brand-300" : "text-brand"}
         />
-        <span className="flex-1">Generate</span>
+        <span className="flex-1">Quick Create</span>
         <kbd
           className={`rounded-md px-1.5 font-mono text-[11px] ${
             isActive("/generate") ? "bg-white/15" : "bg-ink/6 text-ink-soft"
@@ -118,6 +119,22 @@ export function Sidebar(props: {
         >
           G
         </kbd>
+      </Link>
+
+      <Link
+        href="/campaigns"
+        className={`mt-1.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${
+          isActive("/campaigns")
+            ? "bg-ink-deep text-white shadow-pill-dark"
+            : "bg-white text-ink shadow-card hover:-translate-y-px"
+        }`}
+      >
+        <Megaphone
+          size={16}
+          strokeWidth={2.2}
+          className={isActive("/campaigns") ? "text-brand-300" : "text-brand"}
+        />
+        <span className="flex-1">Campaigns</span>
       </Link>
 
       <div className="mt-2">
