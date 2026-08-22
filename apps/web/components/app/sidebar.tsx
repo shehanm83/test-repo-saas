@@ -56,7 +56,7 @@ function NavItem({
 }
 
 export function Sidebar(props: {
-  brands: Array<{ id: string; name: string }>;
+  brandCount: number;
   planCode: string;
   balance: number;
   email: string;
@@ -78,8 +78,7 @@ export function Sidebar(props: {
             props.planCode === "agency"
           ? "Subscription"
           : "Free";
-  const isActive = (path: string): boolean =>
-    pathname === path || pathname.startsWith(path + "/");
+  const isActive = (path: string): boolean => pathname === path || pathname.startsWith(path + "/");
 
   return (
     <div className="flex min-h-full flex-col gap-1 px-4 py-5 font-sans">
@@ -149,7 +148,7 @@ export function Sidebar(props: {
         icon={Briefcase}
         label="Brands"
         active={isActive("/brands")}
-        count={props.brands.length}
+        count={props.brandCount}
       />
       <NavItem href="/products" icon={Tag} label="Products" active={isActive("/products")} />
       <NavItem href="/projects" icon={FolderOpen} label="Projects" active={isActive("/projects")} />

@@ -18,11 +18,14 @@ export async function AppFrame(props: {
   children: React.ReactNode;
 }) {
   const config = loadConfig();
-  const db = createDb(config.db.url, "app_admin");
+  const adminDb = createDb(config.db.url, "app_admin");
+  const userDb = createDb(config.db.url, "app_user");
   const balance = props.session.workspaceId
-    ? await new Ledger(db).getBalance(props.session.workspaceId)
+    ? await new Ledger(adminDb).getBalance(props.session.workspaceId)
     : 0;
-  const brands = props.session.workspaceId ? await listBrands(db, props.session.workspaceId) : [];
+  const brands = props.session.workspaceId
+    ? await listBrands(userDb, props.session.workspaceId)
+    : [];
   const activeWorkspace =
     props.session.workspaces.find((workspace) => workspace.id === props.session.workspaceId) ??
     props.session.workspaces[0] ??
@@ -32,7 +35,7 @@ export async function AppFrame(props: {
     <AppShell
       sidebar={
         <Sidebar
-          brands={brands.map((b) => ({ id: b.id, name: b.name }))}
+          brandCount={brands.length}
           planCode={activeWorkspace?.planCode ?? "free"}
           balance={balance}
           email={props.session.email}
