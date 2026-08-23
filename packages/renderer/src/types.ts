@@ -5,7 +5,10 @@ export interface RenderInput {
     logoSvg?: string;
     logoPng?: { bytes: Uint8Array; width: number; height: number };
     palette: { primary: string; secondary?: string; accent?: string; extras?: string[] };
-    fonts: { heading: { family: string; weight?: string }; body: { family: string; weight?: string } };
+    fonts: {
+      heading: { family: string; weight?: string };
+      body: { family: string; weight?: string };
+    };
     flags: { useColors: boolean; useLogo: boolean; useFonts: boolean };
   };
   mood?: {
@@ -14,7 +17,23 @@ export interface RenderInput {
     typographyHint?: { weight?: string; justification?: string };
     flags: { useDecorations: boolean; useAccentColors: boolean };
   };
-  slots: { headline?: string; subhead?: string; cta?: string };
+  slots: {
+    headline?: string;
+    subtitle?: string;
+    subhead?: string;
+    price?: string;
+    discount?: string;
+    badgeText?: string;
+    cta?: string;
+    offerExpiry?: string;
+    legalText?: string;
+    website?: string;
+    phone?: string;
+    qrUrl?: string;
+  };
+  exactOverlay?: {
+    certificationAssets?: Array<{ bytes: Uint8Array; mimeType: string; label?: string }>;
+  };
   decorationStockUrls?: string[];
   output: { width: number; height: number };
 }

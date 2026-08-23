@@ -19,7 +19,9 @@ describe("OpenAITextProvider", () => {
   afterEach(() => vi.clearAllMocks());
 
   it("generates text through responses api", async () => {
-    const { __mockCreate } = (await import("openai")) as unknown as { __mockCreate: ReturnType<typeof vi.fn> };
+    const { __mockCreate } = (await import("openai")) as unknown as {
+      __mockCreate: ReturnType<typeof vi.fn>;
+    };
     __mockCreate.mockResolvedValueOnce({ output_text: "A useful caption." });
 
     const p = new OpenAITextProvider({ apiKey: "k", model: "gpt-5.4-mini" });
@@ -42,7 +44,9 @@ describe("OpenAITextProvider", () => {
   });
 
   it("creates embeddings", async () => {
-    const { __mockEmbed } = (await import("openai")) as unknown as { __mockEmbed: ReturnType<typeof vi.fn> };
+    const { __mockEmbed } = (await import("openai")) as unknown as {
+      __mockEmbed: ReturnType<typeof vi.fn>;
+    };
     __mockEmbed.mockResolvedValueOnce({ data: [{ embedding: [0.1, 0.2] }] });
 
     const p = new OpenAITextProvider({ apiKey: "k" });

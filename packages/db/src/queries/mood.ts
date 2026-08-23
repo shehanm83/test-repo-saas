@@ -1,7 +1,7 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { Db } from "../client";
-import { moods, moodTemplateBindings, templates } from "../schema";
+import { moods, moodAssets, moodTemplateBindings, templates } from "../schema";
 
 export const ASPECT_RATIO_VALUES = ["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"] as const;
 export type AspectRatio = (typeof ASPECT_RATIO_VALUES)[number];
@@ -25,6 +25,14 @@ export async function listAvailableMoods(
 
 export async function adminListMoods(db: Db) {
   return db.select().from(moods).orderBy(asc(moods.name));
+}
+
+export async function listApprovedMoodAssets(db: Db, moodId: string) {
+  return db
+    .select()
+    .from(moodAssets)
+    .where(and(eq(moodAssets.moodId, moodId), eq(moodAssets.approvedForModelUse, true)))
+    .orderBy(asc(moodAssets.createdAt));
 }
 
 export async function adminCreateMood(db: Db, value: typeof moods.$inferInsert) {

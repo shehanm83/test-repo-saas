@@ -30,6 +30,7 @@ describe("OpenAIImageProvider", () => {
     const r = await p.generate({
       modelCode: "gpt-image-2",
       prompt: "hello",
+      negativePrompt: "distorted label, unreadable text",
       aspectRatio: "1:1",
       width: 1024,
       height: 1024,
@@ -37,7 +38,14 @@ describe("OpenAIImageProvider", () => {
     });
     expect(r.modelUsedCode).toBe("gpt-image-2");
     expect(__mockGenerate).toHaveBeenCalledWith(
-      expect.objectContaining({ model: "gpt-image-2", output_format: "png", size: "1024x1024" }),
+      expect.objectContaining({
+        model: "gpt-image-2",
+        output_format: "png",
+        size: "1024x1024",
+        prompt: expect.stringContaining(
+          "Avoid all of the following: distorted label, unreadable text",
+        ),
+      }),
     );
     expect(r.imageBytes.byteLength).toBeGreaterThan(0);
   });

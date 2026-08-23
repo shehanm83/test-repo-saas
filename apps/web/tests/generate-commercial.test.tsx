@@ -71,8 +71,7 @@ const props = {
 describe("commercial generation page", () => {
   beforeEach(() => {
     push.mockReset();
-    // Generate mirrors the selected pathway into ?mode=. Reset both browser
-    // stores so the campaign-builder case cannot steer later Quick Create cases.
+    // Keep every Quick Create case on a clean URL and browser state.
     window.history.replaceState(null, "", "/generate");
     window.localStorage.clear();
     vi.stubGlobal(
@@ -139,21 +138,12 @@ describe("commercial generation page", () => {
     );
   });
 
-  it("switches between Quick Create and Campaign Builder", () => {
+  it("renders Quick Create as the only generation workflow", () => {
     render(React.createElement(Generate, props));
 
-    expect(screen.getByRole("tab", { name: "Quick Create" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    fireEvent.click(screen.getByRole("tab", { name: "Campaign Builder" }));
-
-    expect(screen.getByRole("tab", { name: "Campaign Builder" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    expect(screen.getByText("Step 1 of 8")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /social ad pack/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Quick Create" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Campaign Builder" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Step 1 of 8")).not.toBeInTheDocument();
   });
 
   it("allows the minimum quick flow without brand, mood, or product", async () => {

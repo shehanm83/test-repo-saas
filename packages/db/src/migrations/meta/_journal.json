@@ -141,6 +141,27 @@
       "when": 1779926400000,
       "tag": "0020_brand_kit",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1787356800000,
+      "tag": "0021_payg_brand_quota",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787529600000,
+      "tag": "0022_quick_create_grounding_planner",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1787533200000,
+      "tag": "0023_quick_create_quality_loop",
+      "breakpoints": true
     }
   ]
 }

@@ -104,29 +104,6 @@ export const FIXTURE_PRODUCTS: ProductLite[] = [
   },
 ];
 
-function isoDate(offsetDays: number): string {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() + offsetDays);
-  return date.toISOString().slice(0, 10);
-}
-
-/** A blank campaign, for `/campaigns/new`. */
-export function emptyBrief(brandId: string): CampaignBriefForm {
-  return {
-    name: "",
-    recipe: "product_launch",
-    brandId,
-    productRefs: [],
-    platforms: ["instagram"],
-    startsOn: isoDate(3),
-    endsOn: isoDate(24),
-    brief: "",
-    goal: "",
-    audience: "",
-    offer: { discount: "", code: "", expiresAt: "" },
-  };
-}
-
 /** The Cold Brew Season campaign from the design mockup, for `/campaigns/:id`. */
 export const FIXTURE_BRIEF: CampaignBriefForm = {
   name: "Cold Brew Season",
@@ -201,8 +178,7 @@ export function estimateBrief(form: CampaignBriefForm, days: number | null): Bri
 
   const slots = Math.max(phases, Math.round(cadence.perPlatformPerWeek * weeks * platforms));
   const videoSlots = Math.round(slots * cadence.videoShare);
-  const credits =
-    (slots - videoSlots) * IMAGE_SLOT_CREDITS + videoSlots * VIDEO_SLOT_CREDITS;
+  const credits = (slots - videoSlots) * IMAGE_SLOT_CREDITS + videoSlots * VIDEO_SLOT_CREDITS;
 
   return { slots, phases, videoSlots, credits: Math.round(credits / 10) * 10 };
 }

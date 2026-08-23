@@ -18,7 +18,11 @@ vi.mock("drizzle-orm", () => ({
 const mockGrant = vi.fn(async () => ({ id: "e1", balanceAfter: 250, idempotent: false }));
 const mockTopup = vi.fn(async () => ({ id: "e2", balanceAfter: 450, idempotent: false }));
 const mockRefund = vi.fn(async () => ({ id: "e3", balanceAfter: 200, idempotent: false }));
-const mockExpireSubscriptionCredits = vi.fn(async () => ({ id: "e4", balanceAfter: 0, idempotent: false }));
+const mockExpireSubscriptionCredits = vi.fn(async () => ({
+  id: "e4",
+  balanceAfter: 0,
+  idempotent: false,
+}));
 
 vi.mock("./ledger.js", () => ({
   Ledger: vi.fn(function () {
@@ -78,6 +82,10 @@ describe("PLANS", () => {
 
   it("defines PAYG credits as non-expiring", () => {
     expect(PLANS.payg.purchasedCreditsExpire).toBe(false);
+  });
+
+  it("allows ten brands on Pay As You Go", () => {
+    expect(PLANS.payg.brandQuota).toBe(10);
   });
 
   it("covers all plan codes", () => {

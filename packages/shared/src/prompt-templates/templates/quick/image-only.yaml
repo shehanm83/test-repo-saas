@@ -3,6 +3,7 @@ name: Quick Create Image Only
 category: image_generation
 version: 1
 compatible_models:
+  - gpt-image-2
   - gpt-image-1
   - flux-1.1-pro
   - recraft-v3

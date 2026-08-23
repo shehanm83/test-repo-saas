@@ -1,0 +1,1149 @@
+<title>Campaign Builder Interface</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Roboto+Mono:wght@400;500&display=swap">
+
+<style>
+/* ============================================================
+   Layertone "Redesign 2026" tokens — mirrored from
+   apps/web/app/theme.css, cal-tokens.css, cal-layertone.css
+   Light-only by design: the product commits to the cream editorial world.
+   ============================================================ */
+:root{
+  --frame:#f7f2e9;
+  --canvas:#fffdf9;
+  --card:#ffffff;
+  --ink:#242424;
+  --ink-deep:#111111;
+  --ink-soft:#55524c;
+  --g500:#898989;
+  --g400:#a3a3a3;
+  --g200:#ececec;
+  --g100:#f5f5f5;
+  --violet:#5e5ce6;
+  --violet-50:#f1f1fe;
+  --violet-100:#e4e3fc;
+  --violet-300:#a9a6f3;
+  --violet-700:#3f3cc2;
+  --ok:#1f8a5b;
+  --ok-bg:#e6f4ed;
+  --warn:#b26a00;
+  --warn-bg:#fdf1de;
+  --live:#c2410c;
+  --video:#b3306b;
+  --video-bg:#fbe9f1;
+
+  --font-display:"Cal Sans","Inter",ui-sans-serif,system-ui,sans-serif;
+  --font-sans:"Inter",ui-sans-serif,system-ui,sans-serif;
+  --font-serif:"Fraunces",Georgia,serif;
+  --font-mono:"Roboto Mono",ui-monospace,monospace;
+
+  --sh-card:0 0 0 .5px rgba(0,0,0,.05),0 4px 30px rgba(0,0,0,.08);
+  --sh-pill:0 1px 2px 0 rgba(17,17,17,.1),0 4px 4px 0 rgba(17,17,17,.08),0 9px 6px 0 rgba(17,17,17,.04),inset 0 1px 0 0 rgba(255,255,255,.6);
+  --sh-pill-dark:0 1px 2px 0 rgba(17,17,17,.2),0 4px 4px 0 rgba(17,17,17,.15),0 9px 6px 0 rgba(17,17,17,.08),inset 0 2px 8px 0 rgba(255,255,255,.35);
+  --sh-float:0 0 0 .5px rgba(0,0,0,.06),0 8px 16px rgba(17,17,17,.08),0 24px 48px rgba(17,17,17,.1);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --sidebar-w:268px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--frame);color:var(--ink);
+  font-family:var(--font-sans);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;border:none;background:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--violet);outline-offset:2px;border-radius:6px}
+
+/* ---------- app frame ---------- */
+.app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;height:100vh;overflow:hidden;background:var(--frame)}
+.side{overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:20px 16px}
+.canvas{overflow-y:auto;background:var(--canvas);margin:14px 14px 14px 0;border-radius:24px;box-shadow:var(--sh-card)}
+
+/* ---------- sidebar ---------- */
+.logo{display:flex;align-items:center;gap:8px;padding:0 4px;margin-bottom:12px;text-decoration:none;color:var(--ink)}
+.logomark{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,var(--violet) 0%,#8b89f0 100%);display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:-.03em;box-shadow:var(--sh-pill-dark)}
+.logotext{font-family:var(--font-display);font-size:17px;letter-spacing:-.03em;font-weight:500}
+.logotext b{font-weight:700}
+.ws{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:12px;background:rgba(17,17,17,.04);margin-bottom:12px;font-size:13px;font-weight:500}
+.ws-av{width:20px;height:20px;border-radius:6px;background:#2f6b4f;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:700;flex:none}
+.ws-ch{margin-left:auto;color:var(--g400);font-size:10px}
+.navbtn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:600;text-decoration:none;color:var(--ink);background:var(--card);box-shadow:var(--sh-card);transition:transform .15s var(--ease)}
+.navbtn:hover{transform:translateY(-1px)}
+.navbtn.on{background:var(--ink-deep);color:#fff;box-shadow:var(--sh-pill-dark)}
+.navbtn kbd{margin-left:auto;font-family:var(--font-mono);font-size:11px;padding:1px 6px;border-radius:6px;background:rgba(17,17,17,.06);color:var(--ink-soft)}
+.navbtn.on kbd{background:rgba(255,255,255,.15);color:#fff}
+.nav{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;font-size:14px;font-weight:500;color:var(--ink-soft);text-decoration:none;transition:background .15s}
+.nav:hover{background:rgba(17,17,17,.05);color:var(--ink)}
+.nav.on{background:var(--violet-50);color:var(--violet-700)}
+.nav .ic{color:var(--g500);flex:none}
+.nav.on .ic{color:var(--violet)}
+.nav .ct{margin-left:auto;font-family:var(--font-mono);font-size:11px;padding:1px 7px;border-radius:999px;background:rgba(17,17,17,.06);color:var(--ink-soft)}
+.nav.on .ct{background:#fff;color:var(--violet-700)}
+.navsec{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:rgba(85,82,76,.6);padding:0 12px;margin:18px 0 4px}
+.grow{flex:1}
+.credits{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:var(--card);box-shadow:var(--sh-pill);font-size:13px;font-weight:600;text-decoration:none;color:var(--ink);margin-top:10px}
+.userbox{margin-top:8px;border-radius:16px;background:var(--card);box-shadow:var(--sh-card);padding:6px;display:flex;align-items:center;gap:9px}
+.userav{width:32px;height:32px;border-radius:10px;background:linear-gradient(140deg,#e8a33d,#c2410c);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.usermeta{min-width:0;line-height:1.25}
+.usermeta b{display:block;font-size:12.5px;font-weight:600}
+.usermeta span{display:block;font-size:11px;color:var(--g500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- page chrome ---------- */
+.pg{max-width:1240px;margin:0 auto;padding:30px 34px 90px}
+.pghead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.eyebrow{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--violet);margin-bottom:7px}
+.pgtitle{font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.06;letter-spacing:-.025em;margin:0 0 5px}
+.pgsub{font-size:14px;color:var(--g500);margin:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 16px;border-radius:999px;font-size:14px;font-weight:500;white-space:nowrap;transition:transform .15s var(--ease)}
+.btn:hover{transform:translateY(-1px)}
+.btn--accent{background:var(--violet);color:#fff;box-shadow:var(--sh-pill-dark);font-weight:600}
+.btn--dark{background:var(--ink-deep);color:#fff;box-shadow:var(--sh-pill-dark);font-weight:600}
+.btn--light{background:var(--card);color:var(--ink);box-shadow:var(--sh-pill)}
+.btn--ghost{color:var(--ink-soft)}
+.btn--ghost:hover{background:rgba(17,17,17,.05)}
+.btn--sm{height:30px;padding:0 12px;font-size:13px}
+
+/* ---------- stage rail ---------- */
+.rail{display:flex;align-items:stretch;gap:0;background:var(--card);border-radius:16px;box-shadow:var(--sh-card);padding:5px;margin-bottom:26px;overflow-x:auto}
+.rail button{display:flex;align-items:center;gap:9px;padding:9px 15px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--ink-soft);white-space:nowrap;flex:none;transition:background .15s}
+.rail button:hover{background:rgba(17,17,17,.04)}
+.rail button.on{background:var(--ink-deep);color:#fff;box-shadow:var(--sh-pill-dark)}
+.rail .rn{width:19px;height:19px;border-radius:999px;display:grid;place-items:center;font-family:var(--font-mono);font-size:10px;font-weight:500;background:rgba(17,17,17,.07);color:var(--ink-soft);flex:none}
+.rail button.on .rn{background:rgba(255,255,255,.18);color:#fff}
+.rail button.done .rn{background:var(--ok-bg);color:var(--ok)}
+.rail .sep{width:1px;background:var(--g200);margin:9px 3px;flex:none}
+
+/* ---------- generic surfaces ---------- */
+.card{background:var(--card);border-radius:18px;box-shadow:var(--sh-card)}
+.lbl{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--g500);margin:0 0 9px}
+.h3{font-family:var(--font-display);font-size:17px;font-weight:600;letter-spacing:-.015em;margin:0 0 4px}
+.mut{color:var(--g500)}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-family:var(--font-mono);font-size:10.5px;font-weight:500;letter-spacing:.04em;white-space:nowrap}
+.p-img{background:var(--violet-50);color:var(--violet-700)}
+.p-vid{background:var(--video-bg);color:var(--video)}
+.p-ok{background:var(--ok-bg);color:var(--ok)}
+.p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-mut{background:var(--g100);color:var(--g500)}
+.p-live{background:#fdece4;color:var(--live)}
+.dot{width:6px;height:6px;border-radius:999px;background:currentColor;flex:none}
+
+/* ---------- creative thumbnails (CSS-composed stand-ins) ---------- */
+.cr{position:relative;overflow:hidden;border-radius:11px;background:#20160f;isolation:isolate}
+.cr::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 18%,rgba(255,255,255,.34),transparent 62%);z-index:1}
+.cr--night{background:linear-gradient(168deg,#3b2a1e 0%,#191009 100%)}
+.cr--ice{background:linear-gradient(168deg,#5c7c8a 0%,#1e2f38 100%)}
+.cr--cream{background:linear-gradient(168deg,#efe2cd 0%,#cbb094 100%)}
+.cr--amber{background:linear-gradient(168deg,#c98341 0%,#6d3a17 100%)}
+.cr--slate{background:linear-gradient(168deg,#4a4a52 0%,#1b1b21 100%)}
+.bot{position:absolute;left:50%;bottom:14%;transform:translateX(-50%);width:23%;height:52%;border-radius:8px 8px 11px 11px;z-index:2;
+  background:linear-gradient(100deg,rgba(255,255,255,.1) 0%,rgba(255,255,255,.42) 22%,rgba(255,255,255,.12) 48%,rgba(0,0,0,.22) 100%),
+             linear-gradient(180deg,#6b4a30,#38220f);
+  box-shadow:0 10px 22px rgba(0,0,0,.42)}
+.bot::before{content:"";position:absolute;left:31%;top:-15%;width:38%;height:16%;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#d8c8b4,#9c8a72)}
+.bot::after{content:"";position:absolute;left:0;right:0;top:34%;height:30%;background:linear-gradient(180deg,#f4ece0,#ddcdb6);opacity:.94}
+.cr-ov{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;padding:9%}
+.cr-lg{font-family:var(--font-display);font-weight:700;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.9)}
+.cr-hd{margin-top:auto;font-family:var(--font-serif);font-weight:600;font-size:15px;line-height:1.05;letter-spacing:-.02em;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.4)}
+.cr-sb{font-size:9.5px;color:rgba(255,255,255,.82);margin-top:3px}
+.cr-cta{margin-top:8px;align-self:flex-start;padding:4px 10px;border-radius:999px;background:#fff;color:#241a12;font-size:9px;font-weight:700;letter-spacing:.02em}
+.cr-badge{position:absolute;top:8%;right:8%;z-index:4;padding:5px 8px;border-radius:999px;background:var(--violet);color:#fff;font-family:var(--font-mono);font-size:9px;font-weight:500;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.cr-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.92);display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.cr-play svg{margin-left:2px}
+.cr-dur{position:absolute;right:7%;bottom:7%;z-index:4;padding:2px 7px;border-radius:5px;background:rgba(0,0,0,.62);color:#fff;font-family:var(--font-mono);font-size:9px}
+.cr-cap{position:absolute;left:8%;right:8%;bottom:16%;z-index:4;text-align:center;font-size:9.5px;font-weight:700;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.8);letter-spacing:.01em}
+
+/* ---------- screens ---------- */
+.screen{display:none}
+.screen.on{display:block;animation:fade .3s var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- two-column work layout ---------- */
+.work{display:grid;grid-template-columns:1fr 306px;gap:22px;align-items:start}
+.rail-r{position:sticky;top:0;display:flex;flex-direction:column;gap:14px}
+
+/* ---------- BRIEF ---------- */
+.field{margin-bottom:22px}
+.inp{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--g200);background:var(--card);font:inherit;color:var(--ink)}
+.inp::placeholder{color:var(--g400)}
+textarea.inp{min-height:104px;resize:vertical;line-height:1.6}
+.recipes{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
+.rec{text-align:left;padding:13px 14px;border-radius:14px;background:var(--card);box-shadow:var(--sh-card);transition:transform .15s var(--ease)}
+.rec:hover{transform:translateY(-2px)}
+.rec.on{background:var(--ink-deep);color:#fff;box-shadow:var(--sh-pill-dark)}
+.rec b{display:block;font-size:13.5px;font-weight:600;margin-bottom:3px}
+.rec span{display:block;font-size:11.5px;line-height:1.4;color:var(--g500)}
+.rec.on span{color:rgba(255,255,255,.62)}
+.rec .ph{display:block;margin-top:8px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;color:var(--violet)}
+.rec.on .ph{color:var(--violet-300)}
+.picks{display:flex;flex-wrap:wrap;gap:9px}
+.pick{display:flex;align-items:center;gap:9px;padding:7px 13px 7px 7px;border-radius:999px;background:var(--card);box-shadow:var(--sh-card);font-size:13px;font-weight:500}
+.pick .sw{width:26px;height:26px;border-radius:8px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.pick .x{color:var(--g400);font-size:14px;line-height:1;margin-left:2px}
+.pick.add{background:transparent;box-shadow:inset 0 0 0 1px var(--g200);color:var(--ink-soft);padding:7px 14px}
+.toggles{display:flex;flex-wrap:wrap;gap:8px}
+.tog{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--g200);font-size:13px;font-weight:500;color:var(--ink-soft)}
+.tog.on{background:var(--violet-50);box-shadow:inset 0 0 0 1.5px var(--violet);color:var(--violet-700)}
+.tog .tk{width:15px;height:15px;border-radius:999px;display:grid;place-items:center;background:var(--g200);color:transparent;font-size:9px;flex:none}
+.tog.on .tk{background:var(--violet);color:#fff}
+.dates{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dbox{padding:9px 14px;border-radius:12px;background:var(--card);box-shadow:var(--sh-card);font-size:13.5px;font-weight:500}
+.dbox small{display:block;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:2px;font-weight:400}
+
+/* ---------- PLAN ---------- */
+.statbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--g200);border-radius:16px;overflow:hidden;box-shadow:var(--sh-card);margin-bottom:22px}
+.stat{background:var(--card);padding:13px 16px}
+.stat b{display:block;font-family:var(--font-display);font-size:23px;font-weight:600;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{display:block;font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.13em;color:var(--g500);margin-top:3px}
+.stat.hl b{color:var(--violet)}
+
+.calstrip{background:var(--card);border-radius:16px;box-shadow:var(--sh-card);padding:15px 17px;margin-bottom:20px;overflow-x:auto}
+.calrow{display:flex;gap:3px;min-width:660px}
+.cald{flex:1;min-width:19px;text-align:center;padding:6px 0 7px;border-radius:8px;background:var(--g100)}
+.cald i{display:block;font-family:var(--font-mono);font-size:9px;font-style:normal;color:var(--g400);margin-bottom:4px}
+.cald em{display:block;font-style:normal;font-size:11px;font-weight:600;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.cald u{display:block;height:4px;margin-top:5px;text-decoration:none}
+.cald u i{width:4px;height:4px;border-radius:999px;display:inline-block;margin:0 1px}
+.cald.ph1{background:#f3efe6}.cald.ph2{background:var(--violet-50)}
+.cald.ph3{background:#eaf4ef}.cald.ph4{background:#fdece4}
+.d-img{background:var(--violet)}.d-vid{background:var(--video)}
+
+.phase{margin-bottom:26px}
+.phead{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.pbar{width:4px;height:34px;border-radius:999px;flex:none}
+.pb1{background:#c9a86c}.pb2{background:var(--violet)}.pb3{background:var(--ok)}.pb4{background:var(--live)}
+.phead h4{font-family:var(--font-display);font-size:16px;font-weight:600;letter-spacing:-.015em;margin:0}
+.phead .pd{font-family:var(--font-mono);font-size:11px;color:var(--g500)}
+.phead .pr{margin-left:auto;display:flex;align-items:center;gap:9px}
+
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
+.slot{background:var(--card);border-radius:15px;box-shadow:var(--sh-card);padding:13px 14px;display:flex;flex-direction:column;gap:9px;transition:transform .15s var(--ease),box-shadow .15s}
+.slot:hover{transform:translateY(-2px);box-shadow:var(--sh-float)}
+.slot-t{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.slot-t .when{margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--g400)}
+.slot b{font-size:13.5px;font-weight:600;line-height:1.3;letter-spacing:-.005em}
+.slot .cap{font-size:12px;line-height:1.5;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.slot .tags{font-family:var(--font-mono);font-size:10.5px;color:var(--violet);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot-f{display:flex;align-items:center;gap:8px;padding-top:9px;border-top:1px solid var(--g100);font-family:var(--font-mono);font-size:10px;color:var(--g400)}
+.slot-f .cr8{margin-left:auto;color:var(--ink-soft)}
+.slot .mini{width:26px;height:32px;border-radius:5px;flex:none}
+
+/* right rail widgets */
+.rw{background:var(--card);border-radius:16px;box-shadow:var(--sh-card);padding:15px 16px}
+.rw h5{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--g500);margin:0 0 11px;font-weight:500}
+.li{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:12.5px}
+.li .k{color:var(--ink-soft)}
+.li .v{margin-left:auto;font-family:var(--font-mono);font-size:11.5px;font-variant-numeric:tabular-nums}
+.li.tot{border-top:1px solid var(--g200);margin-top:6px;padding-top:10px;font-weight:600}
+.li.tot .v{font-size:14px;color:var(--violet)}
+.bal{display:flex;align-items:center;gap:7px;margin-top:11px;padding:9px 11px;border-radius:11px;background:var(--ok-bg);color:var(--ok);font-size:11.5px;font-weight:500}
+.warnbox{display:flex;gap:9px;padding:11px 12px;border-radius:11px;background:var(--warn-bg);color:var(--warn);font-size:11.5px;line-height:1.5}
+
+/* ---------- LOOK ---------- */
+.heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:14px;margin-bottom:8px}
+.hero{position:relative;border-radius:16px;overflow:hidden;box-shadow:var(--sh-card);transition:transform .18s var(--ease)}
+.hero:hover{transform:translateY(-3px)}
+.hero .cr{border-radius:0;aspect-ratio:4/5}
+.hero-f{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--card)}
+.hero-f b{font-size:12.5px;font-weight:600}
+.hero-f .mono{margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--g400)}
+.hero.sel{box-shadow:0 0 0 2.5px var(--violet),var(--sh-float)}
+.hero .chk{position:absolute;top:10px;left:10px;z-index:5;width:24px;height:24px;border-radius:999px;background:var(--violet);color:#fff;display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.hero:not(.sel) .chk{background:rgba(255,255,255,.85);color:transparent;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.1)}
+.swatches{display:flex;gap:6px;margin-top:4px}
+.sw2{width:26px;height:26px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07)}
+.kv{display:flex;align-items:baseline;gap:9px;padding:7px 0;border-bottom:1px solid var(--g100);font-size:12.5px}
+.kv:last-child{border-bottom:none}
+.kv .k{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--g500);width:92px;flex:none}
+.kv .v{font-weight:500}
+.lockbar{display:flex;align-items:center;gap:12px;padding:14px 17px;border-radius:16px;background:var(--ink-deep);color:#fff;box-shadow:var(--sh-pill-dark);margin-top:18px;flex-wrap:wrap}
+.lockbar .t{font-size:13px;font-weight:600}
+.lockbar .s{font-size:11.5px;color:rgba(255,255,255,.6)}
+
+/* ---------- BOARD ---------- */
+.bhead{display:flex;align-items:center;gap:10px;margin-bottom:13px;flex-wrap:wrap}
+.prog{height:5px;border-radius:999px;background:var(--g200);overflow:hidden;flex:1;min-width:90px;max-width:190px}
+.prog i{display:block;height:100%;border-radius:999px;background:var(--violet)}
+.assets{display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:13px}
+.ac{background:var(--card);border-radius:15px;box-shadow:var(--sh-card);overflow:hidden;transition:transform .15s var(--ease),box-shadow .15s;position:relative}
+.ac:hover{transform:translateY(-2px);box-shadow:var(--sh-float)}
+.ac .cr{border-radius:0}
+.ac-b{padding:10px 12px 11px}
+.ac-b b{display:block;font-size:12.5px;font-weight:600;line-height:1.3;margin-bottom:5px}
+.ac-m{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ac-m .mono{font-family:var(--font-mono);font-size:9.5px;color:var(--g400)}
+.ac .tick{position:absolute;top:9px;left:9px;z-index:6;width:21px;height:21px;border-radius:999px;background:var(--ok);color:#fff;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.28)}
+.ac .st{position:absolute;top:9px;right:9px;z-index:6}
+.ac.pend .cr{background:var(--g100)}
+.ac.pend .cr::before{display:none}
+.ph-empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--g400);z-index:2}
+.shim{position:absolute;inset:0;z-index:5;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.55) 50%,transparent 80%);background-size:220% 100%;animation:shim 1.5s linear infinite}
+@keyframes shim{from{background-position:120% 0}to{background-position:-120% 0}}
+.anchor{border-radius:12px;overflow:hidden;box-shadow:var(--sh-card)}
+.anchor .cr{border-radius:0;aspect-ratio:4/5}
+
+/* ---------- DELIVER ---------- */
+.tree{font-family:var(--font-mono);font-size:11.5px;line-height:1.95;color:var(--ink-soft);background:var(--card);border-radius:16px;box-shadow:var(--sh-card);padding:17px 19px;overflow-x:auto}
+.tree .d{color:var(--ink);font-weight:500}
+.tree .f{color:var(--g500)}
+.tree .v{color:var(--video)}
+.dtable{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
+.dtable th{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.13em;color:var(--g500);text-align:left;padding:9px 12px;border-bottom:1px solid var(--g200);font-weight:500;white-space:nowrap}
+.dtable td{padding:9px 12px;border-bottom:1px solid var(--g100);vertical-align:middle}
+.dtable tr:last-child td{border-bottom:none}
+.dtable .mono{font-family:var(--font-mono);font-size:11px;color:var(--g500);white-space:nowrap}
+.scroll{overflow-x:auto;background:var(--card);border-radius:16px;box-shadow:var(--sh-card)}
+
+/* ---------- annotation ---------- */
+.note{display:flex;gap:10px;padding:12px 15px;border-radius:14px;background:var(--violet-50);color:var(--violet-700);font-size:12.5px;line-height:1.55;margin-bottom:20px}
+.note b{font-weight:600}
+.note .nk{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;flex:none;padding-top:2px}
+
+/* ---------- responsive ---------- */
+@media (max-width:1180px){.work{grid-template-columns:1fr}.rail-r{position:static;flex-direction:row;flex-wrap:wrap}.rail-r>*{flex:1;min-width:230px}}
+@media (max-width:1023px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  .canvas{margin:0;border-radius:0;box-shadow:none}
+  .pg{padding:22px 18px 70px}
+  .pgtitle{font-size:27px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <g id="i-spark"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></g>
+  <g id="i-mega"><path d="M3 11v2a1 1 0 001 1h2l4 4V6L6 10H4a1 1 0 00-1 1z"/><path d="M14 8.5a4 4 0 010 7"/><path d="M17 6a7 7 0 010 12"/></g>
+  <g id="i-hist"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></g>
+  <g id="i-brief"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></g>
+  <g id="i-tag"><path d="M3 11V4a1 1 0 011-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.2"/></g>
+  <g id="i-folder"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></g>
+  <g id="i-pal"><path d="M12 3a9 9 0 100 18c1 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.5-1.1-.3-.3-.5-.7-.5-1.1 0-.8.7-1.3 1.5-1.3H16a5 5 0 005-5c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="10.5" r="1.1"/><circle cx="12" cy="7.5" r="1.1"/><circle cx="16.5" cy="10.5" r="1.1"/></g>
+  <g id="i-imgs"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 21h12a2 2 0 002-2V8"/><path d="M3 13l3.5-3.5L11 14"/></g>
+  <g id="i-cog"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1v.2a2 2 0 11-4 0v-.1A1.6 1.6 0 007 19.4a1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1A1.6 1.6 0 002.5 14H2a2 2 0 110-4h.1A1.6 1.6 0 004.6 7a1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1A1.6 1.6 0 0010 2.5V2a2 2 0 114 0v.1a1.6 1.6 0 002.7 1.1l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00.3 1.8v.1a1.6 1.6 0 001.4 1h.2a2 2 0 110 4h-.1a1.6 1.6 0 00-1.4 1z"/></g>
+  <g id="i-help"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5"/><circle cx="12" cy="17" r=".6"/></g>
+  <g id="i-zap"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></g>
+  <g id="i-bell"><path d="M18 9a6 6 0 10-12 0c0 6-2 7-2 7h16s-2-1-2-7z"/><path d="M10.3 20a2 2 0 003.4 0"/></g>
+  <g id="i-chk"><path d="M4 12.5l5 5L20 6.5"/></g>
+  <g id="i-play"><path d="M7 4.5l12 7.5-12 7.5z"/></g>
+  <g id="i-img"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5-5L6 20"/></g>
+  <g id="i-vid"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10.5l6-3.5v10l-6-3.5z"/></g>
+  <g id="i-cal"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></g>
+  <g id="i-dl"><path d="M12 3v13"/><path d="M7 12l5 5 5-5"/><path d="M4 21h16"/></g>
+  <g id="i-lock"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></g>
+  <g id="i-plus"><path d="M12 5v14M5 12h14"/></g>
+  <g id="i-arrow"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></g>
+  <g id="i-warn"><path d="M12 3l9.5 17H2.5z"/><path d="M12 10v4"/><circle cx="12" cy="17.2" r=".7"/></g>
+  <g id="i-refresh"><path d="M21 12a9 9 0 01-15.4 6.4L3 16"/><path d="M3 12a9 9 0 0115.4-6.4L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></g>
+  <g id="i-eye"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></g>
+ </defs>
+</svg>
+
+<div class="app">
+
+ <!-- ===================== SIDEBAR ===================== -->
+ <aside class="side">
+  <a class="logo" href="#"><span class="logomark">L</span><span class="logotext">Layer<b>tone</b></span></a>
+
+  <div class="ws"><span class="ws-av">N</span> Northwind Coffee <span class="ws-ch">▾</span></div>
+
+  <a class="navbtn" href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5e5ce6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-spark"/></svg> Quick Create <kbd>G</kbd></a>
+
+  <a class="navbtn on" href="#" style="margin-top:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a9a6f3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mega"/></svg> Campaigns <kbd>C</kbd></a>
+
+  <div style="margin-top:8px"><a class="nav" href="#"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-hist"/></svg> History</a></div>
+
+  <p class="navsec">Assets</p>
+  <a class="nav" href="#"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-brief"/></svg> Brands <span class="ct">2</span></a>
+  <a class="nav" href="#"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-tag"/></svg> Products <span class="ct">14</span></a>
+  <a class="nav" href="#"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-folder"/></svg> Projects</a>
+  <a class="nav" href="#"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-pal"/></svg> Mood library</a>
+  <a class="nav" href="#"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-imgs"/></svg> Stock library</a>
+
+  <div class="grow"></div>
+
+  <a class="nav" href="#"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cog"/></svg> Settings</a>
+  <a class="nav" href="#"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-help"/></svg> Help</a>
+
+  <div style="display:flex;align-items:center;gap:8px">
+   <a class="credits" href="#" style="flex:1"><svg width="13" height="13" viewBox="0 0 24 24" fill="#5e5ce6" stroke="#5e5ce6" stroke-width="2" stroke-linejoin="round"><use href="#i-zap"/></svg> 2,480 credits</a>
+   <button style="width:36px;height:36px;border-radius:999px;display:grid;place-items:center;color:#55524c" title="Notifications"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bell"/></svg></button>
+  </div>
+
+  <div class="userbox">
+   <span class="userav">SF</span>
+   <span class="usermeta"><b>Subscription plan</b><span>shehanm@gmail.com</span></span>
+  </div>
+ </aside>
+
+ <!-- ===================== CANVAS ===================== -->
+ <main class="canvas">
+  <div class="pg">
+
+   <div class="pghead">
+    <div>
+     <div class="eyebrow"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mega"/></svg> Campaign · Product launch</div>
+     <h1 class="pgtitle">Cold Brew Season</h1>
+     <p class="pgsub">Northwind Coffee Roasters · 1–21 Sep 2026 · Instagram, Facebook, TikTok</p>
+    </div>
+    <div style="display:flex;gap:9px">
+     <button class="btn btn--light"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-eye"/></svg> Preview</button>
+     <button class="btn btn--dark" id="primaryCta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-arrow"/></svg> Generate all 18</button>
+    </div>
+   </div>
+
+   <!-- stage rail -->
+   <nav class="rail" id="rail">
+    <button data-s="brief" class="done"><span class="rn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span> Brief</button>
+    <button data-s="plan" class="on"><span class="rn">2</span> Plan</button>
+    <div class="sep"></div>
+    <button data-s="look"><span class="rn">3</span> Look</button>
+    <button data-s="board"><span class="rn">4</span> Board</button>
+    <div class="sep"></div>
+    <button data-s="deliver"><span class="rn">5</span> Deliver</button>
+   </nav>
+
+   <!-- ============ SCREEN 1 · BRIEF ============ -->
+   <section class="screen" id="s-brief">
+    <div class="note"><span class="nk">Stage 1</span><span>One screen. Everything else is <b>inferred and then shown for editing</b> — the user never fills in a form they could have been handed.</span></div>
+    <div class="work">
+     <div>
+      <div class="field">
+       <p class="lbl">Campaign name</p>
+       <input class="inp" value="Cold Brew Season" aria-label="Campaign name">
+      </div>
+
+      <div class="field">
+       <p class="lbl">What are you doing?</p>
+       <div class="recipes">
+        <button class="rec on"><b>Product launch</b><span>New product going live</span><span class="ph">tease · launch · proof · last-call</span></button>
+        <button class="rec"><b>Offer / sale</b><span>Discount-driven push</span><span class="ph">announce · remind · last-call</span></button>
+        <button class="rec"><b>Seasonal</b><span>Holiday or season moment</span><span class="ph">build-up · peak · wind-down</span></button>
+        <button class="rec"><b>Always-on</b><span>Keep posting consistently</span><span class="ph">hero · hub · hygiene</span></button>
+        <button class="rec"><b>Catalogue</b><span>Many SKUs, print + digital</span><span class="ph">single phase</span></button>
+        <button class="rec"><b>Ad test pack</b><span>Angles × formats for paid</span><span class="ph">matrix</span></button>
+       </div>
+      </div>
+
+      <div class="field">
+       <p class="lbl">Products</p>
+       <div class="picks">
+        <span class="pick"><span class="sw" style="background:linear-gradient(140deg,#4a2f1c,#8a5a33)"></span> Cold Brew Concentrate 1L <span class="x">×</span></span>
+        <span class="pick"><span class="sw" style="background:linear-gradient(140deg,#c98341,#e8c9a0)"></span> Ethiopia Single-Origin 250g <span class="x">×</span></span>
+        <span class="pick"><span class="sw" style="background:linear-gradient(140deg,#5c7c8a,#a9c4cd)"></span> Brew Bottle 500ml <span class="x">×</span></span>
+        <button class="pick add"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#i-plus"/></svg> Add product</button>
+       </div>
+      </div>
+
+      <div class="field">
+       <p class="lbl">Where it runs</p>
+       <div class="toggles">
+        <button class="tog on"><span class="tk"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span> Instagram</button>
+        <button class="tog on"><span class="tk"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span> Facebook</button>
+        <button class="tog on"><span class="tk"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span> TikTok</button>
+        <button class="tog"><span class="tk"></span> LinkedIn</button>
+        <button class="tog"><span class="tk"></span> Pinterest</button>
+       </div>
+      </div>
+
+      <div class="field">
+       <p class="lbl">When it runs</p>
+       <div class="dates">
+        <span class="dbox"><small>Starts</small>1 Sep 2026</span>
+        <span style="color:var(--g400)">→</span>
+        <span class="dbox"><small>Ends</small>21 Sep 2026</span>
+        <span class="pill p-mut">3 weeks</span>
+       </div>
+      </div>
+
+      <div class="field">
+       <p class="lbl">What's the campaign about?</p>
+       <textarea class="inp" aria-label="Brief">Launching our 18-hour cold brew concentrate for the last warm stretch of the year. Slow-steeped, low-acid, keeps two weeks in the fridge. Launch week runs 20% off with the Brew Bottle bundle. Tone: unhurried, honest, a little bit nerdy about the process.</textarea>
+      </div>
+
+      <div class="field">
+       <p class="lbl">Offer <span style="text-transform:none;letter-spacing:0;font-family:var(--font-sans);font-size:11px">— optional, drives price and badge overlays</span></p>
+       <div class="dates">
+        <span class="dbox"><small>Discount</small>20% off</span>
+        <span class="dbox"><small>Code</small>SLOWDRIP</span>
+        <span class="dbox"><small>Expires</small>21 Sep, 23:59</span>
+       </div>
+      </div>
+
+      <button class="btn btn--accent" style="height:42px;padding:0 22px;font-size:15px">Build the plan <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-arrow"/></svg></button>
+     </div>
+
+     <div class="rail-r">
+      <div class="rw">
+       <h5>Brand</h5>
+       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span style="width:38px;height:38px;border-radius:11px;background:#2f6b4f;color:#fff;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:15px">N</span>
+        <div style="line-height:1.3"><b style="font-size:13.5px">Northwind Coffee</b><br><span class="mut" style="font-size:11.5px">Fraunces / Inter · 4 colours</span></div>
+       </div>
+       <div class="swatches">
+        <span class="sw2" style="background:#2f6b4f"></span>
+        <span class="sw2" style="background:#c98341"></span>
+        <span class="sw2" style="background:#efe2cd"></span>
+        <span class="sw2" style="background:#241a12"></span>
+       </div>
+       <div class="bal" style="background:var(--violet-50);color:var(--violet-700)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-lock"/></svg> Logo, fonts and palette are placed by the renderer — never generated.</div>
+      </div>
+      <div class="rw">
+       <h5>What you'll get</h5>
+       <div class="li"><span class="k">Planned assets</span><span class="v">~18</span></div>
+       <div class="li"><span class="k">Phases</span><span class="v">4</span></div>
+       <div class="li"><span class="k">Captions + hashtags</span><span class="v">included</span></div>
+       <div class="li"><span class="k">Video slots</span><span class="v">~5</span></div>
+       <div class="li tot"><span class="k">Est. credits</span><span class="v">~580</span></div>
+       <p class="mut" style="font-size:11.5px;margin:10px 0 0;line-height:1.5">Nothing is charged until you approve the plan.</p>
+      </div>
+     </div>
+    </div>
+   </section>
+
+   <!-- ============ SCREEN 2 · PLAN ============ -->
+   <section class="screen on" id="s-plan">
+    <div class="note"><span class="nk">Stage 2</span><span>The whole campaign, dated and priced, <b>before a single credit is spent</b>. Every card is editable — retype it, redate it, swap its format, or delete it. This screen is the product.</span></div>
+
+    <div class="statbar">
+     <div class="stat"><b>18</b><span>Assets</span></div>
+     <div class="stat"><b>13</b><span>Images</span></div>
+     <div class="stat"><b>5</b><span>Videos</span></div>
+     <div class="stat"><b>4</b><span>Phases</span></div>
+     <div class="stat"><b>21</b><span>Days</span></div>
+     <div class="stat hl"><b>581</b><span>Est. credits</span></div>
+    </div>
+
+    <div class="calstrip">
+     <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;flex-wrap:wrap">
+      <p class="lbl" style="margin:0">September 2026</p>
+      <span style="margin-left:auto;display:flex;gap:12px;font-family:var(--font-mono);font-size:10px;color:var(--g500)">
+       <span><i class="d-img" style="display:inline-block;width:6px;height:6px;border-radius:9px;margin-right:4px"></i>image</span>
+       <span><i class="d-vid" style="display:inline-block;width:6px;height:6px;border-radius:9px;margin-right:4px"></i>video</span>
+      </span>
+     </div>
+     <div class="calrow">
+      <div class="cald ph1"><i>T</i><em>1</em><u></u></div>
+      <div class="cald ph1"><i>W</i><em>2</em><u><i class="d-vid"></i></u></div>
+      <div class="cald ph1"><i>T</i><em>3</em><u><i class="d-img"></i></u></div>
+      <div class="cald ph1"><i>F</i><em>4</em><u><i class="d-img"></i></u></div>
+      <div class="cald ph1"><i>S</i><em>5</em><u></u></div>
+      <div class="cald ph1"><i>S</i><em>6</em><u><i class="d-img"></i></u></div>
+      <div class="cald ph2"><i>M</i><em>7</em><u><i class="d-img"></i><i class="d-img"></i></u></div>
+      <div class="cald ph2"><i>T</i><em>8</em><u><i class="d-vid"></i></u></div>
+      <div class="cald ph2"><i>W</i><em>9</em><u><i class="d-vid"></i><i class="d-img"></i></u></div>
+      <div class="cald ph2"><i>T</i><em>10</em><u><i class="d-img"></i></u></div>
+      <div class="cald ph3"><i>F</i><em>11</em><u><i class="d-img"></i></u></div>
+      <div class="cald ph3"><i>S</i><em>12</em><u><i class="d-img"></i></u></div>
+      <div class="cald ph3"><i>S</i><em>13</em><u></u></div>
+      <div class="cald ph3"><i>M</i><em>14</em><u><i class="d-vid"></i></u></div>
+      <div class="cald ph3"><i>T</i><em>15</em><u><i class="d-img"></i></u></div>
+      <div class="cald ph3"><i>W</i><em>16</em><u></u></div>
+      <div class="cald ph3"><i>T</i><em>17</em><u><i class="d-img"></i></u></div>
+      <div class="cald ph4"><i>F</i><em>18</em><u></u></div>
+      <div class="cald ph4"><i>S</i><em>19</em><u><i class="d-img"></i></u></div>
+      <div class="cald ph4"><i>S</i><em>20</em><u><i class="d-vid"></i></u></div>
+      <div class="cald ph4"><i>M</i><em>21</em><u><i class="d-img"></i></u></div>
+     </div>
+    </div>
+
+    <div class="work">
+     <div>
+
+      <!-- PHASE 1 -->
+      <div class="phase">
+       <div class="phead">
+        <span class="pbar pb1"></span>
+        <div><h4>Tease</h4><span class="pd">1–6 Sep · 4 assets</span></div>
+        <div class="pr">
+         <span class="pill p-mut">121 cr</span>
+         <button class="btn btn--ghost btn--sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-plus"/></svg> Add slot</button>
+        </div>
+       </div>
+       <div class="slots">
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-vid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-vid"/></svg> Reel 9:16</span><span class="pill p-mut">8s</span><span class="when">Wed 2 Sep</span></div>
+         <b>Teaser — the slow drip</b>
+         <p class="cap">Six days. One very slow drip. Something cold is coming to Northwind. ❄️</p>
+         <p class="tags">#coldbrew #slowcoffee #comingsoon</p>
+         <div class="slot-f"><span>hook · negative</span><span class="cr8">85 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> Story 9:16</span><span class="when">Thu 3 Sep</span></div>
+         <b>Countdown card</b>
+         <p class="cap">4 days. Set a reminder — launch-week pricing only runs seven days.</p>
+         <p class="tags">#northwindcoffee #coldbrewseason</p>
+         <div class="slot-f"><span>urgency</span><span class="cr8">12 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> Post 4:5</span><span class="when">Fri 4 Sep</span></div>
+         <b>Ingredient close-up</b>
+         <p class="cap">Ethiopia Guji, coarse ground, 18 hours in cold water. That's the whole recipe.</p>
+         <p class="tags">#singleorigin #ethiopiacoffee #specialtycoffee</p>
+         <div class="slot-f"><span>craft proof</span><span class="cr8">12 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> FB Feed</span><span class="when">Sun 6 Sep</span></div>
+         <b>Founder note</b>
+         <p class="cap">We sat on this for two summers because 12-hour brew tasted thin. Here's what changed.</p>
+         <p class="tags">#smallbatch #roastery</p>
+         <div class="slot-f"><span>founder-led</span><span class="cr8">12 cr</span></div>
+        </div>
+       </div>
+      </div>
+
+      <!-- PHASE 2 -->
+      <div class="phase">
+       <div class="phead">
+        <span class="pbar pb2"></span>
+        <div><h4>Launch</h4><span class="pd">7–10 Sep · 6 assets</span></div>
+        <div class="pr">
+         <span class="pill p-mut">218 cr</span>
+         <button class="btn btn--ghost btn--sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-plus"/></svg> Add slot</button>
+        </div>
+       </div>
+       <div class="slots">
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> Post 4:5</span><span class="pill p-live"><span class="dot"></span>hero</span><span class="when">Mon 7 Sep</span></div>
+         <b>Hero reveal</b>
+         <p class="cap">Cold Brew Season is open. 18-hour steep, low acid, two weeks in the fridge. 20% off all week with code SLOWDRIP.</p>
+         <p class="tags">#coldbrewseason #northwindcoffee #slowdrip</p>
+         <div class="slot-f"><span>style anchor</span><span class="cr8">12 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> Story 9:16</span><span class="when">Mon 7 Sep</span></div>
+         <b>Hero reveal — story cut</b>
+         <p class="cap">It's here. Swipe up for launch-week pricing.</p>
+         <p class="tags">#coldbrew</p>
+         <div class="slot-f"><span>sibling format</span><span class="cr8">12 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-vid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-vid"/></svg> TikTok 9:16</span><span class="pill p-mut">12s</span><span class="when">Tue 8 Sep</span></div>
+         <b>Pour demo</b>
+         <p class="cap">Concentrate, ice, splash of oat. Ten seconds, no equipment, no queue.</p>
+         <p class="tags">#coldbrewathome #coffeetok #easyrecipe</p>
+         <div class="slot-f"><span>reveal · value · CTA</span><span class="cr8">85 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-vid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-vid"/></svg> Reel 9:16</span><span class="pill p-mut">12s</span><span class="when">Wed 9 Sep</span></div>
+         <b>Pour demo — reel cut</b>
+         <p class="cap">Same pour, tighter hook. Captions burned in — 85% of you watch on mute.</p>
+         <p class="tags">#reels #coldbrew #coffeeroutine</p>
+         <div class="slot-f"><span>sibling format</span><span class="cr8">85 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> FB Feed</span><span class="when">Wed 9 Sep</span></div>
+         <b>Offer card</b>
+         <p class="cap">Launch week: 20% off the 1L concentrate. Code SLOWDRIP, ends 21 Sep.</p>
+         <p class="tags">#coffeedeal #localroaster</p>
+         <div class="slot-f"><span>price + badge overlay</span><span class="cr8">12 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> Post 1:1</span><span class="when">Thu 10 Sep</span></div>
+         <b>Bundle card</b>
+         <p class="cap">Concentrate + Brew Bottle. Everything you need, nothing you don't.</p>
+         <p class="tags">#bundle #coldbrewkit</p>
+         <div class="slot-f"><span>2 products</span><span class="cr8">12 cr</span></div>
+        </div>
+       </div>
+      </div>
+
+      <!-- PHASE 3 -->
+      <div class="phase">
+       <div class="phead">
+        <span class="pbar pb3"></span>
+        <div><h4>Proof</h4><span class="pd">11–17 Sep · 5 assets</span></div>
+        <div class="pr">
+         <span class="pill p-mut">133 cr</span>
+         <button class="btn btn--ghost btn--sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-plus"/></svg> Add slot</button>
+        </div>
+       </div>
+       <div class="slots">
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> Post 4:5</span><span class="when">Fri 11 Sep</span></div>
+         <b>Customer quote</b>
+         <p class="cap">"I stopped buying the supermarket stuff after one bottle." — Marta, Södermalm</p>
+         <p class="tags">#customerlove #coldbrew</p>
+         <div class="slot-f"><span>social proof</span><span class="cr8">12 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> Story 9:16</span><span class="when">Sat 12 Sep</span></div>
+         <b>Review card</b>
+         <p class="cap">4.8 from 63 reviews in week one. Thank you, genuinely.</p>
+         <p class="tags">#reviews</p>
+         <div class="slot-f"><span>social proof</span><span class="cr8">12 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-vid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-vid"/></svg> Reel 9:16</span><span class="pill p-mut">10s</span><span class="when">Mon 14 Sep</span></div>
+         <b>Three ways to drink it</b>
+         <p class="cap">Neat over ice. Half oat, half concentrate. Or — hear us out — with tonic.</p>
+         <p class="tags">#coffeehacks #coldbrewrecipes #howto</p>
+         <div class="slot-f"><span>utility · hub</span><span class="cr8">85 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> FB Feed</span><span class="when">Tue 15 Sep</span></div>
+         <b>FAQ — how long does it keep?</b>
+         <p class="cap">Fourteen days sealed, seven once opened. No preservatives, so it does actually expire.</p>
+         <p class="tags">#faq #coffeetips</p>
+         <div class="slot-f"><span>objection · hygiene</span><span class="cr8">12 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> Post 1:1</span><span class="when">Thu 17 Sep</span></div>
+         <b>Cold brew vs iced coffee</b>
+         <p class="cap">Same bean, different chemistry. One is steeped cold for 18 hours; the other is hot coffee that got a shock.</p>
+         <p class="tags">#coffeeeducation #coldbrewvsiced</p>
+         <div class="slot-f"><span>comparison layout</span><span class="cr8">12 cr</span></div>
+        </div>
+       </div>
+      </div>
+
+      <!-- PHASE 4 -->
+      <div class="phase">
+       <div class="phead">
+        <span class="pbar pb4"></span>
+        <div><h4>Last call</h4><span class="pd">18–21 Sep · 3 assets</span></div>
+        <div class="pr">
+         <span class="pill p-mut">109 cr</span>
+         <button class="btn btn--ghost btn--sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-plus"/></svg> Add slot</button>
+        </div>
+       </div>
+       <div class="slots">
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> Story 9:16</span><span class="when">Sat 19 Sep</span></div>
+         <b>48 hours left</b>
+         <p class="cap">SLOWDRIP closes Sunday night. After that it's full price until next summer.</p>
+         <p class="tags">#lastchance</p>
+         <div class="slot-f"><span>urgency</span><span class="cr8">12 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-vid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-vid"/></svg> Reel 9:16</span><span class="pill p-mut">8s</span><span class="when">Sun 20 Sep</span></div>
+         <b>Last call clip</b>
+         <p class="cap">One pour. One day left. Code SLOWDRIP.</p>
+         <p class="tags">#lastcall #coldbrew #coffeelovers</p>
+         <div class="slot-f"><span>hook · CTA</span><span class="cr8">85 cr</span></div>
+        </div>
+        <div class="slot">
+         <div class="slot-t"><span class="pill p-img"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><use href="#i-img"/></svg> FB Feed</span><span class="when">Mon 21 Sep</span></div>
+         <b>Offer ends tonight</b>
+         <p class="cap">Last few hours on launch pricing. Thanks for a genuinely good three weeks.</p>
+         <p class="tags">#thankyou #localroaster</p>
+         <div class="slot-f"><span>close</span><span class="cr8">12 cr</span></div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+     <!-- PLAN RIGHT RAIL -->
+     <div class="rail-r">
+      <div class="rw">
+       <h5>Credit estimate</h5>
+       <div class="li"><span class="pbar pb1" style="width:3px;height:13px"></span><span class="k">Tease · 4</span><span class="v">121</span></div>
+       <div class="li"><span class="pbar pb2" style="width:3px;height:13px"></span><span class="k">Launch · 6</span><span class="v">218</span></div>
+       <div class="li"><span class="pbar pb3" style="width:3px;height:13px"></span><span class="k">Proof · 5</span><span class="v">133</span></div>
+       <div class="li"><span class="pbar pb4" style="width:3px;height:13px"></span><span class="k">Last call · 3</span><span class="v">109</span></div>
+       <div class="li tot"><span class="k">Total</span><span class="v">581</span></div>
+       <div class="bal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg> 2,480 available — 1,899 left after</div>
+       <button class="btn btn--accent" style="width:100%;margin-top:11px">Approve &amp; continue</button>
+       <button class="btn btn--ghost btn--sm" style="width:100%;margin-top:5px">Generate one phase first</button>
+      </div>
+
+      <div class="rw">
+       <h5>Cadence check</h5>
+       <div class="li"><span class="k">Posts per week</span><span class="v">6.0</span></div>
+       <div class="li"><span class="k">Video share</span><span class="v">28%</span></div>
+       <div class="li"><span class="k">Longest gap</span><span class="v">2 days</span></div>
+       <div class="warnbox" style="margin-top:11px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><use href="#i-warn"/></svg>
+        <span>No TikTok post after 8 Sep. TikTok rewards consistency — consider adding one in Proof.</span>
+       </div>
+      </div>
+
+      <div class="rw">
+       <h5>Plan reasoning</h5>
+       <p style="font-size:12px;line-height:1.6;color:var(--ink-soft);margin:0 0 9px">Four phases because a launch has four jobs: build context, make the offer obvious, answer objections, then close.</p>
+       <p style="font-size:12px;line-height:1.6;color:var(--ink-soft);margin:0">Video sits at the hook and the demo — where motion earns its cost. Proof leans on stills because copy carries it.</p>
+       <button class="btn btn--ghost btn--sm" style="width:100%;margin-top:9px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-refresh"/></svg> Re-plan with notes</button>
+      </div>
+     </div>
+    </div>
+   </section>
+
+   <!-- ============ SCREEN 3 · LOOK ============ -->
+   <section class="screen" id="s-look">
+    <div class="note"><span class="nk">Stage 3</span><span>Decided <b>once</b>, for the whole campaign. Pick a hero and it becomes the <b>style anchor</b> — every one of the other 17 assets is generated with this exact image as an i2i reference, so the campaign reads as one thing.</span></div>
+
+    <div class="work">
+     <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:13px;flex-wrap:wrap">
+       <h3 class="h3">Hero candidates</h3>
+       <span class="mut" style="font-size:12.5px">Launch · Hero reveal · Instagram Post 4:5</span>
+       <button class="btn btn--ghost btn--sm" style="margin-left:auto"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-refresh"/></svg> Four more</button>
+      </div>
+
+      <div class="heroes">
+       <div class="hero sel">
+        <span class="chk"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+        <div class="cr cr--night"><span class="bot"></span><span class="cr-badge">20% OFF</span>
+         <span class="cr-ov"><span class="cr-lg">Northwind</span><span class="cr-hd">Cold Brew<br>Season</span><span class="cr-sb">18-hour steep · low acid</span><span class="cr-cta">Shop the drop</span></span>
+        </div>
+        <div class="hero-f"><b>Candidate A</b><span class="pill p-ok">selected</span><span class="mono">seed 4471</span></div>
+       </div>
+
+       <div class="hero">
+        <span class="chk"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+        <div class="cr cr--ice"><span class="bot"></span><span class="cr-badge">20% OFF</span>
+         <span class="cr-ov"><span class="cr-lg">Northwind</span><span class="cr-hd">Cold Brew<br>Season</span><span class="cr-sb">18-hour steep · low acid</span><span class="cr-cta">Shop the drop</span></span>
+        </div>
+        <div class="hero-f"><b>Candidate B</b><span class="mono">seed 8102</span></div>
+       </div>
+
+       <div class="hero">
+        <span class="chk"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+        <div class="cr cr--cream"><span class="bot"></span><span class="cr-badge">20% OFF</span>
+         <span class="cr-ov"><span class="cr-lg" style="color:#3a2a1a">Northwind</span><span class="cr-hd" style="color:#241a12;text-shadow:none">Cold Brew<br>Season</span><span class="cr-sb" style="color:rgba(36,26,18,.72)">18-hour steep · low acid</span><span class="cr-cta" style="background:#241a12;color:#fff">Shop the drop</span></span>
+        </div>
+        <div class="hero-f"><b>Candidate C</b><span class="mono">seed 2960</span></div>
+       </div>
+
+       <div class="hero">
+        <span class="chk"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+        <div class="cr cr--amber"><span class="bot"></span><span class="cr-badge">20% OFF</span>
+         <span class="cr-ov"><span class="cr-lg">Northwind</span><span class="cr-hd">Cold Brew<br>Season</span><span class="cr-sb">18-hour steep · low acid</span><span class="cr-cta">Shop the drop</span></span>
+        </div>
+        <div class="hero-f"><b>Candidate D</b><span class="mono">seed 6318</span></div>
+       </div>
+      </div>
+
+      <div class="lockbar">
+       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><use href="#i-lock"/></svg>
+       <div style="flex:1;min-width:190px"><span class="t">Freeze the style contract</span><br><span class="s">Locks mood, composition, palette and seed for all 18 assets. Changing it later invalidates the anchor.</span></div>
+       <button class="btn btn--light">Compare A / B</button>
+       <button class="btn btn--accent">Freeze &amp; go to board</button>
+      </div>
+     </div>
+
+     <div class="rail-r">
+      <div class="rw">
+       <h5>Style contract</h5>
+       <div class="kv"><span class="k">Mood</span><span class="v">Cold Press Noir</span></div>
+       <div class="kv"><span class="k">Template</span><span class="v">product_hero</span></div>
+       <div class="kv"><span class="k">Background</span><span class="v">Lifestyle</span></div>
+       <div class="kv"><span class="k">Realism</span><span class="v">Premium editorial</span></div>
+       <div class="kv"><span class="k">Product size</span><span class="v">Balanced</span></div>
+       <div class="kv"><span class="k">Shadow</span><span class="v">Soft</span></div>
+       <div class="kv"><span class="k">Seed</span><span class="v" style="font-family:var(--font-mono);font-size:11.5px">4471</span></div>
+       <p class="lbl" style="margin:13px 0 7px">Resolved palette</p>
+       <div class="swatches">
+        <span class="sw2" style="background:#241a12"></span>
+        <span class="sw2" style="background:#6b4a30"></span>
+        <span class="sw2" style="background:#c98341"></span>
+        <span class="sw2" style="background:#efe2cd"></span>
+        <span class="sw2" style="background:#2f6b4f"></span>
+       </div>
+       <p class="mut" style="font-size:11px;margin:8px 0 0;line-height:1.5">Sampled from the approved image — not the brand kit. This is what drift is measured against.</p>
+      </div>
+
+      <div class="rw">
+       <h5>Consistency</h5>
+       <div class="toggles" style="flex-direction:column;align-items:stretch">
+        <button class="tog"><span class="tk"></span> Loose — shared mood only</button>
+        <button class="tog on"><span class="tk"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span> Matched — anchor reference</button>
+        <button class="tog"><span class="tk"></span> Locked — + seed &amp; drift check</button>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section>
+
+   <!-- ============ SCREEN 4 · BOARD ============ -->
+   <section class="screen" id="s-board">
+    <div class="note"><span class="nk">Stage 4</span><span>Production. Generate a slot, a phase, or everything — each result is anchored, so the board <b>fills in visibly as one campaign</b>. Approval is explicit: a campaign has an approved set and a working set.</span></div>
+
+    <div class="work">
+     <div>
+      <!-- board phase 1 -->
+      <div class="phase">
+       <div class="bhead">
+        <span class="pbar pb1"></span>
+        <h4 style="font-family:var(--font-display);font-size:16px;font-weight:600;margin:0;letter-spacing:-.015em">Tease</h4>
+        <span class="pill p-ok"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg> 4 of 4 approved</span>
+        <div class="prog"><i style="width:100%"></i></div>
+        <button class="btn btn--ghost btn--sm" style="margin-left:auto">Regenerate phase</button>
+       </div>
+       <div class="assets">
+        <div class="ac">
+         <span class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+         <div class="cr cr--night" style="aspect-ratio:9/16"><span class="bot"></span><span class="cr-play"><svg width="13" height="13" viewBox="0 0 24 24" fill="#241a12"><use href="#i-play"/></svg></span><span class="cr-dur">0:08</span><span class="cr-cap">SIX DAYS. ONE SLOW DRIP.</span></div>
+         <div class="ac-b"><b>Teaser — the slow drip</b><div class="ac-m"><span class="pill p-vid">Reel</span><span class="mono">2 Sep</span></div></div>
+        </div>
+        <div class="ac">
+         <span class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+         <div class="cr cr--ice" style="aspect-ratio:9/16"><span class="bot"></span><span class="cr-ov"><span class="cr-lg">Northwind</span><span class="cr-hd">4 days</span><span class="cr-sb">Launch pricing, one week only</span></span></div>
+         <div class="ac-b"><b>Countdown card</b><div class="ac-m"><span class="pill p-img">Story</span><span class="mono">3 Sep</span></div></div>
+        </div>
+        <div class="ac">
+         <span class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+         <div class="cr cr--amber" style="aspect-ratio:4/5"><span class="bot" style="width:34%;height:44%"></span><span class="cr-ov"><span class="cr-lg">Northwind</span><span class="cr-hd">Guji, coarse,<br>18 hours</span></span></div>
+         <div class="ac-b"><b>Ingredient close-up</b><div class="ac-m"><span class="pill p-img">Post 4:5</span><span class="mono">4 Sep</span></div></div>
+        </div>
+        <div class="ac">
+         <span class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+         <div class="cr cr--slate" style="aspect-ratio:1.91/1"><span class="bot" style="width:12%;height:62%;bottom:12%;left:24%"></span><span class="cr-ov"><span class="cr-lg">Northwind</span><span class="cr-hd" style="font-size:12px">Why we waited<br>two summers</span></span></div>
+         <div class="ac-b"><b>Founder note</b><div class="ac-m"><span class="pill p-img">FB Feed</span><span class="mono">6 Sep</span></div></div>
+        </div>
+       </div>
+      </div>
+
+      <!-- board phase 2 -->
+      <div class="phase">
+       <div class="bhead">
+        <span class="pbar pb2"></span>
+        <h4 style="font-family:var(--font-display);font-size:16px;font-weight:600;margin:0;letter-spacing:-.015em">Launch</h4>
+        <span class="pill p-live"><span class="dot"></span> generating 2 of 6</span>
+        <div class="prog"><i style="width:58%"></i></div>
+        <button class="btn btn--ghost btn--sm" style="margin-left:auto">Pause</button>
+       </div>
+       <div class="assets">
+        <div class="ac">
+         <span class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+         <span class="st pill p-warn" style="background:#fff">anchor</span>
+         <div class="cr cr--night" style="aspect-ratio:4/5"><span class="bot"></span><span class="cr-badge">20% OFF</span><span class="cr-ov"><span class="cr-lg">Northwind</span><span class="cr-hd">Cold Brew<br>Season</span><span class="cr-sb">18-hour steep · low acid</span><span class="cr-cta">Shop the drop</span></span></div>
+         <div class="ac-b"><b>Hero reveal</b><div class="ac-m"><span class="pill p-img">Post 4:5</span><span class="mono">7 Sep</span></div></div>
+        </div>
+        <div class="ac">
+         <span class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg></span>
+         <div class="cr cr--night" style="aspect-ratio:9/16"><span class="bot"></span><span class="cr-badge">20% OFF</span><span class="cr-ov"><span class="cr-lg">Northwind</span><span class="cr-hd">Cold Brew<br>Season</span><span class="cr-cta">Shop the drop</span></span></div>
+         <div class="ac-b"><b>Hero reveal — story</b><div class="ac-m"><span class="pill p-img">Story</span><span class="mono">7 Sep</span></div></div>
+        </div>
+        <div class="ac">
+         <span class="st pill p-live" style="background:#fff"><span class="dot"></span> 62%</span>
+         <div class="cr cr--night" style="aspect-ratio:9/16"><span class="bot" style="opacity:.55"></span><span class="shim"></span><span class="cr-dur">0:12</span></div>
+         <div class="ac-b"><b>Pour demo</b><div class="ac-m"><span class="pill p-vid">TikTok</span><span class="mono">8 Sep</span></div></div>
+        </div>
+        <div class="ac">
+         <span class="st pill p-live" style="background:#fff"><span class="dot"></span> 18%</span>
+         <div class="cr cr--night" style="aspect-ratio:9/16"><span class="bot" style="opacity:.4"></span><span class="shim"></span><span class="cr-dur">0:12</span></div>
+         <div class="ac-b"><b>Pour demo — reel</b><div class="ac-m"><span class="pill p-vid">Reel</span><span class="mono">9 Sep</span></div></div>
+        </div>
+        <div class="ac pend">
+         <span class="st pill p-mut" style="background:#fff">queued</span>
+         <div class="cr" style="aspect-ratio:1.91/1;background:var(--g100)"><span class="ph-empty"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-img"/></svg></span></div>
+         <div class="ac-b"><b>Offer card</b><div class="ac-m"><span class="pill p-img">FB Feed</span><span class="mono">9 Sep</span></div></div>
+        </div>
+        <div class="ac pend">
+         <span class="st pill p-mut" style="background:#fff">queued</span>
+         <div class="cr" style="aspect-ratio:1/1;background:var(--g100)"><span class="ph-empty"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-img"/></svg></span></div>
+         <div class="ac-b"><b>Bundle card</b><div class="ac-m"><span class="pill p-img">Post 1:1</span><span class="mono">10 Sep</span></div></div>
+        </div>
+       </div>
+      </div>
+
+      <!-- board phase 3 collapsed -->
+      <div class="phase">
+       <div class="bhead">
+        <span class="pbar pb3"></span>
+        <h4 style="font-family:var(--font-display);font-size:16px;font-weight:600;margin:0;letter-spacing:-.015em">Proof</h4>
+        <span class="pill p-mut">5 planned · 133 cr</span>
+        <button class="btn btn--light btn--sm" style="margin-left:auto">Generate phase</button>
+       </div>
+      </div>
+      <div class="phase">
+       <div class="bhead">
+        <span class="pbar pb4"></span>
+        <h4 style="font-family:var(--font-display);font-size:16px;font-weight:600;margin:0;letter-spacing:-.015em">Last call</h4>
+        <span class="pill p-mut">3 planned · 109 cr</span>
+        <button class="btn btn--light btn--sm" style="margin-left:auto">Generate phase</button>
+       </div>
+      </div>
+     </div>
+
+     <!-- BOARD RIGHT RAIL -->
+     <div class="rail-r">
+      <div class="rw">
+       <h5>Style anchor</h5>
+       <div class="anchor">
+        <div class="cr cr--night"><span class="bot"></span><span class="cr-badge">20% OFF</span><span class="cr-ov"><span class="cr-lg">Northwind</span><span class="cr-hd">Cold Brew<br>Season</span><span class="cr-sb">18-hour steep · low acid</span><span class="cr-cta">Shop the drop</span></span></div>
+       </div>
+       <p class="mut" style="font-size:11.5px;margin:9px 0 0;line-height:1.5">Every asset below references this image. It also becomes frame zero for all five video slots.</p>
+      </div>
+
+      <div class="rw">
+       <h5>Drift check</h5>
+       <div class="li"><span class="k">Palette distance</span><span class="v" style="color:var(--ok)">0.04</span></div>
+       <div class="li"><span class="k">Composition match</span><span class="v" style="color:var(--ok)">97%</span></div>
+       <div class="li"><span class="k">Flagged assets</span><span class="v">0</span></div>
+       <div class="bal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg> All 6 generated assets on-contract</div>
+      </div>
+
+      <div class="rw">
+       <h5>Progress</h5>
+       <div class="li"><span class="k">Approved</span><span class="v">6</span></div>
+       <div class="li"><span class="k">Generating</span><span class="v">2</span></div>
+       <div class="li"><span class="k">Planned</span><span class="v">10</span></div>
+       <div class="li tot"><span class="k">Spent</span><span class="v">218</span></div>
+       <button class="btn btn--dark" style="width:100%;margin-top:11px">Generate remaining 10</button>
+      </div>
+     </div>
+    </div>
+   </section>
+
+   <!-- ============ SCREEN 5 · DELIVER ============ -->
+   <section class="screen" id="s-deliver">
+    <div class="note"><span class="nk">Stage 5</span><span>The campaign as a <b>deliverable</b>: a dated calendar, a copy sheet you can paste from, and every approved asset named by platform, format and date. Direct publishing is a later phase — this is the seam it plugs into.</span></div>
+
+    <div class="work">
+     <div>
+      <div class="statbar" style="margin-bottom:20px">
+       <div class="stat"><b>18</b><span>Assets</span></div>
+       <div class="stat"><b>13</b><span>PNG</span></div>
+       <div class="stat"><b>5</b><span>MP4</span></div>
+       <div class="stat"><b>142</b><span>MB</span></div>
+       <div class="stat hl"><b>581</b><span>Credits spent</span></div>
+      </div>
+
+      <h3 class="h3" style="margin-bottom:11px">Posting schedule</h3>
+      <div class="scroll" style="margin-bottom:24px">
+       <table class="dtable">
+        <thead><tr><th>Date</th><th>Platform</th><th>Format</th><th>Asset</th><th>Caption</th></tr></thead>
+        <tbody>
+         <tr><td class="mono">Wed 2 Sep</td><td>Instagram</td><td><span class="pill p-vid">Reel 9:16</span></td><td>Teaser — the slow drip</td><td class="mut">Six days. One very slow drip…</td></tr>
+         <tr><td class="mono">Thu 3 Sep</td><td>Instagram</td><td><span class="pill p-img">Story</span></td><td>Countdown card</td><td class="mut">4 days. Set a reminder…</td></tr>
+         <tr><td class="mono">Fri 4 Sep</td><td>Instagram</td><td><span class="pill p-img">Post 4:5</span></td><td>Ingredient close-up</td><td class="mut">Ethiopia Guji, coarse ground…</td></tr>
+         <tr><td class="mono">Sun 6 Sep</td><td>Facebook</td><td><span class="pill p-img">Feed</span></td><td>Founder note</td><td class="mut">We sat on this for two summers…</td></tr>
+         <tr><td class="mono">Mon 7 Sep</td><td>Instagram</td><td><span class="pill p-img">Post 4:5</span></td><td>Hero reveal</td><td class="mut">Cold Brew Season is open…</td></tr>
+         <tr><td class="mono">Tue 8 Sep</td><td>TikTok</td><td><span class="pill p-vid">Video 9:16</span></td><td>Pour demo</td><td class="mut">Concentrate, ice, splash of oat…</td></tr>
+         <tr><td colspan="5" class="mut" style="text-align:center;font-size:12px;padding:11px">+ 12 more rows</td></tr>
+        </tbody>
+       </table>
+      </div>
+
+      <h3 class="h3" style="margin-bottom:11px">Package contents</h3>
+      <div class="tree">
+<span class="d">cold-brew-season/</span>
+├── <span class="d">calendar.csv</span>          <span class="f">18 rows · date, platform, format, filename</span>
+├── <span class="d">calendar.ics</span>          <span class="f">importable into any calendar app</span>
+├── <span class="d">copy.md</span>               <span class="f">caption, hashtags, CTA per post</span>
+├── <span class="d">campaign.json</span>         <span class="f">full campaign — re-importable</span>
+└── <span class="d">assets/</span>
+    ├── <span class="d">01-tease/</span>
+    │   ├── <span class="v">2026-09-02-instagram-reel.mp4</span>
+    │   ├── 2026-09-03-instagram-story.png
+    │   ├── 2026-09-04-instagram-post-4x5.png
+    │   └── 2026-09-06-facebook-feed.png
+    ├── <span class="d">02-launch/</span>       <span class="f">6 files</span>
+    ├── <span class="d">03-proof/</span>        <span class="f">5 files</span>
+    └── <span class="d">04-last-call/</span>    <span class="f">3 files</span>
+      </div>
+     </div>
+
+     <div class="rail-r">
+      <div class="rw">
+       <h5>Export</h5>
+       <div class="li"><span class="k">Approved assets</span><span class="v">18 / 18</span></div>
+       <div class="li"><span class="k">Copy sheet</span><span class="v">ready</span></div>
+       <div class="li"><span class="k">Calendar</span><span class="v">CSV + ICS</span></div>
+       <div class="li tot"><span class="k">Package</span><span class="v">142 MB</span></div>
+       <button class="btn btn--accent" style="width:100%;margin-top:11px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-dl"/></svg> Download campaign</button>
+       <button class="btn btn--ghost btn--sm" style="width:100%;margin-top:5px">Copy schedule to clipboard</button>
+      </div>
+
+      <div class="rw" style="background:var(--violet-50);box-shadow:none">
+       <h5 style="color:var(--violet-700)">Coming later</h5>
+       <p style="font-size:12.5px;line-height:1.6;color:var(--violet-700);margin:0 0 10px">Connect Instagram, Facebook and TikTok to schedule these posts directly instead of downloading them.</p>
+       <button class="btn btn--light btn--sm" style="width:100%">Join the waitlist</button>
+      </div>
+     </div>
+    </div>
+   </section>
+
+  </div>
+ </main>
+</div>
+
+<script>
+(function(){
+  var rail = document.getElementById('rail');
+  var buttons = rail.querySelectorAll('button[data-s]');
+  var cta = document.getElementById('primaryCta');
+  var CTA = {
+    brief:   'Build the plan',
+    plan:    'Generate all 18',
+    look:    'Freeze style contract',
+    board:   'Generate remaining 10',
+    deliver: 'Download campaign'
+  };
+  var order = ['brief','plan','look','board','deliver'];
+
+  function show(name){
+    document.querySelectorAll('.screen').forEach(function(s){
+      s.classList.toggle('on', s.id === 's' + '-' + name);
+    });
+    var idx = order.indexOf(name);
+    buttons.forEach(function(b){
+      var i = order.indexOf(b.dataset.s);
+      b.classList.toggle('on', b.dataset.s === name);
+      b.classList.toggle('done', i < idx);
+      var rn = b.querySelector('.rn');
+      if (i < idx) {
+        rn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg>';
+      } else {
+        rn.textContent = String(i + 1);
+      }
+    });
+    if (cta) cta.lastChild.textContent = ' ' + CTA[name];
+    document.querySelector('.canvas').scrollTop = 0;
+  }
+
+  buttons.forEach(function(b){
+    b.addEventListener('click', function(){ show(b.dataset.s); });
+  });
+
+  // recipe + platform + consistency toggles are live so the mockup can be poked at
+  document.querySelectorAll('.recipes').forEach(function(group){
+    group.addEventListener('click', function(e){
+      var btn = e.target.closest('.rec');
+      if (!btn) return;
+      group.querySelectorAll('.rec').forEach(function(r){ r.classList.remove('on'); });
+      btn.classList.add('on');
+    });
+  });
+  document.querySelectorAll('.toggles').forEach(function(group){
+    var single = group.closest('.rw');
+    group.addEventListener('click', function(e){
+      var btn = e.target.closest('.tog');
+      if (!btn) return;
+      var tick = '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chk"/></svg>';
+      if (single) {
+        group.querySelectorAll('.tog').forEach(function(t){
+          t.classList.remove('on');
+          t.querySelector('.tk').innerHTML = '';
+        });
+        btn.classList.add('on');
+        btn.querySelector('.tk').innerHTML = tick;
+      } else {
+        var on = btn.classList.toggle('on');
+        btn.querySelector('.tk').innerHTML = on ? tick : '';
+      }
+    });
+  });
+  document.querySelectorAll('.heroes').forEach(function(group){
+    group.addEventListener('click', function(e){
+      var card = e.target.closest('.hero');
+      if (!card) return;
+      group.querySelectorAll('.hero').forEach(function(h){
+        h.classList.remove('sel');
+        var p = h.querySelector('.hero-f .pill');
+        if (p) p.remove();
+      });
+      card.classList.add('sel');
+      var f = card.querySelector('.hero-f b');
+      var pill = document.createElement('span');
+      pill.className = 'pill p-ok';
+      pill.textContent = 'selected';
+      f.insertAdjacentElement('afterend', pill);
+    });
+  });
+})();
+</script>

@@ -37,7 +37,9 @@ export const NO_CROP_PROMPT_INSTRUCTION =
 export const NO_CROP_NEGATIVE_PROMPT =
   "cropped product, cut off product, clipped product edges, cropped packaging, clipped packaging edges, product outside frame, partial product, out-of-frame subject, subject cut off, cropped main subject, hidden product, overlay covering product";
 
-export function routeQuickCreatePrompt(input: Pick<NormalizedCommercialGenerationInput, "productRefs" | "campaign">): string {
+export function routeQuickCreatePrompt(
+  input: Pick<NormalizedCommercialGenerationInput, "productRefs" | "campaign">,
+): string {
   const hasProduct = input.productRefs.length > 0;
   const hasCampaign = hasCampaignDetails(input.campaign);
   if (hasProduct && hasCampaign) return "quick.product_campaign";
@@ -47,7 +49,7 @@ export function routeQuickCreatePrompt(input: Pick<NormalizedCommercialGeneratio
 }
 
 export function buildQuickCreatePrompt(input: BuildQuickCreatePromptInput): BuiltPrompt {
-  if (input.normalized.mode !== "quick" && input.normalized.mode !== "campaign_builder") {
+  if (input.normalized.mode !== "quick") {
     throw new Error(`prompt-template-mode-not-supported:${input.normalized.mode}`);
   }
 
@@ -60,16 +62,16 @@ export function buildQuickCreatePrompt(input: BuildQuickCreatePromptInput): Buil
 
   const prompt = compactPrompt(
     [
-      ...templates
-        .map((template) => renderPromptString(template.prompt, context))
-        .filter(Boolean),
+      ...templates.map((template) => renderPromptString(template.prompt, context)).filter(Boolean),
       NO_CROP_PROMPT_INSTRUCTION,
     ].join("\n\n"),
   );
   const negativePrompt = compactPrompt(
     [
       ...templates
-        .map((template) => template.negative_prompt ? renderPromptString(template.negative_prompt, context) : "")
+        .map((template) =>
+          template.negative_prompt ? renderPromptString(template.negative_prompt, context) : "",
+        )
         .filter(Boolean),
       NO_CROP_NEGATIVE_PROMPT,
     ].join("\n"),
@@ -102,7 +104,10 @@ function selectModifiers(input: BuildQuickCreatePromptInput) {
 
   if (outputTarget.aspectRatio === "9:16") {
     modifiers.push("modifier.format_vertical");
-  } else if (outputTarget.platform === "facebook" && ["profile_photo", "cover_photo"].includes(outputTarget.format ?? "")) {
+  } else if (
+    outputTarget.platform === "facebook" &&
+    ["profile_photo", "cover_photo"].includes(outputTarget.format ?? "")
+  ) {
     modifiers.push("modifier.format_profile_cover");
   } else if (outputTarget.kind === "social") {
     modifiers.push("modifier.format_social_post");
@@ -257,7 +262,9 @@ function summarizeBrand(brand: QuickCreatePromptBrand | null | undefined) {
     brand.palette ? `palette: ${JSON.stringify(brand.palette)}` : null,
     brand.fonts ? `fonts: ${JSON.stringify(brand.fonts)}` : null,
     brand.voiceNotes ? `voice: ${brand.voiceNotes}` : null,
-  ].filter(Boolean).join("; ");
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
 
 function summarizeMood(mood: QuickCreatePromptMood | null | undefined) {
@@ -267,14 +274,18 @@ function summarizeMood(mood: QuickCreatePromptMood | null | undefined) {
     mood.promptModifiers ? mood.promptModifiers : null,
     mood.accentPalette?.length ? `accent palette: ${mood.accentPalette.join(", ")}` : null,
     mood.decorationTags?.length ? `decorations: ${mood.decorationTags.join(", ")}` : null,
-  ].filter(Boolean).join("; ");
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
 
 function summarizeOverlay(slots: PromptOverlaySlots) {
   const keys = Object.entries(slots)
-    .filter(([, value]) => Array.isArray(value) ? value.length > 0 : Boolean(value))
+    .filter(([, value]) => (Array.isArray(value) ? value.length > 0 : Boolean(value)))
     .map(([key]) => key);
-  return keys.length ? `Renderer overlay slots: ${keys.join(", ")}.` : "No exact overlay text or logo slots are requested.";
+  return keys.length
+    ? `Renderer overlay slots: ${keys.join(", ")}.`
+    : "No exact overlay text or logo slots are requested.";
 }
 
 function buildOverlaySlots(normalized: NormalizedCommercialGenerationInput): PromptOverlaySlots {
@@ -289,6 +300,7 @@ function buildOverlaySlots(normalized: NormalizedCommercialGenerationInput): Pro
     ...(campaign.discount ? { discount: campaign.discount } : {}),
     ...(campaign.badgeText ? { badgeText: campaign.badgeText } : {}),
     ...(campaign.cta ? { cta: campaign.cta } : {}),
+    ...(campaign.offerExpiry ? { offerExpiry: campaign.offerExpiry } : {}),
     ...(campaign.legalText ? { legalText: campaign.legalText } : {}),
     ...(campaign.website ? { website: campaign.website } : {}),
     ...(campaign.phone ? { phone: campaign.phone } : {}),
@@ -297,7 +309,9 @@ function buildOverlaySlots(normalized: NormalizedCommercialGenerationInput): Pro
 }
 
 function platformLabel(target: ResolvedOutputTarget) {
-  return target.platform ? `${target.platform} ${target.format ?? ""}`.trim() : `image ${target.aspectRatio}`;
+  return target.platform
+    ? `${target.platform} ${target.format ?? ""}`.trim()
+    : `image ${target.aspectRatio}`;
 }
 
 function unique(values: string[]) {

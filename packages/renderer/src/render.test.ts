@@ -55,4 +55,56 @@ describe("renderTemplate", () => {
     });
     expect(r.pngBytes.byteLength).toBeGreaterThan(1000);
   }, 30000);
+
+  it("composites exact copy, a certification asset, and a real QR code deterministically", async () => {
+    const src = `function template({ background, output }) {
+      return h("img", { src: background.dataUrl, style: { width: output.width, height: output.height, objectFit: "cover" } });
+    }`;
+    const first = await renderTemplate({
+      templateJsxSource: src,
+      background: { bytes: MINIMAL_PNG, mimeType: "image/png" },
+      brand: {
+        palette: { primary: "#111111", accent: "#e45b2c" },
+        fonts: {
+          heading: { family: "Inter", weight: "700" },
+          body: { family: "Inter", weight: "400" },
+        },
+        flags: { useColors: true, useLogo: false, useFonts: true },
+      },
+      slots: {
+        headline: "Exact launch headline",
+        price: "$19.00",
+        legalText: "Terms apply.",
+        qrUrl: "https://example.test/offer",
+      },
+      exactOverlay: {
+        certificationAssets: [{ bytes: MINIMAL_PNG, mimeType: "image/png", label: "Certified" }],
+      },
+      output: { width: 1080, height: 1350 },
+    });
+    const second = await renderTemplate({
+      templateJsxSource: src,
+      background: { bytes: MINIMAL_PNG, mimeType: "image/png" },
+      brand: {
+        palette: { primary: "#111111", accent: "#e45b2c" },
+        fonts: {
+          heading: { family: "Inter", weight: "700" },
+          body: { family: "Inter", weight: "400" },
+        },
+        flags: { useColors: true, useLogo: false, useFonts: true },
+      },
+      slots: {
+        headline: "Exact launch headline",
+        price: "$19.00",
+        legalText: "Terms apply.",
+        qrUrl: "https://example.test/offer",
+      },
+      exactOverlay: {
+        certificationAssets: [{ bytes: MINIMAL_PNG, mimeType: "image/png", label: "Certified" }],
+      },
+      output: { width: 1080, height: 1350 },
+    });
+    expect(first.pngBytes.byteLength).toBeGreaterThan(5_000);
+    expect(Buffer.from(first.pngBytes).equals(Buffer.from(second.pngBytes))).toBe(true);
+  }, 30000);
 });

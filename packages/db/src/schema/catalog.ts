@@ -29,6 +29,18 @@ export const moods = pgTable("moods", {
     .notNull()
     .default("draft"),
   previewS3Key: text("preview_s3_key"),
+  recipeVersion: integer("recipe_version").notNull().default(1),
+  recipe: jsonb("recipe").$type<{
+    lighting?: string;
+    atmosphere?: string;
+    colorTreatment?: string;
+    cameraFeel?: string;
+    surfaces?: string[];
+    compositionTendencies?: string[];
+    compatibleFamilies?: string[];
+    compatibleLayouts?: string[];
+    supportedProviders?: string[];
+  }>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -48,8 +60,24 @@ export const templates = pgTable("templates", {
     .default("draft"),
   previewS3Key: text("preview_s3_key"),
   requiresBrowserRender: boolean("requires_browser_render").notNull().default(false),
+  family: text("family").notNull().default("product_hero"),
+  layout: text("layout").notNull().default("centered_product_hero"),
+  rendererCompatibility: text("renderer_compatibility").notNull().default("satori"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const moodAssets = pgTable("mood_assets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  moodId: uuid("mood_id")
+    .notNull()
+    .references(() => moods.id, { onDelete: "cascade" }),
+  s3Key: text("s3_key").notNull(),
+  mimeType: text("mime_type").notNull(),
+  purpose: text("purpose").notNull().default("style"),
+  weight: integer("weight").notNull().default(70),
+  approvedForModelUse: boolean("approved_for_model_use").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const moodTemplateBindings = pgTable("mood_template_bindings", {
@@ -68,7 +96,9 @@ export const stockAssets = pgTable("stock_assets", {
   category: text("category", {
     enum: ["food-dietary", "food-safety", "cosmetics", "manufacturing", "wellness"],
   }).notNull(),
-  kind: text("kind", { enum: ["icon", "photo"] }).notNull().default("icon"),
+  kind: text("kind", { enum: ["icon", "photo"] })
+    .notNull()
+    .default("icon"),
   label: text("label").notNull(),
   s3Key: text("s3_key").notNull(),
   mimeType: text("mime_type").notNull(),

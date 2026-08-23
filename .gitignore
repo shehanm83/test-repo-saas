@@ -31,3 +31,6 @@ test-results/
 /openapi.txt
 /docs/clerk.txt
 /docs/strip.txt
+
+# Local Quick Create evaluation workspace bindings
+/evaluations/quick-create/**/bindings.local.json

@@ -1,0 +1,329 @@
+{
+  "version": "quick-create-baseline-v1",
+  "qualityDimensions": [
+    "intent_relevance",
+    "product_identity",
+    "brand_fit",
+    "mood_adherence",
+    "composition",
+    "subject_completeness",
+    "text_safety",
+    "technical_quality"
+  ],
+  "cases": [
+    {
+      "id": "idea-only-square",
+      "category": "idea_only",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "brief": "A quiet Scandinavian reading corner at dawn, warm natural light, no text",
+        "outputs": {
+          "variants": 2,
+          "quality": "standard",
+          "consistency": "off",
+          "formats": ["instagram_square"]
+        }
+      },
+      "expected": { "promptTemplate": "quick.image_only", "aspectRatio": "1:1" }
+    },
+    {
+      "id": "saved-product-studio",
+      "category": "saved_product",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "brandId": "11111111-1111-4111-8111-111111111111",
+        "brief": "Premium studio hero shot of the exact serum bottle on pale stone with soft side light",
+        "productRefs": [
+          {
+            "productId": "22222222-2222-4222-8222-222222222222",
+            "role": "hero",
+            "commercialFields": {
+              "name": "Nordic Glow Serum",
+              "category": "skincare",
+              "description": "Frosted glass bottle with a white pump"
+            }
+          }
+        ],
+        "outputs": {
+          "variants": 2,
+          "quality": "standard",
+          "consistency": "off",
+          "formats": ["instagram_portrait"]
+        }
+      },
+      "context": {
+        "brand": {
+          "name": "Northwind",
+          "palette": { "primary": "#16332B", "accent": "#D9B36C" },
+          "voiceNotes": "Quiet confidence, precise, never clinical"
+        }
+      },
+      "expected": { "promptTemplate": "quick.product_only", "aspectRatio": "4:5" }
+    },
+    {
+      "id": "uploaded-product-story",
+      "category": "uploaded_product",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "brief": "Keep the uploaded candle exact and place it in a cozy winter window scene",
+        "productRefs": [
+          {
+            "uploadId": "33333333-3333-4333-8333-333333333333",
+            "role": "hero",
+            "commercialFields": { "name": "Amber winter candle", "category": "home fragrance" }
+          }
+        ],
+        "outputs": {
+          "variants": 2,
+          "quality": "standard",
+          "consistency": "off",
+          "formats": ["instagram_story"]
+        }
+      },
+      "expected": { "promptTemplate": "quick.product_only", "aspectRatio": "9:16" }
+    },
+    {
+      "id": "multi-reference-bundle",
+      "category": "multi_reference",
+      "input": {
+        "mode": "quick",
+        "creationType": "product_bundle",
+        "brief": "Show both exact uploaded products as a balanced gift set without changing either package",
+        "productRefs": [
+          {
+            "uploadId": "44444444-4444-4444-8444-444444444444",
+            "role": "hero",
+            "commercialFields": { "name": "Cleanser" }
+          },
+          {
+            "uploadId": "55555555-5555-4555-8555-555555555555",
+            "role": "bundle_item",
+            "commercialFields": { "name": "Moisturizer" }
+          }
+        ],
+        "outputs": {
+          "variants": 3,
+          "quality": "premium",
+          "consistency": "same_mood",
+          "formats": ["facebook_square"]
+        },
+        "flags": { "usePremiumModel": true }
+      },
+      "expected": { "promptTemplate": "quick.product_only", "aspectRatio": "1:1" }
+    },
+    {
+      "id": "product-promotion-exact-copy",
+      "category": "exact_overlay",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "brief": "Energetic summer launch image with clean space for the exact offer",
+        "productRefs": [
+          {
+            "productId": "66666666-6666-4666-8666-666666666666",
+            "role": "hero",
+            "commercialFields": { "name": "Sparkling Citrus" }
+          }
+        ],
+        "campaign": {
+          "title": "Taste the sunshine",
+          "price": "$12",
+          "discount": "20% off",
+          "cta": "Shop now",
+          "legalText": "While stocks last"
+        },
+        "outputs": {
+          "variants": 2,
+          "quality": "standard",
+          "consistency": "off",
+          "formats": ["facebook_landscape"]
+        }
+      },
+      "expected": { "promptTemplate": "quick.product_campaign", "aspectRatio": "1.91:1" }
+    },
+    {
+      "id": "campaign-only-linkedin",
+      "category": "campaign_only",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "brief": "Human, credible workplace scene about sustainable operations with room for a headline",
+        "campaign": { "title": "Operations, thoughtfully made", "cta": "Read the report" },
+        "outputs": {
+          "variants": 2,
+          "quality": "standard",
+          "consistency": "off",
+          "formats": ["linkedin_feed"]
+        }
+      },
+      "expected": { "promptTemplate": "quick.campaign_only", "aspectRatio": "1.91:1" }
+    },
+    {
+      "id": "brand-only-cover",
+      "category": "brand_only",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "brandId": "77777777-7777-4777-8777-777777777777",
+        "brief": "Abstract layered paper landscape using the brand palette, elegant and restrained",
+        "outputs": {
+          "variants": 2,
+          "quality": "standard",
+          "consistency": "off",
+          "formats": ["facebook_cover_photo"]
+        },
+        "flags": { "useBrandColors": true, "useBrandFonts": true }
+      },
+      "context": {
+        "brand": {
+          "name": "Layerworks",
+          "palette": { "primary": "#5E5CE6", "secondary": "#18181B" },
+          "voiceNotes": "Editorial and direct"
+        }
+      },
+      "expected": { "promptTemplate": "quick.image_only", "aspectRatio": "16:9" }
+    },
+    {
+      "id": "evergreen-mood-product",
+      "category": "evergreen_mood",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "moodId": "88888888-8888-4888-8888-888888888888",
+        "brief": "A confident editorial launch shot of the exact headphones",
+        "productRefs": [
+          {
+            "productId": "99999999-9999-4999-8999-999999999999",
+            "role": "hero",
+            "commercialFields": { "name": "Arc headphones", "category": "audio" }
+          }
+        ],
+        "outputs": {
+          "variants": 3,
+          "quality": "standard",
+          "consistency": "same_mood",
+          "formats": ["instagram_landscape"]
+        }
+      },
+      "context": {
+        "mood": {
+          "name": "Modern Editorial",
+          "promptModifiers": "Directional daylight, tactile materials, asymmetric editorial balance",
+          "negativePrompts": "generic stock photo, flat lighting",
+          "accentPalette": ["#D94F36", "#F3E8D3"],
+          "decorationTags": ["paper", "shadow"]
+        }
+      },
+      "expected": { "promptTemplate": "quick.product_only", "aspectRatio": "1.91:1" }
+    },
+    {
+      "id": "seasonal-mood-portrait",
+      "category": "seasonal_mood",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "moodId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "brief": "Midsummer dessert table in Sweden, joyful daylight, natural and premium",
+        "outputs": {
+          "variants": 3,
+          "quality": "standard",
+          "consistency": "same_mood",
+          "formats": ["instagram_portrait"]
+        }
+      },
+      "context": {
+        "mood": {
+          "name": "Nordic Midsummer",
+          "promptModifiers": "Long summer daylight, wildflowers, linen, restrained Scandinavian celebration",
+          "negativePrompts": "winter, artificial neon, visual clutter",
+          "accentPalette": ["#F4D35E", "#7AA874", "#F7F2E8"],
+          "decorationTags": ["wildflowers", "linen"]
+        }
+      },
+      "expected": { "promptTemplate": "quick.image_only", "aspectRatio": "4:5" }
+    },
+    {
+      "id": "strict-brand-mood-conflict",
+      "category": "brand_mood_conflict",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "brandId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "moodId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "brief": "Luxury launch image; keep the black product and monochrome identity exact",
+        "productRefs": [
+          {
+            "productId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+            "role": "hero",
+            "commercialFields": { "name": "Noir watch", "category": "watches" }
+          }
+        ],
+        "outputs": {
+          "variants": 2,
+          "quality": "premium",
+          "consistency": "same_mood",
+          "formats": ["instagram_square"]
+        },
+        "flags": { "useBrandColors": true, "brandStrict": true, "usePremiumModel": true }
+      },
+      "context": {
+        "brand": {
+          "name": "Noir",
+          "palette": { "primary": "#050505", "secondary": "#EDEDED" },
+          "voiceNotes": "Minimal, monochrome, precise"
+        },
+        "mood": {
+          "name": "Citrus Pop",
+          "promptModifiers": "Bright orange and yellow color fields, playful hard light",
+          "negativePrompts": "monochrome, subdued palette",
+          "accentPalette": ["#FF6B00", "#FFD000"],
+          "decorationTags": ["citrus"]
+        }
+      },
+      "expected": { "promptTemplate": "quick.product_only", "aspectRatio": "1:1" }
+    },
+    {
+      "id": "profile-safe-zone",
+      "category": "safe_zone",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "brief": "Friendly founder portrait with generous circular-crop-safe space around the face",
+        "outputs": {
+          "variants": 2,
+          "quality": "standard",
+          "consistency": "off",
+          "formats": ["facebook_profile_photo"]
+        }
+      },
+      "expected": { "promptTemplate": "quick.image_only", "aspectRatio": "1:1" }
+    },
+    {
+      "id": "tiktok-static-creative",
+      "category": "vertical_static",
+      "input": {
+        "mode": "quick",
+        "creationType": "single_product",
+        "brief": "High-energy vertical static cover for a running shoe launch, shoe fully visible, no text",
+        "productRefs": [
+          {
+            "uploadId": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+            "role": "hero",
+            "commercialFields": { "name": "Velocity running shoe", "category": "footwear" }
+          }
+        ],
+        "outputs": {
+          "variants": 3,
+          "quality": "premium",
+          "consistency": "off",
+          "formats": ["tiktok_vertical"]
+        },
+        "flags": { "usePremiumModel": true }
+      },
+      "expected": { "promptTemplate": "quick.product_only", "aspectRatio": "9:16" }
+    }
+  ]
+}

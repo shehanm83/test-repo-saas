@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { I } from "@/components/icons";
+import { trackQuickCreateEvent } from "@/lib/quick-create-events";
 
 import type { ProductLite, ProductRole, ProductSnapshot, SelectedProduct } from "./types";
 
@@ -52,6 +53,7 @@ export function ProductPicker(props: {
     const file = files?.[0];
     if (!file) return;
     setUploadError(null);
+    trackQuickCreateEvent("upload_started", { source: "product" });
     const previewUrl = URL.createObjectURL(file);
     const localId = `upload-${crypto.randomUUID()}`;
     props.onAdd({
@@ -69,16 +71,19 @@ export function ProductPicker(props: {
       const response = await fetch("/api/uploads/inspiration", { method: "POST", body: formData });
       if (!response.ok) throw new Error("Upload failed");
       const json = (await response.json()) as { uploadId?: string };
+      if (!json.uploadId) throw new Error("Upload did not return an asset ID");
+      trackQuickCreateEvent("upload_completed", { source: "product" });
       props.onAdd({
         localId,
         source: "upload",
         role: props.role ?? "hero",
-        ...(json.uploadId ? { uploadId: json.uploadId } : {}),
+        uploadId: json.uploadId,
         previewUrl,
         uploadPending: false,
         commercialFields: { name: file.name.replace(/\.[^.]+$/, "") },
       });
     } catch {
+      trackQuickCreateEvent("upload_failed", { source: "product" });
       setUploadError("Product image upload failed. The draft still stays in the form.");
       props.onAdd({
         localId,
@@ -86,6 +91,7 @@ export function ProductPicker(props: {
         role: props.role ?? "hero",
         previewUrl,
         uploadPending: false,
+        uploadFailed: true,
         commercialFields: { name: file.name.replace(/\.[^.]+$/, "") },
       });
     }
@@ -186,6 +192,7 @@ export function ProductPicker(props: {
                     source: "saved",
                     role: props.role ?? "hero",
                     productId: product.id,
+                    ...(product.primaryAsset?.url ? { previewUrl: product.primaryAsset.url } : {}),
                     commercialFields: snapshotFromProduct(product),
                   })
                 }

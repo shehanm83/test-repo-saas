@@ -3,6 +3,7 @@ export * from "./adapters";
 export * from "./templates/schema";
 export * from "./output-targets";
 export * from "./generation/commercial-contract";
+export * from "./generation/quick-create-v2";
 export * from "./generation/preflight";
 export * from "./home-showcase";
 export * from "./landing-hero";

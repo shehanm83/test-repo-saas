@@ -16,6 +16,8 @@
     "test:unit": "vitest run",
     "test:int": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
+    "eval:quick-create": "tsx scripts/evaluate-quick-create.mts",
+    "eval:quick-create:analyze": "tsx scripts/analyze-quick-create-eval.mts",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b",
     "format": "prettier --write .",

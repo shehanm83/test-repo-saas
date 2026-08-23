@@ -7,14 +7,23 @@ import {
   listBrandAssets,
   listBrands,
   listProducts,
+  listProductIdentityAssets,
 } from "@layertone/db";
-import { loadConfig } from "@layertone/shared/config";
+import { isQuickCreateV2Enabled, loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
+import { redirect } from "next/navigation";
 
 import { Generate } from "@/components/generate/generate";
 import { getSessionWorkspace } from "@/lib/auth/server";
 
-export default async function GeneratePage() {
+export default async function GeneratePage(props: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const searchParams = await props.searchParams;
+  if (searchParams.mode === "campaign") {
+    redirect("/campaigns/new");
+  }
+
   const { session, workspace } = await getSessionWorkspace();
   const config = loadConfig();
   const adminDb = createDb(config.db.url, "app_admin");
@@ -25,7 +34,7 @@ export default async function GeneratePage() {
   const brands = session.workspaceId ? await listBrands(userDb, session.workspaceId) : [];
   const products = session.workspaceId ? await listProducts(userDb, session.workspaceId) : [];
   const planSegment = billingSegmentFor(workspace?.planCode);
-  const moods = planSegment === "free" ? [] : await listAvailableMoods(userDb);
+  const moods = await listAvailableMoods(userDb);
   const moodPreviewStorage = createStorage(config, config.storage.bucketGlobal);
   const appStorage = createStorage(config, config.storage.bucketApp);
   const rawStock = await adminListStock(userDb);
@@ -47,6 +56,8 @@ export default async function GeneratePage() {
       group: moodGroup(m),
       img: await signedPreviewUrl(moodPreviewStorage, m.previewS3Key),
       colors: m.accentPalette ?? undefined,
+      supportedAspectRatios: m.supportedAspectRatios,
+      entitled: planSegment !== "free",
     })),
   );
 
@@ -71,25 +82,39 @@ export default async function GeneratePage() {
     }),
   );
 
-  const productPayload = products.map((product) => ({
-    id: product.id,
-    brandId: product.brandId,
-    name: product.name,
-    title: product.title,
-    subtitle: product.subtitle,
-    description: product.description,
-    brandLabel: product.brandLabel,
-    model: product.model,
-    sku: product.sku,
-    category: product.category,
-    priceMinor: product.priceMinor,
-    compareAtPriceMinor: product.compareAtPriceMinor,
-    currency: product.currency,
-    discountText: product.discountText,
-    keyFeatures: product.keyFeatures,
-    benefits: product.benefits,
-    targetAudience: product.targetAudience,
-  }));
+  const productPayload = await Promise.all(
+    products.map(async (product) => {
+      const [primaryAsset] = session.workspaceId
+        ? await listProductIdentityAssets(userDb, session.workspaceId, product.id)
+        : [];
+      return {
+        id: product.id,
+        brandId: product.brandId,
+        name: product.name,
+        title: product.title,
+        subtitle: product.subtitle,
+        description: product.description,
+        brandLabel: product.brandLabel,
+        model: product.model,
+        sku: product.sku,
+        category: product.category,
+        priceMinor: product.priceMinor,
+        compareAtPriceMinor: product.compareAtPriceMinor,
+        currency: product.currency,
+        discountText: product.discountText,
+        keyFeatures: product.keyFeatures,
+        benefits: product.benefits,
+        targetAudience: product.targetAudience,
+        primaryAsset: primaryAsset
+          ? {
+              id: primaryAsset.id,
+              kind: primaryAsset.kind,
+              url: await signedPreviewUrl(appStorage, primaryAsset.s3Key),
+            }
+          : null,
+      };
+    }),
+  );
 
   return (
     <Generate
@@ -99,6 +124,7 @@ export default async function GeneratePage() {
       stockAssets={stockAssets}
       credits={credits}
       planSegment={planSegment}
+      quickCreateV2={isQuickCreateV2Enabled(config, session.workspaceId)}
     />
   );
 }

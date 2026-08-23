@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { ImageProvider, ProviderCapabilities } from "../types.js";
+import type { ImageProvider, ProviderCapabilities } from "../types";
 import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@layertone/shared";
 
 const SIZE_TO_OPENAI: Record<string, string> = {
@@ -27,6 +27,15 @@ export class OpenAIImageProvider implements ImageProvider {
       modelCodes: Array.from(new Set([opts.model ?? DEFAULT_MODEL, DEFAULT_MODEL, "gpt-image-1"])),
       supportsImageToImage: true,
       supportsMultiReference: true,
+      maxReferences: 16,
+      referenceRoles: [
+        "product_identity",
+        "style_reference",
+        "composition_reference",
+        "brand_reference",
+        "inspiration",
+      ],
+      supportsIdentityPreservation: true,
       tier: "premium",
     };
   }
@@ -39,6 +48,9 @@ export class OpenAIImageProvider implements ImageProvider {
     const size = resolveOpenAISize(req.aspectRatio);
     const quality = req.width * req.height > 1280 * 1280 ? "high" : "medium";
 
+    const prompt = req.negativePrompt
+      ? `${req.prompt}\n\nAvoid all of the following: ${req.negativePrompt}`
+      : req.prompt;
     let result;
     if (req.references && req.references.length > 0) {
       const inputs = await Promise.all(
@@ -49,7 +61,7 @@ export class OpenAIImageProvider implements ImageProvider {
       );
       result = await this.client.images.edit({
         model,
-        prompt: req.prompt,
+        prompt,
         image: inputs.length === 1 ? inputs[0]! : inputs,
         size,
         quality,
@@ -59,7 +71,7 @@ export class OpenAIImageProvider implements ImageProvider {
     } else {
       result = await this.client.images.generate({
         model,
-        prompt: req.prompt,
+        prompt,
         size,
         quality,
         output_format: "png",

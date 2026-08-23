@@ -58,7 +58,7 @@ export const PLANS: Record<PlanCode, Plan> = {
     code: "payg",
     name: "Pay As You Go",
     price: 0,
-    brandQuota: 1,
+    brandQuota: 10,
     seatQuota: 1,
     monthlyCreditGrant: 0,
     monthlyCreditsExpire: false,
@@ -87,7 +87,12 @@ export function normalizePlanCode(planCode: AnyPlanCode | null | undefined): Pla
   if (planCode === "subscription" || planCode === "payg" || planCode === "free") {
     return planCode;
   }
-  if (planCode === "starter" || planCode === "pro" || planCode === "business" || planCode === "agency") {
+  if (
+    planCode === "starter" ||
+    planCode === "pro" ||
+    planCode === "business" ||
+    planCode === "agency"
+  ) {
     return LEGACY_PLAN_ALIASES[planCode];
   }
   return "free";
@@ -136,8 +141,11 @@ export function planFromStripePriceId(
 
 export type TopupPackCode = "p200" | "p750" | "p2500";
 
-export const TOPUP_PACKS: Record<TopupPackCode, { code: TopupPackCode; credits: number; priceUsd: number }> = {
-  p200:  { code: "p200",  credits: 200,  priceUsd: 9 },
-  p750:  { code: "p750",  credits: 750,  priceUsd: 29 },
+export const TOPUP_PACKS: Record<
+  TopupPackCode,
+  { code: TopupPackCode; credits: number; priceUsd: number }
+> = {
+  p200: { code: "p200", credits: 200, priceUsd: 9 },
+  p750: { code: "p750", credits: 750, priceUsd: 29 },
   p2500: { code: "p2500", credits: 2500, priceUsd: 79 },
 };

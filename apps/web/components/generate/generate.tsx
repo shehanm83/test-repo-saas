@@ -10,6 +10,7 @@ export function Generate(props: {
   stockAssets?: StockAssetLite[];
   credits: number;
   planSegment?: "free" | "subscription" | "payg";
+  quickCreateV2?: boolean;
 }) {
   return (
     <GenerateShell
@@ -19,6 +20,7 @@ export function Generate(props: {
       stockAssets={props.stockAssets ?? []}
       credits={props.credits}
       planSegment={props.planSegment ?? "subscription"}
+      quickCreateV2={props.quickCreateV2 ?? false}
     />
   );
 }

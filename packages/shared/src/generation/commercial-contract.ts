@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { ResolvedOutputTarget } from "../output-targets";
+import { QuickCreatePlan } from "./quick-create-v2";
 
 const UUID = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 const BRIEF_MAX_LENGTH = 4000;
@@ -63,6 +64,25 @@ export const ProductRef = z.object({
   uploadId: UUID.optional(),
   role: ProductRole,
   commercialFields: ProductSnapshot.optional(),
+  assetSnapshots: z
+    .array(
+      z.object({
+        id: UUID,
+        s3Key: z.string().min(1),
+        mimeType: z.string().min(1),
+        kind: z.enum([
+          "product",
+          "packaging",
+          "lifestyle",
+          "label_detail",
+          "before",
+          "after",
+          "cutout",
+        ]),
+      }),
+    )
+    .max(4)
+    .optional(),
 });
 
 export const CampaignDetails = z.object({
@@ -139,7 +159,7 @@ const LegacyInput = z.object({
 });
 
 const CommercialInput = z.object({
-  mode: z.enum(["quick", "campaign_builder"]),
+  mode: z.literal("quick"),
   creationType: CreationType,
   brandId: UUID.optional().nullable(),
   projectId: UUID.optional().nullable(),
@@ -147,6 +167,7 @@ const CommercialInput = z.object({
   brief: z.string().min(1).max(BRIEF_MAX_LENGTH).optional(),
   outputTarget: z.unknown().optional(),
   productRefs: z.array(ProductRef).max(40).default([]),
+  inspirationUploadIds: z.array(UUID).max(4).default([]),
   brandLogoAssetIds: z.array(UUID).max(5).default([]),
   campaign: CampaignDetails.default({}),
   template: TemplateSelection.default({ family: "product_hero", layout: "centered_product_hero" }),
@@ -164,12 +185,13 @@ const CommercialInput = z.object({
   outputs: OutputSettings,
   inspirationInfluence: z.enum(["subtle", "balanced", "strong"]).optional(),
   stockAssetId: UUID.nullable().optional(),
+  creativePlan: QuickCreatePlan.optional(),
   flags: LegacyInput.shape.flags,
 });
 
 export type CommercialGenerationInput = z.infer<typeof CommercialInput>;
 export type NormalizedCommercialGenerationInput = {
-  mode: "legacy" | "quick" | "campaign_builder";
+  mode: "legacy" | "quick";
   creationType: z.infer<typeof CreationType>;
   brandId: string | null;
   projectId: string | null;
@@ -185,6 +207,7 @@ export type NormalizedCommercialGenerationInput = {
   inspirationUploadIds: string[];
   inspirationInfluence?: "subtle" | "balanced" | "strong";
   stockAssetId: string | null;
+  creativePlan?: z.infer<typeof QuickCreatePlan>;
   flags: {
     useBrandColors: boolean;
     useBrandLogo: boolean;
@@ -245,9 +268,10 @@ export function normalizeCommercialGenerationInput(
 ): NormalizedCommercialGenerationInput {
   if (isCommercialLike(input)) {
     const parsed = CommercialInput.parse(input);
-    const uploadIds = parsed.productRefs
+    const productUploadIds = parsed.productRefs
       .map((ref) => ref.uploadId)
       .filter((id): id is string => typeof id === "string");
+    const uploadIds = [...new Set([...productUploadIds, ...parsed.inspirationUploadIds])];
     const brief = buildCommercialBrief(parsed);
     const normalized: NormalizedCommercialGenerationInput = {
       mode: parsed.mode,
@@ -265,6 +289,7 @@ export function normalizeCommercialGenerationInput(
       outputs: parsed.outputs,
       inspirationUploadIds: uploadIds,
       stockAssetId: parsed.stockAssetId ?? null,
+      ...(parsed.creativePlan ? { creativePlan: parsed.creativePlan } : {}),
       flags: mergeFlags(parsed.flags),
     };
     if (parsed.inspirationInfluence) {
@@ -334,6 +359,7 @@ export function commercialSettingsSnapshot(
     composition: normalized.composition,
     outputs: normalized.outputs,
     primary_output_target: resolvedTarget,
+    ...(normalized.creativePlan ? { creative_plan: normalized.creativePlan } : {}),
   };
 }
 

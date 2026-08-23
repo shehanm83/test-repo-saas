@@ -27,7 +27,7 @@ describe("commercial generation contract", () => {
 
   it("normalizes commercial input to a primary output target", () => {
     const normalized = normalizeCommercialGenerationInput({
-      mode: "campaign_builder",
+      mode: "quick",
       creationType: "social_ad_pack",
       brandId,
       productRefs: [{ uploadId, role: "hero", commercialFields: { name: "Serum" } }],
@@ -69,23 +69,9 @@ describe("commercial preflight", () => {
     expect(result.blocking).toEqual([]);
   });
 
-  it("blocks missing products for product modes", () => {
-    const result = runCommercialPreflight({
-      mode: "campaign_builder",
-      creationType: "single_product",
-      brandId,
-      productRefs: [],
-      campaign: {},
-      template: { family: "product_hero", layout: "centered_product_hero" },
-      outputs: { variants: 1, quality: "standard", consistency: "off", formats: ["product_card"] },
-    });
-
-    expect(result.blocking.some((issue) => issue.code === "product.required")).toBe(true);
-  });
-
   it("warns when social ads miss CTA", () => {
     const result = runCommercialPreflight({
-      mode: "campaign_builder",
+      mode: "quick",
       creationType: "social_ad_pack",
       brandId,
       productRefs: [{ uploadId, role: "hero" }],

@@ -13,11 +13,11 @@ describe("FluxImageProvider", () => {
   it("posts to Replicate and downloads result", async () => {
     fetchMock
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ status: "succeeded", output: "https://cdn/img.png" }), { status: 200 }),
+        new Response(JSON.stringify({ status: "succeeded", output: "https://cdn/img.png" }), {
+          status: 200,
+        }),
       )
-      .mockResolvedValueOnce(
-        new Response(Buffer.from([0x89, 0x50, 0x4e, 0x47]), { status: 200 }),
-      );
+      .mockResolvedValueOnce(new Response(Buffer.from([0x89, 0x50, 0x4e, 0x47]), { status: 200 }));
 
     const storage = { getSignedUrl: vi.fn(async () => "https://s/x") } as never;
     const p = new FluxImageProvider({ replicateToken: "t", storage });

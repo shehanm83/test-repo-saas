@@ -10,6 +10,7 @@ export * from "./queries/landing-hero";
 export * from "./queries/pricebook";
 export * from "./queries/product";
 export * from "./queries/project";
+export * from "./queries/quick-create";
 export * from "./queries/stock";
 export * from "./queries/template";
 export * from "./queries/workspace";

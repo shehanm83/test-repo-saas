@@ -1,0 +1,1018 @@
+<title>Campaign Builder v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#EDF1F3;
+  --surface:#FFFFFF;
+  --surface-2:#F5F8F9;
+  --ink:#101E27;
+  --ink-2:#2B4150;
+  --muted:#5C7180;
+  --rule:#C8D6DE;
+  --rule-soft:#DEE8ED;
+  --accent:#0B5D7A;
+  --accent-soft:#DCEBF2;
+  --video:#A62F55;
+  --video-soft:#F6E2E8;
+  --warn:#8C5A0C;
+  --warn-soft:#F5EAD6;
+  --dead:#7A2E2E;
+
+  --f-display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+
+  --measure:68ch;
+  --wide:min(1180px,94vw);
+}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0A131A;
+    --surface:#101F29;
+    --surface-2:#0E1B24;
+    --ink:#E3EEF3;
+    --ink-2:#BED2DC;
+    --muted:#8AA2B0;
+    --rule:#223A47;
+    --rule-soft:#1A2E39;
+    --accent:#5CBCE0;
+    --accent-soft:#12313F;
+    --video:#F0819F;
+    --video-soft:#381F2A;
+    --warn:#E0AC57;
+    --warn-soft:#33280F;
+    --dead:#E58A8A;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0A131A;
+  --surface:#101F29;
+  --surface-2:#0E1B24;
+  --ink:#E3EEF3;
+  --ink-2:#BED2DC;
+  --muted:#8AA2B0;
+  --rule:#223A47;
+  --rule-soft:#1A2E39;
+  --accent:#5CBCE0;
+  --accent-soft:#12313F;
+  --video:#F0819F;
+  --video-soft:#381F2A;
+  --warn:#E0AC57;
+  --warn-soft:#33280F;
+  --dead:#E58A8A;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:17px;
+  line-height:1.66;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rule);
+}
+.topbar-in{
+  width:var(--wide);margin:0 auto;
+  display:flex;align-items:center;gap:1.5rem;
+  padding:.6rem 0;
+  font-family:var(--f-mono);font-size:.68rem;
+  letter-spacing:.1em;text-transform:uppercase;
+}
+.topbar-mark{color:var(--accent);font-weight:600;white-space:nowrap}
+.topbar-nav{display:flex;gap:1.1rem;overflow-x:auto;scrollbar-width:none}
+.topbar-nav::-webkit-scrollbar{display:none}
+.topbar-nav a{color:var(--muted);text-decoration:none;white-space:nowrap}
+.topbar-nav a:hover,.topbar-nav a:focus-visible{color:var(--ink)}
+
+/* ---------- shell ---------- */
+.wrap{width:var(--wide);margin:0 auto;padding:0 0 6rem}
+.col{max-width:var(--measure)}
+
+/* ---------- masthead ---------- */
+.mast{padding:4.5rem 0 2.5rem;border-bottom:2px solid var(--ink)}
+.eyebrow{
+  font-family:var(--f-mono);font-size:.7rem;font-weight:500;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--accent);
+  margin:0 0 1.4rem;
+}
+h1{
+  font-family:var(--f-display);
+  font-size:clamp(2.6rem,7vw,4.6rem);
+  font-weight:800;line-height:.98;letter-spacing:-.03em;
+  margin:0 0 1.1rem;text-wrap:balance;
+}
+.standfirst{
+  font-size:clamp(1.1rem,2.2vw,1.32rem);
+  line-height:1.5;color:var(--ink-2);font-weight:300;
+  max-width:56ch;margin:0 0 2.2rem;
+}
+.standfirst strong{font-weight:600;color:var(--ink)}
+.metastrip{
+  display:flex;flex-wrap:wrap;gap:0 2.2rem;
+  font-family:var(--f-mono);font-size:.7rem;
+  letter-spacing:.06em;color:var(--muted);
+}
+.metastrip b{color:var(--ink);font-weight:500}
+
+/* ---------- sections ---------- */
+section{padding:3.6rem 0 .5rem;border-top:1px solid var(--rule-soft)}
+section:first-of-type{border-top:none}
+.sec-head{display:flex;gap:1.1rem;align-items:baseline;margin:0 0 1.6rem}
+.sec-num{
+  font-family:var(--f-mono);font-size:.78rem;font-weight:600;
+  color:var(--accent);letter-spacing:.06em;
+  padding-top:.45rem;flex:none;
+}
+h2{
+  font-family:var(--f-display);
+  font-size:clamp(1.6rem,3.4vw,2.25rem);
+  font-weight:600;line-height:1.1;letter-spacing:-.02em;
+  margin:0;text-wrap:balance;
+}
+h3{
+  font-family:var(--f-display);
+  font-size:1.12rem;font-weight:600;letter-spacing:-.005em;
+  margin:2.4rem 0 .7rem;
+}
+h4{
+  font-family:var(--f-mono);font-size:.72rem;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  margin:2rem 0 .7rem;
+}
+p{margin:0 0 1.05rem;max-width:var(--measure)}
+ul,ol{margin:0 0 1.15rem;padding-left:1.15rem;max-width:var(--measure)}
+li{margin-bottom:.42rem}
+a{color:var(--accent);text-underline-offset:2px}
+strong{font-weight:600}
+code{
+  font-family:var(--f-mono);font-size:.84em;
+  background:var(--surface-2);border:1px solid var(--rule-soft);
+  padding:.06em .34em;border-radius:3px;
+  overflow-wrap:anywhere;
+}
+
+/* ---------- lede ---------- */
+.lede{
+  font-size:1.16rem;line-height:1.55;color:var(--ink-2);
+  border-left:3px solid var(--accent);
+  padding-left:1.2rem;margin:0 0 1.8rem;max-width:60ch;
+}
+
+/* ---------- callout ---------- */
+.callout{
+  background:var(--surface);border:1px solid var(--rule);
+  border-left:3px solid var(--accent);
+  padding:1.2rem 1.4rem;margin:1.6rem 0;max-width:var(--measure);
+}
+.callout p:last-child{margin-bottom:0}
+.callout.is-video{border-left-color:var(--video)}
+.callout.is-warn{border-left-color:var(--warn)}
+.callout-label{
+  font-family:var(--f-mono);font-size:.66rem;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+  display:block;margin-bottom:.5rem;
+}
+.callout.is-video .callout-label{color:var(--video)}
+.callout.is-warn .callout-label{color:var(--warn)}
+
+/* ---------- pull ---------- */
+.pull{
+  font-family:var(--f-display);font-weight:600;
+  font-size:clamp(1.4rem,3vw,1.85rem);line-height:1.25;
+  letter-spacing:-.02em;color:var(--ink);
+  margin:2.4rem 0;max-width:24ch;text-wrap:balance;
+}
+
+/* ---------- decision cards ---------- */
+.cards{
+  display:grid;gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin:1.8rem 0;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+}
+.card{background:var(--surface);padding:1.15rem 1.25rem}
+.card-k{
+  font-family:var(--f-mono);font-size:.66rem;font-weight:600;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+  margin:0 0 .5rem;
+}
+.card-v{
+  font-family:var(--f-display);font-size:1.02rem;font-weight:600;
+  line-height:1.25;margin:0 0 .45rem;letter-spacing:-.01em;
+}
+.card-n{font-size:.87rem;line-height:1.45;color:var(--muted);margin:0}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;margin:1.6rem 0;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.9rem}
+thead th{
+  font-family:var(--f-mono);font-size:.65rem;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  text-align:left;padding:.7rem .9rem;
+  border-bottom:1px solid var(--rule);background:var(--surface-2);
+  white-space:nowrap;
+}
+tbody td{
+  padding:.72rem .9rem;border-bottom:1px solid var(--rule-soft);
+  vertical-align:top;line-height:1.45;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody th{
+  padding:.72rem .9rem;border-bottom:1px solid var(--rule-soft);
+  text-align:left;font-weight:600;font-family:var(--f-display);
+  font-size:.94rem;vertical-align:top;white-space:nowrap;
+}
+tbody tr:last-child th{border-bottom:none}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.84rem;text-align:right;white-space:nowrap}
+.tot td,.tot th{border-top:1px solid var(--rule);font-weight:600;background:var(--surface-2)}
+.mono-cell{font-family:var(--f-mono);font-size:.78rem;line-height:1.5}
+
+/* ---------- chips ---------- */
+.chip{
+  display:inline-block;font-family:var(--f-mono);font-size:.62rem;
+  font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:.16rem .45rem;border-radius:2px;white-space:nowrap;
+}
+.chip-dead{background:var(--video-soft);color:var(--dead)}
+.chip-keep{background:var(--accent-soft);color:var(--accent)}
+.chip-video{background:var(--video-soft);color:var(--video)}
+.chip-warn{background:var(--warn-soft);color:var(--warn)}
+
+/* ---------- code block ---------- */
+pre{
+  font-family:var(--f-mono);font-size:.79rem;line-height:1.62;
+  background:var(--surface);border:1px solid var(--rule);
+  border-left:3px solid var(--rule);
+  padding:1.05rem 1.2rem;margin:1.5rem 0;
+  overflow-x:auto;
+}
+pre code{background:none;border:none;padding:0;font-size:inherit}
+.pre-label{
+  font-family:var(--f-mono);font-size:.64rem;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  margin:1.7rem 0 -1.1rem;
+}
+
+/* ---------- pipeline diagram ---------- */
+.pipe{
+  display:flex;align-items:stretch;gap:0;flex-wrap:nowrap;
+  overflow-x:auto;margin:1.5rem 0;padding-bottom:.4rem;
+}
+.pipe-step{
+  flex:1 1 0;min-width:150px;
+  background:var(--surface);border:1px solid var(--rule);
+  padding:.85rem .95rem;position:relative;
+}
+.pipe-step + .pipe-step{border-left:none}
+.pipe-step::after{
+  content:"";position:absolute;right:-5px;top:50%;
+  width:9px;height:9px;
+  border-top:1px solid var(--accent);border-right:1px solid var(--accent);
+  transform:translateY(-50%) rotate(45deg);
+  background:var(--surface);z-index:2;
+}
+.pipe-step:last-child::after{display:none}
+.pipe-n{
+  font-family:var(--f-mono);font-size:.6rem;font-weight:600;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--accent);
+  display:block;margin-bottom:.35rem;
+}
+.pipe-t{font-family:var(--f-display);font-weight:600;font-size:.93rem;line-height:1.2;margin:0 0 .3rem}
+.pipe-d{font-size:.8rem;line-height:1.42;color:var(--muted);margin:0}
+.pipe.is-video .pipe-n{color:var(--video)}
+.pipe.is-video .pipe-step::after{border-color:var(--video)}
+
+/* ---------- stage list ---------- */
+.stages{list-style:none;padding:0;margin:1.8rem 0;max-width:none;counter-reset:st}
+.stages li{
+  display:grid;grid-template-columns:2.6rem 1fr;gap:1.1rem;
+  padding:1.15rem 0;border-top:1px solid var(--rule-soft);margin:0;
+}
+.stages li:last-child{border-bottom:1px solid var(--rule-soft)}
+.st-n{
+  font-family:var(--f-mono);font-size:1.5rem;font-weight:400;
+  color:var(--rule);line-height:1;padding-top:.15rem;
+  font-variant-numeric:tabular-nums;
+}
+.st-t{font-family:var(--f-display);font-weight:600;font-size:1.06rem;margin:0 0 .35rem;letter-spacing:-.01em}
+.st-b{margin:0;color:var(--ink-2);max-width:62ch;font-size:.98rem;line-height:1.55}
+.st-b em{color:var(--accent);font-style:normal;font-weight:600}
+
+/* ---------- sources ---------- */
+.sources{
+  columns:2;column-gap:2.5rem;font-size:.85rem;line-height:1.5;
+  list-style:none;padding:0;max-width:none;
+}
+.sources li{break-inside:avoid;margin-bottom:.6rem}
+.sources a{text-decoration:none}
+.sources a:hover{text-decoration:underline}
+
+footer{
+  margin-top:4rem;padding-top:1.4rem;border-top:2px solid var(--ink);
+  font-family:var(--f-mono);font-size:.68rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:640px){
+  body{font-size:16px}
+  .sources{columns:1}
+  .stages li{grid-template-columns:1.8rem 1fr;gap:.8rem}
+  .st-n{font-size:1.1rem}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+html{scroll-behavior:smooth;scroll-padding-top:4rem}
+</style>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <span class="topbar-mark">CB v2</span>
+    <nav class="topbar-nav">
+      <a href="#audit">01 Audit</a>
+      <a href="#research">02 Research</a>
+      <a href="#design">03 Design</a>
+      <a href="#arch">04 Architecture</a>
+      <a href="#removal">05 Removal</a>
+      <a href="#delivery">06 Delivery</a>
+      <a href="#risks">07 Risks</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="mast">
+    <p class="eyebrow">Research &amp; Design · Layertone</p>
+    <h1>Campaign Builder v2</h1>
+    <p class="standfirst">
+      Quick Create makes a post. Campaign Builder should make a <strong>month</strong> —
+      a dated, multi-phase plan with every asset produced on brand, in every format,
+      stills and video, plus the words to post them with.
+    </p>
+    <div class="metastrip">
+      <span><b>Status</b> Design for review</span>
+      <span><b>Date</b> 22 Aug 2026</span>
+      <span><b>Branch</b> redesign-2026</span>
+      <span><b>Supersedes</b> slice 55, slice 57</span>
+    </div>
+  </header>
+
+  <!-- ============ SUMMARY ============ -->
+  <section id="summary">
+    <div class="sec-head"><span class="sec-num">00</span><h2>The problem, and the two ideas</h2></div>
+
+    <p class="lede">
+      Campaign Builder today is a wizard-shaped skin over Quick Create. Eight steps collect
+      more fields and then emit the byte-identical single-generation payload. Everything that
+      reads as “campaign” in the UI is inert.
+    </p>
+
+    <p>This document removes that mock and designs the real thing. It rests on one product idea and one architectural idea.</p>
+
+    <h4>The product idea</h4>
+    <p>
+      A campaign is not a bigger generation — it is a <strong>plan</strong>. A small business does
+      not want twelve images. It wants to know what to post, on which day, on which platform, with
+      which words, for the next three weeks, and to have all of it made in one sitting.
+      Every competitor either generates assets without a plan, or plans without producing
+      brand-exact assets. Owning both halves is the wedge.
+    </p>
+
+    <h4>The architectural idea</h4>
+    <p>
+      Campaign consistency comes from a <strong>style contract anchored to one approved image</strong>,
+      not from templates. The user approves one hero still; every other asset — every format,
+      every phase, every video — is generated with that still as an image-to-image reference under a
+      frozen contract. <code>packages/gateway/src/routing.ts</code> already promotes to an
+      i2i-capable model when a reference is present. Template-based competitors structurally
+      cannot copy this, and the 2026 video research says it is <em>also</em> the only reliable way to
+      stop a product drifting across shots.
+    </p>
+
+    <p class="pull">Video is not a new pipeline. It is the still we already got right, put into motion.</p>
+
+    <h4>Decisions taken</h4>
+    <div class="cards">
+      <div class="card">
+        <p class="card-k">End of flow</p>
+        <p class="card-v">Calendar + export</p>
+        <p class="card-n">No OAuth publishing in v1. Direct publishing stays a clean Phase 5 seam the data model already supports.</p>
+      </div>
+      <div class="card">
+        <p class="card-k">Video depth</p>
+        <p class="card-v">Both, one data model</p>
+        <p class="card-n">Single-clip motion and multi-scene storyboards designed together; clip-level ships first.</p>
+      </div>
+      <div class="card">
+        <p class="card-k">Copy</p>
+        <p class="card-v">In scope</p>
+        <p class="card-n">Captions, hooks, hashtags and CTAs are part of the deliverable. Reuses the existing caption pipeline.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 01 AUDIT ============ -->
+  <section id="audit">
+    <div class="sec-head"><span class="sec-num">01</span><h2>What exists today</h2></div>
+    <p>All references verified against the working tree on <code>redesign-2026</code>.</p>
+
+    <h3>The wizard has no engine behind it</h3>
+    <p>
+      <code>campaign-builder.tsx</code> (186 lines) renders an eight-step stepper, then hands back to
+      <code>generate-shell.tsx</code>, which builds the same <code>GeneratePayload</code> Quick Create
+      builds and posts it to the same endpoint. The only difference on the wire is
+      <code>mode: "campaign_builder"</code>.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Location</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td class="mono-cell">apps/worker/src/handler.ts:112</td><td>maps <code>campaign_builder</code> → the quick normalizer</td></tr>
+          <tr><td class="mono-cell">apps/worker/src/handler.ts:361, 406</td><td><code>quick</code> and <code>campaign_builder</code> take the identical branch</td></tr>
+          <tr><td class="mono-cell">packages/shared/…/prompt-templates/router.ts:50</td><td>accepts <code>campaign_builder</code>, then routes into the four <code>quick.*</code> templates</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><code>mode</code> is carried through the entire stack and never read for a decision.</p>
+
+    <h3>Three enums are decorative</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Field</th><th>Promise</th><th>Reality</th></tr></thead>
+        <tbody>
+          <tr>
+            <th>creationType</th>
+            <td>Six modes — bundle, campaign set, leaflet, comparison, ad pack</td>
+            <td><span class="chip chip-dead">dead</span> No branch anywhere in <code>packages/</code> or <code>apps/</code> keys off it. “Leaflet” and “Single product” produce identical output.</td>
+          </tr>
+          <tr>
+            <th>outputs.formats</th>
+            <td>Multi-select of 21 platform formats</td>
+            <td><span class="chip chip-dead">dead</span> <code>commercial-contract.ts:259</code> reads <code>formats[0]</code> only, and the client truncates the array to one before sending.</td>
+          </tr>
+          <tr>
+            <th>outputs.consistency</th>
+            <td><code>off / same_mood / strict_campaign</code></td>
+            <td><span class="chip chip-dead">dead</span> Only occurrence outside type declarations is a hardcoded <code>"off"</code> in the legacy path. Never read.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>One generation is one image size</h3>
+    <p>
+      <code>GenerationApi.buildPlan</code> resolves exactly one output target and fans out up to four
+      samples <em>of that one target</em>. There is no grouping row —
+      slice 55 specified a <code>generation_packages</code> table, but migrations stop at
+      <code>0019</code> and no such symbol exists in the tree. Slice 55 was planned and never built,
+      so this design absorbs it.
+    </p>
+
+    <div class="callout is-warn">
+      <span class="callout-label">Existing defect</span>
+      <p>
+        <code>PLATFORM_FORMATS</code> already advertises <code>instagram/reel</code>,
+        <code>instagram/feed_video_*</code> and <code>tiktok/video</code>. Selecting any of them today
+        returns <strong>a still image at video dimensions</strong>. That is a correctness bug shipping
+        right now, not just a missing feature — and slice 64 repairs it.
+      </p>
+    </div>
+
+    <h3>What is good and must survive</h3>
+    <ul>
+      <li><strong>Brand fidelity by construction.</strong> The model generates a background; the renderer composites the real logo, real brand fonts, real palette. The model never interprets the logo. This is the moat, and the campaign design inherits it wholesale.</li>
+      <li><strong>The prompt-template system.</strong> Versioned YAML, required-variable validation, safety rules, and an overlay contract splitting renderer-owned from model-owned elements. It needs campaign templates, not a rewrite.</li>
+      <li><strong>i2i promotion in <code>routing.ts</code>.</strong> Already substitutes an i2i-capable model when a reference is present — the style-anchor mechanism is built directly on it.</li>
+      <li><strong>The overlay slot contract.</strong> Headline, price, discount, badge, CTA, legal, QR — already the right vocabulary for offer-driven campaigns.</li>
+      <li><strong><code>captionJobs</code> + the Anthropic text provider.</strong> The copy engine is largely wiring what exists to a campaign-shaped prompt.</li>
+    </ul>
+  </section>
+
+  <!-- ============ 02 RESEARCH ============ -->
+  <section id="research">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Research</h2></div>
+
+    <h3>What an SMB campaign actually is</h3>
+    <p>
+      The unit of work an SMB thinks in is not “an image”. It is “the thing we are doing for the next
+      few weeks”. Three findings shape the design.
+    </p>
+
+    <p>
+      <strong>Campaigns have phases, and the phases have different jobs.</strong> The launch literature
+      converges on one shape: pre-launch builds context and collects signal; launch week makes the offer
+      obvious and removes friction; post-launch answers objections with testimonials, demos and usage
+      proof to hold momentum after the announcement spike decays. The recurring asset list is stable —
+      teaser clips, walkthroughs, founder notes, customer quotes, comparison images, short demos, FAQ
+      cards, proof posts. <strong>That list is generatable</strong>, and encoding it is the single
+      highest-leverage thing we can do.
+    </p>
+
+    <p>
+      <strong>Always-on content has its own stable shape.</strong> Hero–Hub–Hygiene sets the cadence:
+      hero moments 2–4× a year around launches and seasonal events, hub content 1–4× a month, hygiene
+      content weekly or biweekly answering known questions. A business that isn’t launching anything
+      still needs a campaign object — just a different recipe.
+    </p>
+
+    <p>
+      <strong>Consistency is the stated top pain, and it is an execution problem.</strong>
+      67% of SMBs describe their social effort as “posting into the void”; over 91% of social
+      professionals name content creation and strategy as a negative part of the role; over 75% report
+      being expected to do too many unrelated things at once. Inconsistent posting carries a reported
+      61% engagement penalty against a regular schedule.
+    </p>
+
+    <div class="callout">
+      <span class="callout-label">The read</span>
+      <p>
+        The bottleneck is not idea generation — it is <strong>production volume at acceptable
+        quality</strong>. A tool that produces three weeks of finished, dated, on-brand posts in one
+        sitting attacks the actual constraint. A tool that produces four beautiful images does not.
+      </p>
+    </div>
+
+    <h3>The competitive field</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Product</th><th>Shape</th><th>Where it stops</th></tr></thead>
+        <tbody>
+          <tr><th>Canva Magic Studio</th><td>Manual composition with AI assists; enormous template library</td><td>Composition-driven — the user still assembles. No campaign object, no plan, no phase logic.</td></tr>
+          <tr><th>Predis.ai</th><td>Social-first SMB all-in-one: posts, video/UGC ads, scheduler, competitor analysis, Shopify sync. Closest in shape to us.</td><td>Post-at-a-time. No campaign spine tying twenty posts to one visual and narrative direction. Brand fidelity approximate.</td></tr>
+          <tr><th>AdCreative.ai</th><td>Paid-ads engine. Scoring AI trained on ~450M ads, 340 data points, claimed &gt;90% accuracy. Meta/Google integration.</td><td>Template-composited, not generative. Banner-shaped creative. Built for performance marketers, not shop owners.</td></tr>
+          <tr><th>HubSpot / StoryLab / Writesonic</th><td>Brief → multi-channel <em>copy</em></td><td>Copy only. No brand-exact visual output.</td></tr>
+          <tr><th>Buffer / Later / Metricool</th><td>Calendar, scheduling, analytics</td><td>Planning without production. Every asset still has to be made elsewhere.</td></tr>
+          <tr><th>Meta Advantage+ / TikTok Smart+</th><td>Platform-native automation of creative, targeting and bidding. Symphony feeds Smart+ for continuous refresh; one-click resize, hook refresh, dubbing into 50+ languages.</td><td><strong>The one to take seriously.</strong> But per-platform, confined to an ad account, optimises assets you already have, and Meta’s variant is widely described as all-or-nothing. It optimises paid delivery — it does not plan your organic month, and it does not enforce <em>your</em> brand.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="pull">The planners don’t produce. The producers don’t plan. The platform tools only optimise inside their own walls.</p>
+
+    <p>
+      Nobody owns <strong>brief → dated multi-phase plan → brand-exact assets in every format, image
+      and video → export</strong>. We already enforce brand by construction. Layer the plan on top and
+      the combination isn’t reachable by a template-based competitor without rebuilding their
+      rendering stack.
+    </p>
+
+    <h3>Video — state of the art</h3>
+    <p>
+      The market consolidated in 2026: after Sora’s closure in March, the field is effectively
+      Veo 3.1, Kling 3.0, Seedance 2.x and Runway Gen-4.5.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Model</th><th class="num">Cost</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><th>Veo 3.1 Lite</th><td class="num">~$0.05/sec</td><td>Cheapest paid tier, no audio</td></tr>
+          <tr><th>Kling 3.0 / Seedance 2.0</th><td class="num">~$0.09–0.14/sec</td><td>Best cost/quality for product motion</td></tr>
+          <tr><th>Veo 3.1 Fast</th><td class="num">~$0.75 / 5s</td><td><strong>Only model in tier shipping native audio</strong></td></tr>
+          <tr><th>Veo 3.1 Standard</th><td class="num">~$2.00 / 5s</td><td>Premium</td></tr>
+          <tr><th>Runway Gen-4.5</th><td class="num">~$1.50 / clip</td><td>Strongest controls: reference images, camera control, consistent subjects</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      A typical 5-second marketing clip lands at <strong>$0.45–0.70</strong> on Kling/Seedance,
+      <strong>$0.75</strong> on Veo Fast with audio. Commercial use is permitted on paid plans across
+      Veo, Kling and Runway; Runway’s <em>free</em> tier does not grant it.
+    </p>
+
+    <div class="callout is-video">
+      <span class="callout-label">The critical finding</span>
+      <p>
+        2026 practitioner consensus is unambiguous: <strong>storyboard every hero shot as a still
+        first</strong>, lock the product’s shape and detail there, then feed those frames into
+        image-to-video — never ask the model to invent the product on the fly. A reference image locks
+        identity, style and framing from frame one. Seedance and Digen productised this as
+        “Identity Lock” and “Style Lock” precisely because drift is the failure mode everyone hits.
+      </p>
+      <p>
+        We <em>already</em> produce a locked, brand-exact still. Our video story is not “add a video
+        model” — it is <strong>animate the thing we already got right</strong>.
+      </p>
+    </div>
+
+    <h4>What wins in-feed</h4>
+    <ul>
+      <li>Short-form vertical dominates — ~78% of top-performing campaigns across Meta, TikTok and Google; 60% of marketers make it their primary format.</li>
+      <li><strong>7–15 seconds for cold traffic</strong>, hook inside the first 3 seconds. A 6-second cut delivers ~60% of a 30-second ad’s impact. Warm audiences tolerate 30–60s for objection handling and proof.</li>
+      <li><strong>85% of Meta video views happen with sound off.</strong> Assets without captions lose most of their audience by the 2-second mark. Burned-in captions are the format, not a nicety — and our renderer already owns text.</li>
+      <li>The reliable faceless structure is four beats: <strong>negative hook → product reveal → value → CTA</strong>, cut fast to a music bed.</li>
+      <li>Founder-led content reports ~4.6× ROAS against ~3.1× for product-only; UGC-style outperforms polished by ~43% on TikTok/Reels. Noted for a later avatar phase — explicitly out of scope for Phases 1–4.</li>
+    </ul>
+  </section>
+
+  <!-- ============ 03 DESIGN ============ -->
+  <section id="design">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Product design</h2></div>
+
+    <p class="lede">Quick Create makes a post. Campaign Builder makes a month.</p>
+
+    <h3>The core object</h3>
+    <p>
+      A <strong>Campaign</strong> is a first-class, persistent, resumable workspace entity — not a form
+      submission.
+    </p>
+
+    <pre><code>Campaign
+├─ brief, goal, audience, duration, platforms
+├─ brand + products (roles)
+├─ StyleContract        ← frozen after hero approval; the consistency mechanism
+├─ Phase[]              ← tease / launch / proof / offer / last-call
+│   └─ Slot[]           ← one planned asset
+│        ├─ kind        image | video
+│        ├─ format      platform + format → exact px
+│        ├─ angle       the job this asset does
+│        ├─ Copy        caption, hook, hashtags, CTA
+│        ├─ scheduledAt
+│        └─ Generation? ← attached when produced
+└─ exports</code></pre>
+
+    <p>
+      The <strong>Slot</strong> is the pivot. A slot exists as a <em>plan</em> before it exists as an
+      <em>asset</em>: the user sees the campaign laid out, priced and editable before a single credit is
+      spent. See the whole plan, then commit — that property is what separates a professional tool from a
+      slot machine, and it is why a campaign cannot be a form submission.
+    </p>
+
+    <h3>The five stages</h3>
+    <p>Not a wizard. Five independently revisitable stages, with the campaign persisted continuously.</p>
+
+    <ol class="stages">
+      <li>
+        <span class="st-n">1</span>
+        <div>
+          <p class="st-t">Brief</p>
+          <p class="st-b">One screen. Goal, products, brand, duration, platforms, and 1–3 sentences of intent. Optional offer terms and deadline. Nothing else — everything else is inferred, then shown for editing.</p>
+        </div>
+      </li>
+      <li>
+        <span class="st-n">2</span>
+        <div>
+          <p class="st-t">Plan</p>
+          <p class="st-b">The AI proposes the campaign: phases with dates, and inside each phase, slots with an angle, a format, a kind and draft copy. Rendered as a calendar and a list, fully editable. <em>No generation has happened yet; total credits are shown.</em> This screen is the product — it is what nothing else in the category does.</p>
+        </div>
+      </li>
+      <li>
+        <span class="st-n">3</span>
+        <div>
+          <p class="st-t">Look</p>
+          <p class="st-b">The visual direction, decided once. The system generates 3–4 hero candidates for the campaign’s most important slot; the user picks one. That approval freezes the <em>StyleContract</em> and stores the chosen image as the style anchor. Cost of this stage is one small generation, not the campaign.</p>
+        </div>
+      </li>
+      <li>
+        <span class="st-n">4</span>
+        <div>
+          <p class="st-t">Board</p>
+          <p class="st-b">Production. Every slot is a card in a phase-grouped board. Generate a slot, a phase, or everything. Each result is anchored to the style anchor, so the board fills in visibly as one campaign. Per card: regenerate, alternates, edit copy, swap format, promote to video, approve.</p>
+        </div>
+      </li>
+      <li>
+        <span class="st-n">5</span>
+        <div>
+          <p class="st-t">Deliver</p>
+          <p class="st-b">A dated calendar (CSV/ICS), a per-post copy sheet, and every approved asset named by platform, format and date, as a ZIP. Direct publishing is the Phase 5 seam.</p>
+        </div>
+      </li>
+    </ol>
+
+    <h3>Campaign recipes</h3>
+    <p>Recipes replace the inert <code>creationType</code> enum with something that actually drives phase structure, slot mix, prompt route and copy tone.</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Recipe</th><th>Phases</th><th>Characteristic slot mix</th></tr></thead>
+        <tbody>
+          <tr><th>Product launch</th><td class="mono-cell">tease → launch → proof → last-call</td><td>teaser clip, hero reveal, feature cards, demo video, testimonial card, FAQ card, urgency post</td></tr>
+          <tr><th>Offer / sale</th><td class="mono-cell">announce → reminder → last-call</td><td>offer hero with price overlay, countdown story, bundle card, expiry post</td></tr>
+          <tr><th>Seasonal</th><td class="mono-cell">build-up → peak → wind-down</td><td>seasonal hero, gift-guide carousel, atmosphere clip, closing-hours card</td></tr>
+          <tr><th>Always-on</th><td class="mono-cell">hero / hub / hygiene <em>(cadence)</em></td><td>monthly hero, weekly hub posts, FAQ + how-to hygiene cards</td></tr>
+          <tr><th>Catalogue / leaflet</th><td class="mono-cell">single</td><td>multi-SKU grid, A4 print leaflet, per-SKU product cards, shelf-talker</td></tr>
+          <tr><th>Comparison</th><td class="mono-cell">single</td><td>split-frame comparison, before→after morph clip, spec table card</td></tr>
+          <tr><th>Ad test pack</th><td class="mono-cell">single</td><td>N angles × M formats, matrixed for paid testing, one variable per row</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      The last earns its place on the AdCreative research: a structured <strong>angle × format
+      matrix</strong> with exactly one variable changing per row is what performance marketers actually
+      need, and it is trivially expressible in the slot model.
+    </p>
+
+    <h3>The Plan engine</h3>
+    <p>
+      Input: recipe, brief, product snapshots, brand voice notes, duration, platforms, offer terms.
+      Output: validated JSON — phases with date ranges, slots with
+      <code>{angle, kind, format, durationSec?, copy, scheduledAt, rationale}</code>.
+    </p>
+    <p>
+      Implemented as a YAML template (<code>category: plan_generation</code>) executed through the
+      Anthropic text provider already wired in the gateway, with a Zod schema on the output. The
+      template encodes the research <em>directly</em> — phase archetypes, Hero–Hub–Hygiene cadence,
+      per-platform duration rules, captions-by-default on every video slot, and the four-beat
+      storyboard structure. Storyboards are generated at plan time, so the Plan screen shows what the
+      video will do before anything is rendered.
+    </p>
+
+    <h3>The consistency system</h3>
+    <p><code>StyleContract</code> is frozen at hero approval and immutable for the campaign’s life. Changing it is an explicit, warned action that invalidates the anchor.</p>
+
+    <pre><code>StyleContract {
+  styleAnchorGenerationVariantId   // the approved hero still
+  styleAnchorS3Key
+  moodId, templateFamily
+  composition { background, realism, shadow, brandBlend, ... }
+  palette[]                        // resolved — the actual pixels used
+  seed
+  promptStyleClause                // distilled natural-language style statement
+  negativeClause
+}</code></pre>
+
+    <p>Every subsequent slot generation carries the anchor as an i2i reference, the frozen composition and mood, the distilled style and negative clauses via a new <code>modifier.campaign_consistency</code> template, and the same seed where the provider honours it.</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Level</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><th>loose</th><td>Shared mood and palette only; no anchor reference</td></tr>
+          <tr><th>matched <span class="chip chip-keep">default</span></th><td>Anchor as reference + frozen composition</td></tr>
+          <tr><th>locked</th><td><code>matched</code> + seed pinning + strict negative clause + a post-generation palette-distance check that flags drift on the card</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Unlike today’s dead enum, each level maps to real behaviour.</p>
+
+    <h3>The copy engine</h3>
+    <p>
+      Every slot gets a hook, a platform-length-aware caption, a hashtag set, a CTA, and for video the
+      burned-in caption track. Generated with the plan — so the Plan screen is never empty — then
+      regenerable per slot. Brand voice comes from <code>brands.voiceNotes</code>, already in the
+      schema. This reuses the <code>captionJobs</code> pipeline and its credit accounting; the change is
+      a campaign-shaped prompt and a slot-level attachment point.
+    </p>
+  </section>
+
+  <!-- ============ 04 ARCHITECTURE ============ -->
+  <section id="arch">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Architecture</h2></div>
+
+    <h3>Data model</h3>
+    <p>New <code>packages/db/src/schema/campaign.ts</code>, migration <code>0020_campaigns.sql</code>.</p>
+
+    <pre><code>campaigns
+  id, workspace_id, brand_id, project_id
+  name, recipe, brief, goal, audience
+  starts_on, ends_on, platforms jsonb
+  status              draft | planned | producing | ready | archived
+  style_contract jsonb          -- null until hero approved
+  plan_snapshot jsonb           -- last accepted plan, for diffing
+  estimated_credits, spent_credits
+
+campaign_phases
+  id, campaign_id, kind, name, position, starts_on, ends_on
+
+campaign_slots
+  id, campaign_id, phase_id, position
+  kind                image | video
+  angle               text          -- 'teaser', 'hero_reveal', 'proof', ...
+  output_format       text          -- existing OutputFormat enum
+  duration_sec        int null      -- video only
+  storyboard jsonb    null          -- beats[] for multi-scene video
+  copy jsonb                        -- hook, caption, hashtags[], cta
+  scheduled_at
+  status              planned | queued | generating | ready | approved | failed
+  generation_id       fk null
+  selected_variant_id fk null
+  estimated_credits
+
+campaign_exports
+  id, campaign_id, s3_key, manifest jsonb, created_at</code></pre>
+
+    <p>
+      <code>generations</code> gains nullable <code>campaign_id</code> and
+      <code>campaign_slot_id</code>, so a campaign generation is still an ordinary generation — history,
+      billing, moderation and the results view all keep working unchanged.
+    </p>
+
+    <div class="callout">
+      <span class="callout-label">Slice 55 is subsumed</span>
+      <p>
+        <code>generation_packages</code> as specified in slice 55 is exactly <code>campaign_slots</code>
+        grouped by campaign, with <code>style_seed</code>/<code>style_brief</code> generalised into
+        <code>style_contract</code>. Slice 55 should be closed as superseded rather than built.
+      </p>
+    </div>
+
+    <h3>Multi-format fan-out, done properly</h3>
+    <p>
+      Today <code>formats[]</code> is a lie. The honest implementation: one slot = one format = one
+      output target, and “post this everywhere” <strong>expands into sibling slots</strong>, one per
+      format, sharing the style anchor and the copy. Consequences:
+    </p>
+    <ul>
+      <li>Pricing is honest and per-asset, because each slot is a real generation.</li>
+      <li>Each format gets a background composed <em>for its own aspect ratio</em> instead of a crop — the whole point of the no-crop framing rule already enforced in the router.</li>
+      <li>The overlay is re-rendered at native dimensions, so text is never scaled or resampled.</li>
+    </ul>
+    <p>
+      This is more generations than a naive “resize” approach, and that is correct — the alternative is
+      crops that violate our own framing contract, or upscaled overlay text.
+    </p>
+
+    <h3>Generation flow</h3>
+    <pre><code>POST /api/campaigns                  → create from brief
+POST /api/campaigns/:id/plan         → run plan engine, upsert phases + slots
+POST /api/campaigns/:id/hero         → generate 3–4 hero candidates
+POST /api/campaigns/:id/style        → approve candidate, freeze StyleContract
+POST /api/campaigns/:id/generate     → { scope: all | phase | slot[] } → enqueue
+GET  /api/campaigns/:id              → campaign + phases + slots + generations
+POST /api/campaigns/:id/export       → build ZIP, return signed URL</code></pre>
+    <p>
+      Slot generation reuses <code>GenerationApi.create</code> with the campaign IDs set and the style
+      anchor injected as an inspiration reference. <strong>No fork of the generation pipeline</strong> —
+      preflight, pricebook, ledger reserve/commit/release, moderation and fan-in all apply unchanged.
+    </p>
+
+    <h3>Video pipeline</h3>
+    <p>
+      A new <code>VideoProvider</code> interface mirrors <code>ImageProvider</code>, with
+      <code>chooseVideoProvider</code> routing on duration, native-audio need and tier — the multi-model
+      routing the research says is standard practice. Initial registry: Kling/Seedance as the cost tier,
+      Veo Fast where native audio matters, Runway where camera control matters. Mock provider first, so
+      <code>AI_MODE=mock</code> development keeps working.
+    </p>
+    <p>
+      The renderer gets one focused change: <code>RenderInput.background</code> becomes optional, so it
+      can emit a <strong>transparent-alpha overlay PNG</strong>. Text, logo, price badges and CTA are
+      then composited over video with ffmpeg — identical typography, identical brand fidelity, no second
+      text engine.
+    </p>
+
+    <p class="pre-label">Phase A — single clip (ships first)</p>
+    <div class="pipe is-video">
+      <div class="pipe-step"><span class="pipe-n">Frame 0</span><p class="pipe-t">Approved still</p><p class="pipe-d">Brand-exact, already generated and approved on the board</p></div>
+      <div class="pipe-step"><span class="pipe-n">Motion</span><p class="pipe-t">i2v provider</p><p class="pipe-d">3–8s clip; the still is literally frame zero, so identity cannot drift</p></div>
+      <div class="pipe-step"><span class="pipe-n">Composite</span><p class="pipe-t">ffmpeg + alpha overlay</p><p class="pipe-d">Renderer’s transparent PNG over the clip; captions burned in</p></div>
+      <div class="pipe-step"><span class="pipe-n">Encode</span><p class="pipe-t">Platform MP4</p><p class="pipe-d">H.264/AAC, faststart, per-platform bitrate</p></div>
+    </div>
+    <p>Cheapest, safest, highest-confidence path — and it immediately repairs the defect where reel and TikTok formats silently return stills.</p>
+
+    <p class="pre-label">Phase B — multi-scene storyboard (same data model)</p>
+    <div class="pipe is-video">
+      <div class="pipe-step"><span class="pipe-n">Plan</span><p class="pipe-t">beats[]</p><p class="pipe-d">Hook → reveal → value → CTA, written at plan time</p></div>
+      <div class="pipe-step"><span class="pipe-n">Stills</span><p class="pipe-t">One per beat</p><p class="pipe-d">All anchored to the same style anchor</p></div>
+      <div class="pipe-step"><span class="pipe-n">Motion</span><p class="pipe-t">One clip per beat</p><p class="pipe-d">Each beat’s still is its own frame zero</p></div>
+      <div class="pipe-step"><span class="pipe-n">Assemble</span><p class="pipe-t">Concat + audio</p><p class="pipe-d">Cuts, captions, music bed, optional voiceover → 15–30s ad</p></div>
+    </div>
+    <p>
+      <code>storyboard jsonb</code> is designed now and populated by the plan engine from the outset, so
+      Phase B is purely additive: no schema change, no API change, no re-plan.
+    </p>
+
+    <h3>Credits</h3>
+    <p>
+      <code>price_book_entries</code> gains <code>media_kind</code> (<code>image | video</code>,
+      defaulting to <code>image</code> so every existing row is untouched) and
+      <code>duration_bucket</code> (<code>null | short ≤8s | standard ≤15s | long ≤30s</code>).
+    </p>
+    <p>
+      Campaign-level estimation aggregates slot estimates and is shown on the <strong>Plan</strong>
+      screen before commitment, with a per-phase breakdown and partial commit. Given a 5s clip costs
+      $0.45–0.75 at provider prices, video multipliers must be set deliberately — a video slot is
+      meaningfully more expensive, and the UI must never let that be a surprise.
+    </p>
+  </section>
+
+  <!-- ============ 05 REMOVAL ============ -->
+  <section id="removal">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Removal list</h2></div>
+    <p>Delete outright — nothing else imports them, verified by grep across <code>apps/</code> and <code>e2e/</code>.</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>File</th><th class="num">Lines</th></tr></thead>
+        <tbody>
+          <tr><td class="mono-cell">components/generate/commercial/campaign-builder.tsx</td><td class="num">186</td></tr>
+          <tr><td class="mono-cell">components/generate/commercial/campaign-details-step.tsx</td><td class="num">146</td></tr>
+          <tr><td class="mono-cell">components/generate/commercial/composition-step.tsx</td><td class="num">144</td></tr>
+          <tr><td class="mono-cell">components/generate/commercial/output-settings-step.tsx</td><td class="num">117</td></tr>
+          <tr><td class="mono-cell">components/generate/commercial/brand-mood-step.tsx</td><td class="num">102</td></tr>
+          <tr><td class="mono-cell">components/generate/commercial/template-layout-step.tsx</td><td class="num">52</td></tr>
+          <tr><td class="mono-cell">components/generate/commercial/creation-type-step.tsx</td><td class="num">33</td></tr>
+          <tr class="tot"><td>Total removed</td><td class="num">780</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><code>product-step.tsx</code> <span class="chip chip-keep">stays</span> — Quick Create imports it.</p>
+
+    <h4>Modify</h4>
+    <ul>
+      <li><code>generate-shell.tsx</code> — remove the mode tabs and all <code>campaign_builder</code> branching. <code>/generate</code> becomes Quick Create only; Campaign Builder gets its own route.</li>
+      <li><code>generation-view.tsx:825</code> — replace the <code>isCampaignBuilder</code> check with campaign-slot awareness.</li>
+      <li><code>commercial-contract.ts</code> — retire <code>creationType</code> and <code>outputs.consistency</code> from the quick contract; <code>outputs.formats</code> collapses to a single format, matching what the code always actually did.</li>
+      <li>Sidebar/nav — Campaign Builder becomes a top-level destination, not a tab.</li>
+    </ul>
+    <p>No tests reference the deleted components, so removal is low-risk.</p>
+  </section>
+
+  <!-- ============ 06 DELIVERY ============ -->
+  <section id="delivery">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Delivery plan</h2></div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Slice</th><th>Scope</th><th>Ships</th></tr></thead>
+        <tbody>
+          <tr><th>59 · Demolition &amp; schema</th><td>Delete the 780 lines; campaign tables + migration <code>0020</code>; <code>campaign_id</code> on generations; queries; <code>/campaigns</code> route shell</td><td>A real campaign object; an empty but honest UI</td></tr>
+          <tr><th>60 · Plan engine</th><td>Plan + copy YAML templates, Zod-validated JSON, <code>POST /plan</code>, the Plan screen (calendar + list + inline edit), campaign-level estimate</td><td><strong>The demo-able moment</strong> — brief in, full dated plan with copy out, priced, before any spend</td></tr>
+          <tr><th>61 · Style contract &amp; Board</th><td>Hero candidates, approval, StyleContract freeze, <code>modifier.campaign_consistency</code>, anchor wiring, per-slot/phase/all generation, the Board</td><td>Visibly-one-campaign image production end to end</td></tr>
+          <tr><th>62 · Campaign prompt routes</th><td><code>templates/campaign/*</code>, <code>routeCampaignPrompt</code>, per-route required-variable validation, recipe-specific layouts</td><td><em>Closes slice 57</em></td></tr>
+          <tr><th>63 · Export &amp; calendar</th><td>ZIP builder, CSV/ICS calendar, <code>copy.md</code>, <code>campaign.json</code>, signed download</td><td>The campaign becomes a deliverable</td></tr>
+          <tr><th>64 · Video I <span class="chip chip-video">motion</span></th><td><code>VideoProvider</code> + mock + first real provider, alpha-overlay renderer mode, <code>renderer/src/video.ts</code>, ffmpeg in the worker image, video pricebook columns, video slots on the Board, <strong>video in Quick Create too</strong></td><td>Reels and TikTok formats become real; repairs the shipping defect</td></tr>
+          <tr><th>65 · Video II <span class="chip chip-video">storyboard</span></th><td>Beat-level generation, concat, captions, music bed, optional voiceover, storyboard editor</td><td>15–30s multi-scene ads</td></tr>
+          <tr><th>66 · Publishing <span class="chip chip-warn">seam</span></th><td>Meta Graph + TikTok Content Posting OAuth, token storage, scheduler worker</td><td>Deferred by decision; the data model already supports it</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Slices 59–61 are the spine. 62–63 complete the professional deliverable. 64 is the first video ship <em>and</em> repairs an existing defect.</p>
+  </section>
+
+  <!-- ============ 07 RISKS ============ -->
+  <section id="risks">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Risks and open questions</h2></div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><th>Style drift under i2i</th><td>Providers honour reference images unevenly. The <code>locked</code> level pins seed and adds a post-generation palette-distance check that surfaces drift on the card rather than shipping it silently. Needs per-model calibration before 61 ships.</td></tr>
+          <tr><th>Campaign cost shock</th><td>A 20-slot campaign with video is a large credit event. Full estimate on the Plan screen before commitment, per-phase partial commit, hard confirmation above a threshold.</td></tr>
+          <tr><th>Plan quality is the whole product</th><td>If the plan is generic, the differentiator collapses. The template encodes the researched frameworks explicitly rather than asking the model to improvise a strategy. Treat it as a versioned, reviewed asset.</td></tr>
+          <tr><th>ffmpeg in the worker</th><td>Container weight, CPU cost, new failure surface. Isolate in <code>renderer/src/video.ts</code> behind the same sandbox discipline as the Puppeteer fallback; encode as a distinct job step with its own retry.</td></tr>
+          <tr><th>Video provider volatility</th><td>The field consolidated once already in 2026. <code>VideoProvider</code> mirrors <code>ImageProvider</code> exactly, so a provider swap is a registry change.</td></tr>
+          <tr><th>Longer time-to-first-pixel</th><td>Campaign Builder is slower than Quick Create by design — but the Plan screen must feel like progress, so plan generation streams and the Board fills in progressively.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Open questions</h4>
+    <ul>
+      <li>Do campaigns need multi-user review/approval states for the “compliance matters” personas, or is single-owner approval enough for v1?</li>
+      <li>Should always-on campaigns auto-roll month to month, or be re-planned each period?</li>
+      <li>Should the ad-test-pack recipe carry a scoring/prediction signal — the AdCreative wedge — and is that v1 or a later analytics slice?</li>
+      <li>Does music licensing need a cleared library, or do we ship silent-with-captions first? <em>Given 85% sound-off, silent-with-captions is defensible for Phase A.</em></li>
+      <li>Is a <code>campaign_slots.locale</code> dimension worth designing now, given the platform tools are shipping one-click dubbing into 50+ languages?</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section id="sources">
+    <div class="sec-head"><span class="sec-num">—</span><h2>Sources</h2></div>
+    <ul class="sources">
+      <li><a href="https://www.equinetacademy.com/blog/hero-hub-hygiene-content-strategy-explained-a-complete-guide-with-examples/">Hero Hub Hygiene Content Strategy Explained — Equinet Academy</a></li>
+      <li><a href="https://sociallyin.com/resources/social-media-strategy-for-product-launch/">Social Media Strategy for Product Launch: 5-Phase Framework — Sociallyin</a></li>
+      <li><a href="https://www.enrichlabs.ai/blog/small-business-social-media-marketing-2026">Small Business Social Media Marketing in 2026 — Enrich Labs</a></li>
+      <li><a href="https://dannyavila.com/social-media-marketing-strategy/">Social Media Marketing Strategy: A 2026 SMB Guide — Danny Avila</a></li>
+      <li><a href="https://www.gethookd.ai/learn/predis-ai-vs-adcreative-ai-vs-gethookd-pricing-features-reviews/">Predis.ai vs AdCreative.ai vs GetHookd — GetHookd</a></li>
+      <li><a href="https://max-productive.ai/blog/adcreative-ai-vs-predis-ai/">AdCreative.ai vs Predis.ai: Best AI Ad Tool 2026 — Max Productive</a></li>
+      <li><a href="https://www.revvgrowth.com/ai-marketing/ai-campaign-generator-tools">7 Best AI Campaign Generation Tools for 2026 — Revv Growth</a></li>
+      <li><a href="https://www.singular.net/blog/ad-automation/">TikTok Smart+ vs Meta Advantage+ vs Google App Campaigns — Singular</a></li>
+      <li><a href="https://www.rewarx.com/blogs/tiktok-smart-plus-vs-meta-advantage-plus">TikTok Smart+ vs Meta Advantage+: Which Wins? — Rewarx</a></li>
+      <li><a href="https://modelslab.com/blog/api/veo-3-1-vs-kling-3-sora-2-ai-video-api-cost-2026">Veo 3.1 vs Kling 3.0 vs Sora 2: AI Video API Pricing 2026 — ModelsLab</a></li>
+      <li><a href="https://www.buildmvpfast.com/api-costs/ai-video">AI Video Generation API Pricing, July 2026 — BuildMVPFast</a></li>
+      <li><a href="https://tensoria.fr/en/tools/runway-pro-ai-video-generation">Runway Gen-4 vs Veo 3.1 vs Kling: 2026 Hands-On Comparison — Tensoria</a></li>
+      <li><a href="https://chatcut.io/blog/ai-video-generator-for-product-ads">AI Video Generator for Product Ads in 2026 — ChatCut</a></li>
+      <li><a href="https://vivideo.ai/blog/state-of-ai-video-creation-2026">The AI Video Workflow in 2026: A Hands-On Guide — Vivideo</a></li>
+      <li><a href="https://mhigrowthengine.com/blog/best-ad-formats-ecommerce-2026/">Best Performing Ad Formats for Ecommerce in 2026 — MHI Growth Engine</a></li>
+      <li><a href="https://shopifyecommerceapps.com/best-video-ads-meta-tiktok-2026">The Best Types of Video Ads for Meta and TikTok in 2026</a></li>
+      <li><a href="https://firework.com/blog/2026-short-form-video-stats">Short-Form Video Stats 2026 — Firework</a></li>
+      <li><a href="https://www.adweek.org/blog/ultimate-guide-to-ai-ugc-video-ads-and-faceless-content-examples">Ultimate Guide to AI UGC Video Ads and Faceless Content — Adweek.org</a></li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Campaign Builder v2 · Research &amp; Design</span>
+    <span>plans/campaign-builder-v2-research-and-design.md</span>
+  </footer>
+
+</div>

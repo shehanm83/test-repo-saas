@@ -1,9 +1,18 @@
-import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@layertone/shared";
+import type {
+  AIImageReferenceRole,
+  AIImageRequest,
+  AIImageResponse,
+  AITextRequest,
+  AITextResponse,
+} from "@layertone/shared";
 
 export interface ProviderCapabilities {
   modelCodes: string[];
   supportsImageToImage: boolean;
   supportsMultiReference: boolean;
+  maxReferences?: number;
+  referenceRoles?: AIImageReferenceRole[];
+  supportsIdentityPreservation?: boolean;
   tier: "fast" | "premium" | "design" | "fallback";
 }
 

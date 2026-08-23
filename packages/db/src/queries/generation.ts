@@ -1,18 +1,42 @@
 import { and, eq, sql } from "drizzle-orm";
 
 import type { Db } from "../client";
-import {
-  generations,
-  generationVariants,
-  moodTemplateBindings,
-  templates,
-} from "../schema";
+import { generations, generationVariants, moodTemplateBindings, templates } from "../schema";
 import { withWorkspace } from "../with-workspace";
 
 export async function pickTemplates(
   db: Db,
-  args: { moodId: string | null; aspectRatio: string; n: number; preferredSlug?: string },
+  args: {
+    moodId: string | null;
+    aspectRatio: string;
+    n: number;
+    preferredSlug?: string;
+    templateId?: string;
+    family?: string;
+    layout?: string;
+    requiredSlots?: string[];
+    rendererCompatibility?: "satori" | "browser";
+  },
 ) {
+  const templateConditions = [
+    eq(templates.status, "published"),
+    sql`${args.aspectRatio} = ANY(${templates.supportedAspectRatios})`,
+    ...(args.templateId ? [eq(templates.id, args.templateId)] : []),
+    ...(args.family ? [eq(templates.family, args.family)] : []),
+    ...(args.layout ? [eq(templates.layout, args.layout)] : []),
+    ...(args.rendererCompatibility
+      ? [eq(templates.rendererCompatibility, args.rendererCompatibility)]
+      : []),
+    ...(args.requiredSlots?.length
+      ? [
+          sql`${templates.slots} ?& ARRAY[${sql.join(
+            args.requiredSlots.map((slot) => sql`${slot}`),
+            sql`, `,
+          )}]::text[]`,
+        ]
+      : []),
+  ];
+
   if (args.moodId) {
     return db
       .select({
@@ -24,13 +48,7 @@ export async function pickTemplates(
       })
       .from(moodTemplateBindings)
       .innerJoin(templates, eq(templates.id, moodTemplateBindings.templateId))
-      .where(
-        and(
-          eq(moodTemplateBindings.moodId, args.moodId),
-          eq(templates.status, "published"),
-          sql`${args.aspectRatio} = ANY(${templates.supportedAspectRatios})`,
-        ),
-      )
+      .where(and(eq(moodTemplateBindings.moodId, args.moodId), ...templateConditions))
       .orderBy(sql`${moodTemplateBindings.weight} DESC`)
       .limit(args.n);
   }
@@ -45,15 +63,12 @@ export async function pickTemplates(
       requiresBrowserRender: templates.requiresBrowserRender,
     })
     .from(templates)
-    .where(
-      and(
-        eq(templates.status, "published"),
-        sql`${args.aspectRatio} = ANY(${templates.supportedAspectRatios})`,
-      ),
+    .where(and(...templateConditions))
+    .orderBy(
+      args.preferredSlug
+        ? sql`CASE WHEN ${templates.slug} = ${args.preferredSlug} THEN 0 ELSE 1 END`
+        : sql`${templates.createdAt} ASC`,
     )
-    .orderBy(args.preferredSlug
-      ? sql`CASE WHEN ${templates.slug} = ${args.preferredSlug} THEN 0 ELSE 1 END`
-      : sql`${templates.createdAt} ASC`)
     .limit(args.n);
 }
 
@@ -78,24 +93,16 @@ export async function insertVariants(
   });
 }
 
-export async function updateGenerationInspirationKey(
-  db: Db,
-  generationId: string,
-  s3Key: string,
-) {
-  await db.update(generations).set({ inspirationImageS3Key: s3Key }).where(eq(generations.id, generationId));
+export async function updateGenerationInspirationKey(db: Db, generationId: string, s3Key: string) {
+  await db
+    .update(generations)
+    .set({ inspirationImageS3Key: s3Key })
+    .where(eq(generations.id, generationId));
 }
 
-export async function getGenerationFull(
-  db: Db,
-  workspaceId: string,
-  generationId: string,
-) {
+export async function getGenerationFull(db: Db, workspaceId: string, generationId: string) {
   return withWorkspace(db, workspaceId, async (tx) => {
-    const [g] = await tx
-      .select()
-      .from(generations)
-      .where(eq(generations.id, generationId));
+    const [g] = await tx.select().from(generations).where(eq(generations.id, generationId));
     if (!g) return null;
     const variants = await tx
       .select()

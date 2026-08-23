@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { TextProvider } from "../types.js";
+import type { TextProvider } from "../types";
 import type { AITextRequest, AITextResponse } from "@layertone/shared";
 
 const DEFAULT_TEXT_MODEL = "gpt-5.4-mini";

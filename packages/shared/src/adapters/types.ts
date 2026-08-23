@@ -62,9 +62,7 @@ export interface BillingProvider {
     signature: string,
   ): Promise<{ id: string; type: string; data: unknown }>;
   refundCharge(args: { chargeId: string; reason?: string }): Promise<void>;
-  listPaidInvoices(args: {
-    customerId: string;
-  }): Promise<
+  listPaidInvoices(args: { customerId: string }): Promise<
     Array<{
       invoiceId: string;
       priceId: string | null;
@@ -79,12 +77,28 @@ export interface AIImageRequest {
   modelCode: string;
   prompt: string;
   negativePrompt?: string;
-  references?: { s3Key: string; role: "brand_reference" | "inspiration"; weight: number }[];
+  references?: AIImageReference[];
   aspectRatio: string;
   width: number;
   height: number;
   seed?: number;
   safetyLevel: "default" | "strict";
+}
+
+export type AIImageReferenceRole =
+  | "product_identity"
+  | "style_reference"
+  | "composition_reference"
+  | "brand_reference"
+  | "inspiration";
+
+export interface AIImageReference {
+  s3Key: string;
+  role: AIImageReferenceRole;
+  weight: number;
+  importance?: "essential" | "supporting";
+  locked?: boolean;
+  sourceAssetId?: string;
 }
 
 export interface AIImageResponse {

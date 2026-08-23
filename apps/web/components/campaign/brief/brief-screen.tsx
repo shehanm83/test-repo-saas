@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { ArrowRight, Lock } from "lucide-react";
 
@@ -57,6 +58,7 @@ export function BriefScreen(props: {
     [form],
   );
   const brand = props.brands.find((entry) => entry.id === form.brandId) ?? null;
+  const brandLogo = brand?.logoAssets?.find((asset) => asset.url)?.url ?? null;
   const brandProducts = props.products.filter(
     (product) => !form.brandId || product.brandId === null || product.brandId === form.brandId,
   );
@@ -97,9 +99,12 @@ export function BriefScreen(props: {
             className="select max-w-[360px]"
             value={form.brandId}
             aria-label="Brand"
+            disabled={props.brands.length === 0}
             onChange={(event) => patch({ brandId: event.target.value })}
           >
-            <option value="">Choose a brand…</option>
+            <option value="">
+              {props.brands.length === 0 ? "No brands in this workspace" : "Choose a brand…"}
+            </option>
             {props.brands.map((entry) => (
               <option key={entry.id} value={entry.id}>
                 {entry.name}
@@ -209,35 +214,69 @@ export function BriefScreen(props: {
           </h5>
           {brand ? (
             <>
-              <div className="mb-3 flex items-center gap-2.5">
-                <span className="grid h-[38px] w-[38px] flex-none place-items-center rounded-xl bg-ink-deep font-display text-[15px] font-bold text-white">
-                  {brand.name.slice(0, 1).toUpperCase()}
-                </span>
-                <div className="leading-tight">
-                  <b className="text-[13.5px]">{brand.name}</b>
-                  <br />
-                  <span className="text-[11.5px] text-ink-soft/70">
-                    {brand.palette?.length
-                      ? `${brand.palette.length} colours`
-                      : "No palette saved"}
-                  </span>
-                </div>
-              </div>
-              <div className="flex gap-1.5">
-                {(brand.palette ?? []).slice(0, 6).map((color) => (
-                  <span
-                    key={color}
-                    className="h-[26px] w-[26px] rounded-lg shadow-[inset_0_0_0_1px_rgba(0,0,0,0.07)]"
-                    style={{ background: color }}
-                    title={color}
+              <div className="checker mb-3 grid min-h-[92px] place-items-center overflow-hidden rounded-xl border border-ink/5 p-3">
+                {brandLogo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={brandLogo}
+                    alt={`${brand.name} logo`}
+                    className="max-h-16 max-w-[88%] object-contain"
                   />
-                ))}
+                ) : (
+                  <span className="grid h-12 w-12 place-items-center rounded-xl bg-ink-deep font-display text-lg font-bold text-white">
+                    {brand.name.slice(0, 1).toUpperCase()}
+                  </span>
+                )}
               </div>
+
+              <div className="mb-3 leading-tight">
+                <b className="text-[13.5px]">{brand.name}</b>
+                <br />
+                <span className="text-[11.5px] text-ink-soft/70">
+                  {brand.palette?.length ? `${brand.palette.length} colours` : "No palette saved"}
+                </span>
+              </div>
+
+              {brand.palette?.length ? (
+                <div className="flex gap-1.5" aria-label={`${brand.name} palette`}>
+                  {brand.palette.slice(0, 6).map((color, index) => (
+                    <span
+                      key={`${color}-${index}`}
+                      className="h-[26px] flex-1 rounded-lg shadow-[inset_0_0_0_1px_rgba(0,0,0,0.07)]"
+                      style={{ background: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              ) : null}
+
+              {brand.fonts ? (
+                <dl className="mt-3 grid gap-1.5 border-t border-ink/10 pt-3 text-[11.5px]">
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-ink-soft/70">Headline</dt>
+                    <dd className="truncate font-medium text-ink">{brand.fonts.heading.family}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-ink-soft/70">Body</dt>
+                    <dd className="truncate font-medium text-ink">{brand.fonts.body.family}</dd>
+                  </div>
+                </dl>
+              ) : null}
             </>
           ) : (
-            <p className="text-[12.5px] text-ink-soft">
-              Pick a brand and its palette, fonts and logo lock to the campaign.
-            </p>
+            <div className="text-[12.5px] leading-relaxed text-ink-soft">
+              {props.brands.length === 0 ? (
+                <>
+                  No brand kits exist in this workspace yet.{" "}
+                  <Link href="/brands/new" className="font-medium text-brand hover:underline">
+                    Create a brand
+                  </Link>
+                  .
+                </>
+              ) : (
+                "Pick a brand and its palette, fonts and logo lock to the campaign."
+              )}
+            </div>
           )}
           <div className="mt-3 flex items-start gap-[7px] rounded-xl bg-brand-50 px-3 py-2.5 text-[11.5px] font-medium leading-[1.5] text-brand-700">
             <Lock size={12} strokeWidth={2.2} className="mt-px flex-none" />

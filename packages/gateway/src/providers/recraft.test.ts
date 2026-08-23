@@ -15,9 +15,7 @@ describe("RecraftImageProvider", () => {
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ data: [{ url: "https://cdn/img.png" }] }), { status: 200 }),
       )
-      .mockResolvedValueOnce(
-        new Response(Buffer.from([0x89, 0x50, 0x4e, 0x47]), { status: 200 }),
-      );
+      .mockResolvedValueOnce(new Response(Buffer.from([0x89, 0x50, 0x4e, 0x47]), { status: 200 }));
 
     const storage = { getSignedUrl: vi.fn() } as never;
     const p = new RecraftImageProvider({ apiKey: "k", storage });
@@ -39,7 +37,14 @@ describe("RecraftImageProvider", () => {
     const storage = { getSignedUrl: vi.fn() } as never;
     const p = new RecraftImageProvider({ apiKey: "k", storage });
     await expect(
-      p.generate({ modelCode: "recraft-v3", prompt: "test", aspectRatio: "1:1", width: 512, height: 512, safetyLevel: "default" }),
+      p.generate({
+        modelCode: "recraft-v3",
+        prompt: "test",
+        aspectRatio: "1:1",
+        width: 512,
+        height: 512,
+        safetyLevel: "default",
+      }),
     ).rejects.toThrow(/recraft-status-401/);
   });
 });

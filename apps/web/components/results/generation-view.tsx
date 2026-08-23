@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { I } from "@/components/icons";
+import { trackQuickCreateEvent } from "@/lib/quick-create-events";
 
 interface VariantState {
   id: string;
@@ -12,6 +13,14 @@ interface VariantState {
   modelUsed: string | null;
   templateId?: string;
   url?: string | null;
+  qaStatus?: "pending" | "passed" | "soft_failed" | "hard_failed" | "unavailable" | null;
+  qaResult?: {
+    summary?: string;
+    dimensions?: Record<string, { score: number; reason: string; hardFailure?: boolean }>;
+  } | null;
+  qaRank?: number | null;
+  parentVariantId?: string | null;
+  creditCost?: number;
 }
 
 interface CaptionState {
@@ -74,6 +83,10 @@ function VariantCard({
   onEdit,
   onDownload,
   onZoom,
+  onAccept,
+  onReject,
+  onRefine,
+  feedback,
 }: {
   variant: VariantState;
   target: {
@@ -87,6 +100,10 @@ function VariantCard({
   onEdit: () => void;
   onDownload: () => void;
   onZoom: () => void;
+  onAccept: () => void;
+  onReject: () => void;
+  onRefine: () => void;
+  feedback?: "up" | "down";
 }) {
   const width = target.width && target.width > 0 ? target.width : FALLBACK_TARGET.width;
   const height = target.height && target.height > 0 ? target.height : FALLBACK_TARGET.height;
@@ -266,6 +283,37 @@ function VariantCard({
         </span>
         <span className="mono">{variant.id.slice(0, 8)}</span>
       </div>
+      {state === "done" ? (
+        <div className="result-variant-actions">
+          <div className="row">
+            <button type="button" className={feedback === "up" ? "btn btn--secondary" : "btn btn--ghost"} onClick={onAccept}>
+              <I.Check size={14} /> {feedback === "up" ? "Marked useful" : "Useful"}
+            </button>
+            <button type="button" className={feedback === "down" ? "btn btn--secondary" : "btn btn--ghost"} onClick={onReject}>
+              <I.X size={14} /> {feedback === "down" ? "Feedback sent" : "Not right"}
+            </button>
+          </div>
+          <button type="button" className="btn btn--secondary" onClick={onRefine}>
+            <I.Wand size={14} /> Refine
+          </button>
+        </div>
+      ) : null}
+      {variant.qaStatus && variant.qaStatus !== "unavailable" ? (
+        <details className={`result-qa result-qa--${variant.qaStatus}`}>
+          <summary>
+            Quality check · {variant.qaStatus === "passed" ? "Passed" : variant.qaStatus === "pending" ? "Checking" : "Review suggested"}
+          </summary>
+          {variant.qaResult?.summary ? <p>{variant.qaResult.summary}</p> : null}
+          {variant.qaResult?.dimensions
+            ? Object.entries(variant.qaResult.dimensions).map(([name, result]) => (
+                <div className="result-qa__dimension" key={name}>
+                  <strong>{name.replaceAll("_", " ")}</strong>
+                  <span>{result.score}/100 · {result.reason}</span>
+                </div>
+              ))
+            : null}
+        </details>
+      ) : null}
     </div>
   );
 }
@@ -436,17 +484,19 @@ function EditTextDrawer({
   variantId,
   generationId,
   onDone,
+  initialCopy,
 }: {
   onClose: () => void;
   variantIndex: number;
   variantId: string;
   generationId: string;
   onDone: (newUrl: string) => void;
+  initialCopy: { headline: string; subhead: string; cta: string };
 }) {
   const [vals, setVals] = useState({
-    headline: "30% off",
-    sub: "This week only",
-    cta: "Shop the sale",
+    headline: initialCopy.headline,
+    sub: initialCopy.subhead,
+    cta: initialCopy.cta,
   });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -759,6 +809,140 @@ function CaptionModal({
   );
 }
 
+const REJECTION_REASONS = [
+  ["wrong_product", "Wrong product"],
+  ["not_my_idea", "Not my idea"],
+  ["bad_composition", "Bad composition"],
+  ["brand_mismatch", "Brand mismatch"],
+  ["text_problem", "Text problem"],
+  ["other", "Something else"],
+] as const;
+
+function RejectionModal(props: {
+  pending: boolean;
+  error: string | null;
+  onClose: () => void;
+  onSubmit: (reason: (typeof REJECTION_REASONS)[number][0], note: string) => void;
+}) {
+  const [reason, setReason] = useState<(typeof REJECTION_REASONS)[number][0] | null>(null);
+  const [note, setNote] = useState("");
+  return (
+    <>
+      <div className="scrim" onClick={props.onClose} />
+      <div className="modal result-feedback-modal" role="dialog" aria-modal="true" aria-labelledby="rejection-title">
+        <div className="result-modal-head">
+          <div>
+            <h2 id="rejection-title" className="t-h3">What missed the mark?</h2>
+            <p className="t-small">This helps rank future directions and measure output quality.</p>
+          </div>
+          <button type="button" className="btn btn--icon btn--ghost" onClick={props.onClose} aria-label="Close">
+            <I.X size={16} />
+          </button>
+        </div>
+        <div className="result-reason-grid">
+          {REJECTION_REASONS.map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              className={reason === value ? "btn btn--accent" : "btn btn--secondary"}
+              onClick={() => setReason(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <label className="label" htmlFor="rejection-note">Optional detail</label>
+        <textarea id="rejection-note" className="input result-refine-textarea" maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} />
+        {props.error ? <p className="t-small result-action-error">{props.error}</p> : null}
+        <div className="result-modal-actions">
+          <button type="button" className="btn btn--ghost" onClick={props.onClose}>Cancel</button>
+          <button type="button" className="btn btn--primary" disabled={!reason || props.pending} onClick={() => reason && props.onSubmit(reason, note)}>
+            {props.pending ? "Saving…" : "Send feedback"}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function RefinementModal(props: {
+  variant: VariantState;
+  variants: VariantState[];
+  pending: boolean;
+  error: string | null;
+  onClose: () => void;
+  onSubmit: (input: { instruction: string; locks: string[]; treatmentVariantId: string | null }) => void;
+}) {
+  const [instruction, setInstruction] = useState("");
+  const [locks, setLocks] = useState(() => new Set(["product", "brand", "copy"]));
+  const [treatmentVariantId, setTreatmentVariantId] = useState("");
+  function toggleLock(lock: string) {
+    setLocks((current) => {
+      const next = new Set(current);
+      if (next.has(lock)) next.delete(lock);
+      else next.add(lock);
+      return next;
+    });
+  }
+  return (
+    <>
+      <div className="scrim" onClick={props.onClose} />
+      <div className="modal result-refine-modal" role="dialog" aria-modal="true" aria-labelledby="refine-title">
+        <div className="result-modal-head">
+          <div>
+            <h2 id="refine-title" className="t-h3">Refine this result</h2>
+            <p className="t-small">Say what should change, then lock what must stay unchanged.</p>
+          </div>
+          <button type="button" className="btn btn--icon btn--ghost" onClick={props.onClose} aria-label="Close">
+            <I.X size={16} />
+          </button>
+        </div>
+        <label className="label" htmlFor="refinement-request">What should change?</label>
+        <textarea
+          id="refinement-request"
+          className="input result-refine-textarea"
+          maxLength={2000}
+          placeholder="Make the background warmer and add more breathing room on the left…"
+          value={instruction}
+          onChange={(event) => setInstruction(event.target.value)}
+          autoFocus
+        />
+        <fieldset className="result-locks">
+          <legend className="label">Keep unchanged</legend>
+          {["product", "composition", "brand", "copy", "mood"].map((lock) => (
+            <label key={lock}>
+              <input type="checkbox" checked={locks.has(lock)} onChange={() => toggleLock(lock)} />
+              <I.Lock size={13} /> {lock[0]!.toUpperCase() + lock.slice(1)}
+            </label>
+          ))}
+        </fieldset>
+        {props.variants.filter((variant) => variant.id !== props.variant.id && variant.status === "completed").length ? (
+          <div>
+            <label className="label" htmlFor="visual-treatment">Visual treatment from another result</label>
+            <select id="visual-treatment" className="select" value={treatmentVariantId} onChange={(event) => setTreatmentVariantId(event.target.value)}>
+              <option value="">Keep this result’s treatment</option>
+              {props.variants.filter((variant) => variant.id !== props.variant.id && variant.status === "completed").map((variant, index) => (
+                <option key={variant.id} value={variant.id}>Use result {index + 1}</option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+        <p className="t-small result-credit-note">
+          Refinement creates one new variant for {props.variant.creditCost ?? "the normal variant"} credits.
+          If automated QA finds a hard failure, its single automatic retry costs 0 additional credits.
+        </p>
+        {props.error ? <p className="t-small result-action-error">{props.error}</p> : null}
+        <div className="result-modal-actions">
+          <button type="button" className="btn btn--ghost" onClick={props.onClose}>Cancel</button>
+          <button type="button" className="btn btn--accent" disabled={!instruction.trim() || props.pending} onClick={() => props.onSubmit({ instruction: instruction.trim(), locks: [...locks], treatmentVariantId: treatmentVariantId || null })}>
+            <I.Wand size={14} /> {props.pending ? "Refining…" : "Create refinement"}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function GenerationView(props: {
   generationId: string;
   initial: GenerationState | null;
@@ -770,6 +954,13 @@ export function GenerationView(props: {
   const [zoomVariant, setZoomVariant] = useState<VariantState | null>(null);
   const [projectPending, setProjectPending] = useState(false);
   const [projectError, setProjectError] = useState<string | null>(null);
+  const [refiningVariant, setRefiningVariant] = useState<VariantState | null>(null);
+  const [rejectingVariant, setRejectingVariant] = useState<VariantState | null>(null);
+  const [feedbackPending, setFeedbackPending] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+  const [refinementPending, setRefinementPending] = useState(false);
+  const [refinementError, setRefinementError] = useState<string | null>(null);
+  const [feedbackByVariant, setFeedbackByVariant] = useState<Record<string, "up" | "down">>({});
 
   useEffect(() => {
     if (!state || state.status === "completed" || state.status === "failed") return;
@@ -787,6 +978,11 @@ export function GenerationView(props: {
       cancelled = true;
     };
   }, [props.generationId, state]);
+
+  useEffect(() => {
+    if (state?.settings?.commercial?.mode !== "quick") return;
+    trackQuickCreateEvent("result_viewed", { source: "generation" });
+  }, [props.generationId, state?.settings?.commercial?.mode]);
 
   const ar = useMemo(
     () => state?.settings?.output_target?.aspectRatio ?? "1:1",
@@ -822,12 +1018,6 @@ export function GenerationView(props: {
   }
 
   const variants = state.variants ?? [];
-  const isCampaignBuilder = state.settings?.commercial?.mode === "campaign_builder";
-
-  if (isCampaignBuilder) {
-    return <CampaignGenerationView state={state} />;
-  }
-
   const doneCount = variants.filter((v) => v.status === "completed").length;
   const allDone = variants.length > 0 && doneCount === variants.length;
   const briefShort =
@@ -843,6 +1033,10 @@ export function GenerationView(props: {
 
   async function downloadVariant(variant: VariantState) {
     if (!variant.url) return;
+    trackQuickCreateEvent("result_downloaded", {
+      model: variant.modelUsed ?? "unknown",
+      format: target.format ?? "image",
+    });
     const response = await fetch(variant.url);
     const blob = await response.blob();
     const objectUrl = URL.createObjectURL(blob);
@@ -885,6 +1079,79 @@ export function GenerationView(props: {
       setProjectError(error instanceof Error ? error.message : String(error));
     } finally {
       setProjectPending(false);
+    }
+  }
+
+  async function saveFeedback(
+    variant: VariantState,
+    rating: "up" | "down",
+    reason?: (typeof REJECTION_REASONS)[number][0],
+    note?: string,
+  ) {
+    setFeedbackPending(true);
+    setFeedbackError(null);
+    try {
+      const response = await fetch(
+        `/api/generations/${props.generationId}/variants/${variant.id}/feedback`,
+        {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ rating, reason: reason ?? null, note: note || null }),
+        },
+      );
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error ?? "Feedback could not be saved");
+      setFeedbackByVariant((current) => ({ ...current, [variant.id]: rating }));
+      trackQuickCreateEvent(rating === "up" ? "result_accepted" : "result_rejected", {
+        model: variant.modelUsed ?? "unknown",
+        ...(reason ? { reason } : {}),
+      });
+      setRejectingVariant(null);
+    } catch (error) {
+      setFeedbackError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setFeedbackPending(false);
+    }
+  }
+
+  async function submitRefinement(input: {
+    instruction: string;
+    locks: string[];
+    treatmentVariantId: string | null;
+  }) {
+    if (!refiningVariant) return;
+    setRefinementPending(true);
+    setRefinementError(null);
+    try {
+      const response = await fetch(
+        `/api/generations/${props.generationId}/variants/${refiningVariant.id}/refine`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(input),
+        },
+      );
+      const payload = (await response.json().catch(() => null)) as {
+        error?: { message?: string };
+        variant?: VariantState;
+      } | null;
+      if (!response.ok || !payload?.variant) {
+        throw new Error(payload?.error?.message ?? "Refinement could not be started");
+      }
+      setState((current) =>
+        current
+          ? { ...current, status: "running", variants: [...current.variants, payload.variant!] }
+          : current,
+      );
+      trackQuickCreateEvent("refinement_started", {
+        model: refiningVariant.modelUsed ?? "unknown",
+        source: input.treatmentVariantId ? "another_result" : "same_result",
+      });
+      setRefiningVariant(null);
+    } catch (error) {
+      setRefinementError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRefinementPending(false);
     }
   }
 
@@ -945,9 +1212,24 @@ export function GenerationView(props: {
             variant={v}
             target={target}
             brandName={state.brandName ?? "Brand"}
-            onEdit={() => setEditing(i)}
+            onEdit={() => {
+              trackQuickCreateEvent("text_edit_opened", {
+                model: v.modelUsed ?? "unknown",
+              });
+              setEditing(i);
+            }}
             onDownload={() => void downloadVariant(v)}
             onZoom={() => setZoomVariant(v)}
+            onAccept={() => void saveFeedback(v, "up")}
+            onReject={() => {
+              setFeedbackError(null);
+              setRejectingVariant(v);
+            }}
+            onRefine={() => {
+              setRefinementError(null);
+              setRefiningVariant(v);
+            }}
+            {...(feedbackByVariant[v.id] ? { feedback: feedbackByVariant[v.id] } : {})}
           />
         ))}
         {completedCaptions.map((caption) => (
@@ -994,6 +1276,7 @@ export function GenerationView(props: {
             );
             setEditing(null);
           }}
+          initialCopy={copyFromGeneration(state)}
         />
       ) : null}
       {captionOpen ? (
@@ -1013,8 +1296,39 @@ export function GenerationView(props: {
           onDownload={() => void downloadVariant(zoomVariant)}
         />
       ) : null}
+      {rejectingVariant ? (
+        <RejectionModal
+          pending={feedbackPending}
+          error={feedbackError}
+          onClose={() => setRejectingVariant(null)}
+          onSubmit={(reason, note) => void saveFeedback(rejectingVariant, "down", reason, note)}
+        />
+      ) : null}
+      {refiningVariant ? (
+        <RefinementModal
+          variant={refiningVariant}
+          variants={variants}
+          pending={refinementPending}
+          error={refinementError}
+          onClose={() => setRefiningVariant(null)}
+          onSubmit={(input) => void submitRefinement(input)}
+        />
+      ) : null}
     </div>
   );
+}
+
+function copyFromGeneration(state: GenerationState) {
+  const campaign = state.settings?.commercial?.campaign ?? {};
+  return {
+    headline: stringValue(campaign.title) || stringValue(campaign.badgeText),
+    subhead: stringValue(campaign.subtitle) || stringValue(campaign.message),
+    cta: stringValue(campaign.cta),
+  };
+}
+
+function stringValue(value: unknown) {
+  return typeof value === "string" ? value : "";
 }
 
 function buildCaptionContextSummary(state: GenerationState) {
@@ -1054,36 +1368,4 @@ function formatSummaryObject(label: string, value: Record<string, unknown> | und
 
 function truncateText(value: string, max: number) {
   return value.length > max ? `${value.slice(0, max)}...` : value;
-}
-
-function CampaignGenerationView({ state }: { state: GenerationState }) {
-  return (
-    <div className="page page--wide">
-      <div className="breadcrumb">
-        <Link href="/history" style={{ cursor: "pointer", textDecoration: "none" }}>
-          Generations
-        </Link>
-        <I.ChevronRight size={12} />
-        <span>Campaign builder</span>
-      </div>
-      <div className="page__head">
-        <div>
-          <h1 className="page__title">Campaign result</h1>
-          <p className="page__sub">
-            Campaign Builder results use a separate review page from Quick Create.
-          </p>
-        </div>
-      </div>
-      <div className="empty" style={{ background: "var(--cal-white)", borderRadius: 8 }}>
-        <div className="empty__art">
-          <I.Layers size={28} />
-        </div>
-        <div className="empty__title">Campaign result page is separate</div>
-        <p className="empty__sub">
-          This generation was created from Campaign Builder, so it does not use the Quick Create result actions.
-        </p>
-        <div className="mono t-small" style={{ marginTop: 12 }}>{state.id}</div>
-      </div>
-    </div>
-  );
 }

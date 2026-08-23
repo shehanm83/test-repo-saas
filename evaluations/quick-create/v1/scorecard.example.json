@@ -1,0 +1,27 @@
+{
+  "evaluationSet": "quick-create-baseline-v1",
+  "generationId": "replace-with-generation-id",
+  "caseId": "saved-product-studio",
+  "flow": "v2",
+  "provider": "gpt-image-2",
+  "aspectRatio": "1:1",
+  "variantId": "replace-with-variant-id",
+  "reviewer": "reviewer-name",
+  "scores": {
+    "intent_relevance": 1,
+    "product_identity": 1,
+    "brand_fit": 1,
+    "mood_adherence": null,
+    "composition": 1,
+    "subject_completeness": 1,
+    "text_safety": 1,
+    "technical_quality": 1
+  },
+  "accepted": false,
+  "downloaded": false,
+  "refinementCount": 0,
+  "latencyMs": 0,
+  "credits": 0,
+  "rejectionReasons": ["wrong_product"],
+  "notes": "Use integer scores from 1 (failed) to 5 (excellent); use null when not applicable."
+}

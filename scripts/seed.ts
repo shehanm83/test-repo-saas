@@ -86,7 +86,8 @@ async function main() {
     .values({
       slug: "quick-create-image-only",
       name: "Quick Create image only",
-      description: "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
+      description:
+        "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
       jsxSource: `
 function template({ background, output }) {
   return h("div", {
@@ -101,7 +102,21 @@ function template({ background, output }) {
   });
 }
 `,
-      slots: {},
+      slots: [
+        "headline",
+        "subtitle",
+        "price",
+        "discount",
+        "badgeText",
+        "cta",
+        "offerExpiry",
+        "legalText",
+        "website",
+        "phone",
+        "qrUrl",
+        "logo",
+        "certification",
+      ],
       textSafeZones: [],
       preferredModel: "flux-1.1-pro",
       supportedAspectRatios: ["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"],
@@ -112,7 +127,8 @@ function template({ background, output }) {
       target: templates.slug,
       set: {
         name: "Quick Create image only",
-        description: "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
+        description:
+          "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
         jsxSource: `
 function template({ background, output }) {
   return h("div", {
@@ -127,7 +143,21 @@ function template({ background, output }) {
   });
 }
 `,
-        slots: {},
+        slots: [
+          "headline",
+          "subtitle",
+          "price",
+          "discount",
+          "badgeText",
+          "cta",
+          "offerExpiry",
+          "legalText",
+          "website",
+          "phone",
+          "qrUrl",
+          "logo",
+          "certification",
+        ],
         textSafeZones: [],
         preferredModel: "flux-1.1-pro",
         supportedAspectRatios: ["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"],
