@@ -5,7 +5,7 @@ import { dirname, resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import sharp from "sharp";
 import { Gateway } from "./gateway.js";
-import { MockImageProvider, MockTextProvider, MockVisionProvider } from "./mock.js";
+import { MockImageProvider, MockVisionProvider } from "./mock.js";
 
 describe("Gateway", () => {
   it("routes to registered provider", async () => {

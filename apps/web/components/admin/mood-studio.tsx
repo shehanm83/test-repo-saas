@@ -17,9 +17,46 @@ interface MoodLite {
   accentPalette: string[] | null;
   decorationTags: string[] | null;
   supportedAspectRatios: string[] | null;
+  recipeVersion: number;
+  recipe: MoodRecipeConfig | null;
   validFrom: string | null;
   validTo: string | null;
   previewImgUrl?: string | null;
+}
+
+interface MoodRecipeConfig {
+  lighting?: string;
+  atmosphere?: string;
+  colorTreatment?: string;
+  cameraFeel?: string;
+  surfaces?: string[];
+  compositionTendencies?: string[];
+  compatibleFamilies?: string[];
+  compatibleLayouts?: string[];
+  supportedProviders?: string[];
+}
+
+interface TemplateLite {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  family: string;
+  layout: string;
+}
+
+interface MoodBinding {
+  templateId: string;
+  weight: number;
+}
+
+const ASPECT_RATIOS = ["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"] as const;
+
+function parseList(value: string) {
+  return value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function Section({
@@ -64,7 +101,15 @@ function toDateInputValue(value: string | Date | null | undefined) {
   return value instanceof Date ? value.toISOString().slice(0, 10) : value.slice(0, 10);
 }
 
-export function MoodStudio({ moods }: { moods: MoodLite[] }) {
+export function MoodStudio({
+  moods,
+  templates,
+  bindings: initialBindings,
+}: {
+  moods: MoodLite[];
+  templates: TemplateLite[];
+  bindings: Record<string, MoodBinding[]>;
+}) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState(moods[0]?.id ?? null);
   const [search, setSearch] = useState("");
@@ -91,6 +136,24 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
   const [promptModifiers, setPromptModifiers] = useState(mood?.promptModifiers ?? "");
   const [negative, setNegative] = useState(mood?.negativePrompts ?? "");
   const [palette, setPalette] = useState<string[]>(mood?.accentPalette ?? []);
+  const [decorationTagsText, setDecorationTagsText] = useState(
+    (mood?.decorationTags ?? []).join(", "),
+  );
+  const [supportedAspectRatios, setSupportedAspectRatios] = useState<string[]>(
+    mood?.supportedAspectRatios ?? ["1:1", "4:5"],
+  );
+  const [recipeVersion, setRecipeVersion] = useState(mood?.recipeVersion ?? 1);
+  const [recipe, setRecipe] = useState<MoodRecipeConfig>(mood?.recipe ?? {});
+  const [recipeLists, setRecipeLists] = useState({
+    surfaces: (mood?.recipe?.surfaces ?? []).join(", "),
+    compositionTendencies: (mood?.recipe?.compositionTendencies ?? []).join(", "),
+    compatibleFamilies: (mood?.recipe?.compatibleFamilies ?? []).join(", "),
+    compatibleLayouts: (mood?.recipe?.compatibleLayouts ?? []).join(", "),
+    supportedProviders: (mood?.recipe?.supportedProviders ?? []).join(", "),
+  });
+  const [templateBindings, setTemplateBindings] = useState<MoodBinding[]>(
+    mood ? (initialBindings[mood.id] ?? []) : [],
+  );
   const [previewImgUrl, setPreviewImgUrl] = useState<string | null>(mood?.previewImgUrl ?? null);
   const [imgUploading, setImgUploading] = useState(false);
   const [pending, setPending] = useState(false);
@@ -110,10 +173,22 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
     setPromptModifiers(mood.promptModifiers ?? "");
     setNegative(mood.negativePrompts ?? "");
     setPalette(mood.accentPalette ?? []);
+    setDecorationTagsText((mood.decorationTags ?? []).join(", "));
+    setSupportedAspectRatios(mood.supportedAspectRatios ?? ["1:1", "4:5"]);
+    setRecipeVersion(mood.recipeVersion ?? 1);
+    setRecipe(mood.recipe ?? {});
+    setRecipeLists({
+      surfaces: (mood.recipe?.surfaces ?? []).join(", "),
+      compositionTendencies: (mood.recipe?.compositionTendencies ?? []).join(", "),
+      compatibleFamilies: (mood.recipe?.compatibleFamilies ?? []).join(", "),
+      compatibleLayouts: (mood.recipe?.compatibleLayouts ?? []).join(", "),
+      supportedProviders: (mood.recipe?.supportedProviders ?? []).join(", "),
+    });
+    setTemplateBindings(initialBindings[mood.id] ?? []);
     setPreviewImgUrl(mood.previewImgUrl ?? null);
     setConfirmDelete(false);
     setConfirmRemovePreview(false);
-  }, [mood?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mood?.id]);
 
   function toSlug(s: string) {
     return s
@@ -137,21 +212,49 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
       promptModifiers,
       negativePrompts: negative,
       accentPalette: palette,
+      decorationTags: parseList(decorationTagsText),
+      supportedAspectRatios,
+      recipeVersion,
+      recipe: {
+        ...recipe,
+        surfaces: parseList(recipeLists.surfaces),
+        compositionTendencies: parseList(recipeLists.compositionTendencies),
+        compatibleFamilies: parseList(recipeLists.compatibleFamilies),
+        compatibleLayouts: parseList(recipeLists.compatibleLayouts),
+        supportedProviders: parseList(recipeLists.supportedProviders),
+      },
       ...(extraStatus ? { status: extraStatus } : {}),
     };
   }
 
   async function save(extraStatus?: "draft" | "published" | "archived") {
     if (!mood) return;
+    if (supportedAspectRatios.length === 0) {
+      setToastMsg("Select at least one supported aspect ratio");
+      return;
+    }
+    if (extraStatus === "published" && templateBindings.length === 0) {
+      setToastMsg("Bind at least one template before publishing");
+      return;
+    }
     setPending(true);
     try {
-      await fetch(`/api/admin/moods/${mood.id}`, {
+      const bindingResponse = await fetch(`/api/admin/moods/${mood.id}/bindings`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(templateBindings),
+      });
+      if (!bindingResponse.ok) throw new Error(await bindingResponse.text());
+      const moodResponse = await fetch(`/api/admin/moods/${mood.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(buildPayload(extraStatus)),
       });
+      if (!moodResponse.ok) throw new Error(await moodResponse.text());
       setToastMsg(extraStatus === "published" ? "Mood published" : "Saved");
       router.refresh();
+    } catch (error) {
+      setToastMsg(error instanceof Error ? error.message : "Could not save mood");
     } finally {
       setPending(false);
       setTimeout(() => setToastMsg(null), 2400);
@@ -607,6 +710,200 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
                   )}
                 </div>
               </Section>
+
+              <Section letter="E" title="Quick Create recipe">
+                <div className="hint" style={{ marginBottom: 14 }}>
+                  These values are snapshotted into each Quick Create direction so later mood edits
+                  do not silently change an existing generation.
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 16 }}>
+                  <div>
+                    <label className="label">Recipe version</label>
+                    <input
+                      className="input mono"
+                      type="number"
+                      min={1}
+                      value={recipeVersion}
+                      onChange={(event) =>
+                        setRecipeVersion(Math.max(1, Number(event.target.value)))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Decoration tags</label>
+                    <input
+                      className="input"
+                      value={decorationTagsText}
+                      onChange={(event) => setDecorationTagsText(event.target.value)}
+                      placeholder="ribbon, confetti, natural texture"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 16,
+                    marginTop: 16,
+                  }}
+                >
+                  {(
+                    [
+                      ["Lighting", "lighting"],
+                      ["Atmosphere", "atmosphere"],
+                      ["Color treatment", "colorTreatment"],
+                      ["Camera feel", "cameraFeel"],
+                    ] as const
+                  ).map(([label, key]) => (
+                    <div key={key}>
+                      <label className="label">{label}</label>
+                      <input
+                        className="input"
+                        value={recipe[key] ?? ""}
+                        onChange={(event) =>
+                          setRecipe((current) => ({ ...current, [key]: event.target.value }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 16,
+                    marginTop: 16,
+                  }}
+                >
+                  {(
+                    [
+                      ["Surfaces", "surfaces", "marble, linen, brushed steel"],
+                      [
+                        "Composition tendencies",
+                        "compositionTendencies",
+                        "centered hero, diagonal rhythm",
+                      ],
+                      [
+                        "Compatible template families",
+                        "compatibleFamilies",
+                        "product_hero, editorial",
+                      ],
+                      ["Compatible layouts", "compatibleLayouts", "centered_product_hero"],
+                      ["Supported providers", "supportedProviders", "openai, flux, recraft"],
+                    ] as const
+                  ).map(([label, key, placeholder]) => (
+                    <div key={key}>
+                      <label className="label">{label}</label>
+                      <textarea
+                        className="textarea mono"
+                        rows={2}
+                        value={recipeLists[key]}
+                        placeholder={placeholder}
+                        onChange={(event) =>
+                          setRecipeLists((current) => ({ ...current, [key]: event.target.value }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <label className="label" style={{ marginTop: 16 }}>
+                  Supported aspect ratios
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {ASPECT_RATIOS.map((ratio) => {
+                    const checked = supportedAspectRatios.includes(ratio);
+                    return (
+                      <label key={ratio} className={`pill${checked ? " is-active" : ""}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() =>
+                            setSupportedAspectRatios((current) =>
+                              checked
+                                ? current.filter((item) => item !== ratio)
+                                : [...current, ratio],
+                            )
+                          }
+                        />
+                        {ratio}
+                      </label>
+                    );
+                  })}
+                </div>
+              </Section>
+
+              <Section letter="F" title="Template bindings">
+                <div className="hint" style={{ marginBottom: 12 }}>
+                  A published mood must have at least one compatible template binding. Higher
+                  weights are preferred when several templates match the requested output.
+                </div>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {templates.map((template) => {
+                    const binding = templateBindings.find(
+                      (entry) => entry.templateId === template.id,
+                    );
+                    return (
+                      <div
+                        key={template.id}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "auto minmax(0, 1fr) 100px",
+                          gap: 10,
+                          alignItems: "center",
+                          padding: 10,
+                          borderRadius: 8,
+                          background: "var(--cal-gray-50)",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={Boolean(binding)}
+                          onChange={(event) =>
+                            setTemplateBindings((current) =>
+                              event.target.checked
+                                ? [...current, { templateId: template.id, weight: 100 }]
+                                : current.filter((entry) => entry.templateId !== template.id),
+                            )
+                          }
+                        />
+                        <span style={{ minWidth: 0 }}>
+                          <strong style={{ display: "block" }}>{template.name}</strong>
+                          <span className="t-small muted mono">
+                            {template.family} · {template.layout} · {template.status}
+                          </span>
+                        </span>
+                        <input
+                          className="input mono"
+                          type="number"
+                          min={1}
+                          max={1000}
+                          aria-label={`${template.name} weight`}
+                          disabled={!binding}
+                          value={binding?.weight ?? 100}
+                          onChange={(event) =>
+                            setTemplateBindings((current) =>
+                              current.map((entry) =>
+                                entry.templateId === template.id
+                                  ? {
+                                      ...entry,
+                                      weight: Math.min(
+                                        1000,
+                                        Math.max(1, Number(event.target.value)),
+                                      ),
+                                    }
+                                  : entry,
+                              ),
+                            )
+                          }
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </Section>
             </div>
 
             {/* Footer */}
@@ -645,7 +942,9 @@ export function MoodStudio({ moods }: { moods: MoodLite[] }) {
       {confirmDelete && mood && (
         <div className="admin-confirm-overlay">
           <div className="admin-confirm-dialog">
-            <p>Permanently delete <strong>{mood.name}</strong>? This cannot be undone.</p>
+            <p>
+              Permanently delete <strong>{mood.name}</strong>? This cannot be undone.
+            </p>
             <div className="admin-confirm-dialog__actions">
               <button
                 type="button"

@@ -52,4 +52,12 @@ describe("TemplateApi", () => {
 
     expect(template.slug).toBe("minimal-square");
   });
+
+  it("does not reset routing metadata during a source-only update", async () => {
+    await api.adminUpdate("t1", { jsxSource: "<svg>updated</svg>" });
+
+    expect(mocks.adminUpdateTemplate).toHaveBeenLastCalledWith(expect.anything(), "t1", {
+      jsxSource: "<svg>updated</svg>",
+    });
+  });
 });

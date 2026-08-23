@@ -96,7 +96,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
     const res = await fetch("/api/admin/landing-hero", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name: "New hero set" }),
+      body: JSON.stringify({ name: "New spotlight set" }),
     });
     setBusy(null);
     const created = (await res.json()) as LandingHeroSetView;
@@ -138,7 +138,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
     }
     setMessage({
       ok: true,
-      text: status === "published" ? "Hero set published." : "Hero set saved.",
+      text: status === "published" ? "Spotlight set published." : "Spotlight set saved.",
     });
     setConfirmDelete(false);
     await refresh(draft.id);
@@ -158,7 +158,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
       setMessage({ ok: false, text: await res.text() });
       return;
     }
-    setMessage({ ok: true, text: "Hero set deleted." });
+    setMessage({ ok: true, text: "Spotlight set deleted." });
     setConfirmDelete(false);
     await refresh();
   }
@@ -208,8 +208,8 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
           Marketing
         </>
       }
-      title="Landing Hero"
-      description="Manage complete hero sets. A visitor sees one published set: brief, mood, brand, and four matching images stay together."
+      title="Campaign Spotlight"
+      description="Manage the campaign spotlight shown below the primary homepage hero. A visitor sees one weighted published set at a time."
       actions={
         <button
           className="btn btn--primary"
@@ -218,13 +218,13 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
           disabled={busy === "create"}
         >
           <I.Plus size={14} />
-          {busy === "create" ? "Creating…" : "New Hero Set"}
+          {busy === "create" ? "Creating…" : "New Spotlight Set"}
         </button>
       }
     >
       <AdminStatGrid>
         <AdminStat
-          label="Hero Sets"
+          label="Spotlight Sets"
           value={formatAdminNumber(sets.length)}
           detail="Total configured variants"
           icon={<I.Layout size={14} />}
@@ -255,7 +255,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
       ) : null}
 
       {sets.length === 0 ? (
-        <AdminEmpty icon={<I.Image size={28} />} title="No Hero Sets Yet">
+        <AdminEmpty icon={<I.Image size={28} />} title="No Spotlight Sets Yet">
           <button className="btn btn--primary" type="button" onClick={() => void createSet()}>
             <I.Plus size={14} />
             Create First Set
@@ -266,8 +266,8 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
       {draft ? (
         <div style={{ display: "grid", gap: 16 }}>
           <AdminSection
-            title="Hero Sets"
-            description="Select a complete homepage hero configuration to edit."
+            title="Spotlight Sets"
+            description="Select a complete homepage campaign spotlight to edit."
           >
             <div
               style={{
@@ -320,7 +320,14 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                       ) : null}
                     </div>
                     <span style={{ minWidth: 0 }}>
-                      <strong style={{ display: "block", color: "var(--fg-1)", fontSize: 13, lineHeight: 1.2 }}>
+                      <strong
+                        style={{
+                          display: "block",
+                          color: "var(--fg-1)",
+                          fontSize: 13,
+                          lineHeight: 1.2,
+                        }}
+                      >
                         {set.name}
                       </strong>
                       <span
@@ -379,7 +386,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
                     onClick={() => void saveSet("published")}
                     disabled={busy === "save"}
                   >
-                    Publish Hero
+                    Publish Spotlight
                   </button>
                 </>
               }
@@ -428,7 +435,7 @@ export function LandingHeroAdmin({ rows }: { rows: LandingHeroSetView[] }) {
               </div>
             </AdminSection>
 
-            <AdminSection title="Hero Copy">
+            <AdminSection title="Spotlight Copy">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
                 <label>
                   <span className="label">Headline line 1</span>
@@ -1032,7 +1039,7 @@ function HeroPreview({ set }: { set: LandingHeroSetView }) {
   return (
     <AdminSection
       title="Preview Data"
-      description="A compact rendering of the hero copy, prompt card, and image set."
+      description="A compact rendering of the spotlight copy, prompt card, and image set."
     >
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 420px", gap: 20 }}>
         <div>

@@ -4,7 +4,7 @@ import { LandingHeroApi } from "@layertone/api/landing-hero";
 import { loadConfig } from "@layertone/shared/config";
 import { AppError } from "@layertone/shared/errors/app-error";
 
-import { getSessionWorkspace } from "@/lib/auth/server";
+import { getAdminSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";
 import { createServerAdapters } from "@/lib/server/adapters";
 
@@ -12,11 +12,16 @@ const config = () => loadConfig();
 const api = () => new LandingHeroApi(config(), createServerAdapters() as never);
 
 export async function GET() {
+  if (!(await getAdminSessionWorkspace())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   return NextResponse.json(await api().listSets());
 }
 
 export async function POST(request: Request) {
-  const { session } = await getSessionWorkspace();
+  const context = await getAdminSessionWorkspace();
+  if (!context) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { session } = context;
   try {
     const body = await request.json().catch(() => ({}));
     const set =

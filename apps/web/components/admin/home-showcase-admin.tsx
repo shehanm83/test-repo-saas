@@ -38,7 +38,7 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
   const [message, setMessage] = useState<string | null>(null);
 
   const imageReady = view.images.length > 5;
-  const previewImages = useMemo(() => view.images.slice(0, 5), [view.images]);
+  const previewImages = useMemo(() => view.images.slice(0, 4), [view.images]);
 
   async function refresh() {
     const res = await fetch("/api/admin/home-showcase");
@@ -201,7 +201,7 @@ export function HomeShowcaseAdmin({ initial }: { initial: HomeShowcaseView }) {
 
       <AdminSection
         title="Gallery Images"
-        description={`${view.images.length} uploaded. The homepage randomly shows 5 once there are more than 5 images.`}
+        description={`${view.images.length} uploaded. The homepage randomly shows 4 once there are more than 5 images.`}
         actions={
           <label className="btn btn--secondary" style={{ cursor: "pointer" }}>
             <I.Upload size={16} />

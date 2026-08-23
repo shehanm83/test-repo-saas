@@ -26,6 +26,29 @@ interface Variant {
   creditCost: number;
   renderMs: number | null;
   errorPayload: unknown;
+  variantSpec: unknown;
+  promptMetadata: unknown;
+  referenceSnapshots: unknown;
+  seed: number | null;
+  parentVariantId: string | null;
+  refinementSpec: unknown;
+  qaStatus: string | null;
+  qaResult: unknown;
+  qaRank: number | null;
+  autoRetryCount: number;
+  createdAt: string;
+  completedAt: string | null;
+  feedback: VariantFeedback[];
+}
+
+interface VariantFeedback {
+  id: string;
+  rating: "up" | "down";
+  reason: string | null;
+  note: string | null;
+  userEmail: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface LedgerEntry {
@@ -105,6 +128,29 @@ function KV({
   );
 }
 
+function JsonPanel({ value, empty = "Not recorded" }: { value: unknown; empty?: string }) {
+  if (value === null || value === undefined) {
+    return <div className="t-small muted">{empty}</div>;
+  }
+  return (
+    <pre
+      style={{
+        margin: 0,
+        padding: 14,
+        background: "var(--cal-charcoal)",
+        color: "#E8DCC4",
+        borderRadius: 8,
+        fontSize: 12,
+        lineHeight: 1.6,
+        overflow: "auto",
+        maxHeight: 520,
+      }}
+    >
+      {JSON.stringify(value, null, 2)}
+    </pre>
+  );
+}
+
 type LedgerSortKey = "createdAt" | "amount" | "kind";
 
 export function GenerationInspector({ data }: { data: InspectorData }) {
@@ -124,9 +170,16 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
   const sortedLedger = [...data.ledger].sort((a, b) => {
     let av: number | string = 0;
     let bv: number | string = 0;
-    if (ledgerSort === "createdAt") { av = a.createdAt; bv = b.createdAt; }
-    else if (ledgerSort === "amount") { av = a.amount; bv = b.amount; }
-    else if (ledgerSort === "kind") { av = a.kind; bv = b.kind; }
+    if (ledgerSort === "createdAt") {
+      av = a.createdAt;
+      bv = b.createdAt;
+    } else if (ledgerSort === "amount") {
+      av = a.amount;
+      bv = b.amount;
+    } else if (ledgerSort === "kind") {
+      av = a.kind;
+      bv = b.kind;
+    }
     if (av < bv) return ledgerDir === "asc" ? -1 : 1;
     if (av > bv) return ledgerDir === "asc" ? 1 : -1;
     return 0;
@@ -135,6 +188,9 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
   const totalCredits = data.ledger
     .filter((e) => e.generationId === gen.id)
     .reduce((sum, e) => sum + e.amount, 0);
+  const feedbackCount = data.variants.reduce((sum, variant) => sum + variant.feedback.length, 0);
+  const qaPassed = data.variants.filter((variant) => variant.qaStatus === "passed").length;
+  const creativePlan = (gen.settings as { creative_plan?: unknown }).creative_plan ?? null;
   const duration =
     gen.completedAt && gen.createdAt
       ? `${
@@ -167,7 +223,16 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
       }
     >
       <div style={{ display: "flex", gap: 8, marginBottom: 24, alignItems: "center" }}>
-        <code className="mono" style={{ fontSize: 12, color: "var(--fg-2)", background: "var(--cal-gray-100)", padding: "4px 10px", borderRadius: 6 }}>
+        <code
+          className="mono"
+          style={{
+            fontSize: 12,
+            color: "var(--fg-2)",
+            background: "var(--cal-gray-100)",
+            padding: "4px 10px",
+            borderRadius: 6,
+          }}
+        >
           {gen.id}
         </code>
         <CopyButton value={gen.id} label="Copy ID" />
@@ -183,7 +248,7 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
         <AdminStat
           label="Variants"
           value={data.variants.length}
-          detail={`${data.variants.filter((variant) => variant.url).length} outputs available`}
+          detail={`${data.variants.filter((variant) => variant.url).length} outputs · ${qaPassed} QA passed`}
           icon={<I.Grid size={14} />}
         />
         <AdminStat
@@ -194,9 +259,9 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
           tone="accent"
         />
         <AdminStat
-          label="Audit Events"
-          value={data.audit.length}
-          detail="Operator and system entries"
+          label="Feedback"
+          value={feedbackCount}
+          detail={`${data.audit.length} audit events recorded`}
           icon={<I.History size={14} />}
         />
       </AdminStatGrid>
@@ -240,8 +305,18 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
       </AdminSection>
 
       <AdminSection
-        title="Composed Prompts"
-        description="Generated prompt payloads used for each variant."
+        title="Quick Create Plan"
+        description="Immutable facts, proposed creative directions, mood snapshots, and variant locks captured at request time."
+      >
+        <JsonPanel
+          value={creativePlan}
+          empty="This generation did not use a Quick Create v2 plan."
+        />
+      </AdminSection>
+
+      <AdminSection
+        title="Prompt Metadata"
+        description="The persisted prompt path, provider instructions, and composed prompt metadata recorded by the worker."
       >
         {data.variants.map((v, i) => (
           <details key={v.id} style={{ marginBottom: 8 }}>
@@ -270,11 +345,10 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
               }}
             >
               {JSON.stringify(
-                {
+                v.promptMetadata ?? {
+                  unavailable: true,
                   model: v.modelUsed,
                   templateId: v.templateId,
-                  brief: gen.brief,
-                  settings: gen.settings,
                 },
                 null,
                 2,
@@ -319,11 +393,81 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
                 </summary>
                 <div style={{ padding: 14, fontSize: 12, color: "var(--fg-3)" }}>
                   <KV k="Model" v={v.modelUsed ?? "—"} mono small />
+                  <KV
+                    k="QA status"
+                    v={<AdminStatus status={v.qaStatus ?? "unavailable"} />}
+                    small
+                  />
+                  <KV k="QA rank" v={v.qaRank ?? "—"} small />
+                  <KV k="Seed" v={v.seed ?? "—"} mono small />
+                  <KV k="Retries" v={v.autoRetryCount} small />
+                  <KV k="Parent variant" v={v.parentVariantId ?? "—"} mono small />
                   <KV k="Cost" v={`${v.creditCost} credits`} small />
                   <KV k="Render" v={v.renderMs ? `${v.renderMs}ms` : "—"} small />
                   <KV k="S3 key" v={v.outputS3Key ?? "—"} mono small />
+                  <KV k="Created" v={formatAdminDate(v.createdAt)} small />
+                  <KV k="Completed" v={formatAdminDate(v.completedAt)} small />
                   {v.errorPayload ? (
                     <KV k="Error" v={JSON.stringify(v.errorPayload)} mono small />
+                  ) : null}
+                  <details style={{ marginTop: 10 }}>
+                    <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+                      Creative direction
+                    </summary>
+                    <div style={{ marginTop: 8 }}>
+                      <JsonPanel value={v.variantSpec} />
+                    </div>
+                  </details>
+                  <details style={{ marginTop: 10 }}>
+                    <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+                      Reference snapshots
+                    </summary>
+                    <div style={{ marginTop: 8 }}>
+                      <JsonPanel value={v.referenceSnapshots} />
+                    </div>
+                  </details>
+                  <details style={{ marginTop: 10 }}>
+                    <summary style={{ cursor: "pointer", fontWeight: 600 }}>Quality result</summary>
+                    <div style={{ marginTop: 8 }}>
+                      <JsonPanel value={v.qaResult} />
+                    </div>
+                  </details>
+                  {v.refinementSpec ? (
+                    <details style={{ marginTop: 10 }}>
+                      <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+                        Refinement request
+                      </summary>
+                      <div style={{ marginTop: 8 }}>
+                        <JsonPanel value={v.refinementSpec} />
+                      </div>
+                    </details>
+                  ) : null}
+                  {v.feedback.length > 0 ? (
+                    <details style={{ marginTop: 10 }} open>
+                      <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+                        User feedback ({v.feedback.length})
+                      </summary>
+                      <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+                        {v.feedback.map((entry) => (
+                          <div
+                            key={entry.id}
+                            style={{
+                              padding: 10,
+                              borderRadius: 8,
+                              background: "var(--cal-gray-50)",
+                            }}
+                          >
+                            <strong>{entry.rating === "up" ? "Useful" : "Not right"}</strong>
+                            {entry.reason ? ` · ${entry.reason.replaceAll("_", " ")}` : ""}
+                            <div className="t-small muted">
+                              {entry.userEmail ?? "Unknown user"} ·{" "}
+                              {formatAdminDate(entry.updatedAt)}
+                            </div>
+                            {entry.note ? <div style={{ marginTop: 5 }}>{entry.note}</div> : null}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                   ) : null}
                 </div>
               </details>
@@ -343,38 +487,116 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
               <tr>
                 <th
                   className="admin-sort-th"
-                  aria-sort={ledgerSort === "createdAt" ? (ledgerDir === "asc" ? "ascending" : "descending") : undefined}
+                  aria-sort={
+                    ledgerSort === "createdAt"
+                      ? ledgerDir === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : undefined
+                  }
                   onClick={() => handleLedgerSort("createdAt")}
                 >
                   Time
                   <span className="admin-sort-icon">
-                    {ledgerSort === "createdAt"
-                      ? ledgerDir === "asc" ? <I.ChevronUp size={11} /> : <I.ChevronDown size={11} />
-                      : <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true"><path d="M3 4L5.5 1.5L8 4M3 7L5.5 9.5L8 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    {ledgerSort === "createdAt" ? (
+                      ledgerDir === "asc" ? (
+                        <I.ChevronUp size={11} />
+                      ) : (
+                        <I.ChevronDown size={11} />
+                      )
+                    ) : (
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 11 11"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M3 4L5.5 1.5L8 4M3 7L5.5 9.5L8 7"
+                          stroke="currentColor"
+                          strokeWidth="1.4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
                   </span>
                 </th>
                 <th
                   className="admin-sort-th"
-                  aria-sort={ledgerSort === "kind" ? (ledgerDir === "asc" ? "ascending" : "descending") : undefined}
+                  aria-sort={
+                    ledgerSort === "kind"
+                      ? ledgerDir === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : undefined
+                  }
                   onClick={() => handleLedgerSort("kind")}
                 >
                   Type
                   <span className="admin-sort-icon">
-                    {ledgerSort === "kind"
-                      ? ledgerDir === "asc" ? <I.ChevronUp size={11} /> : <I.ChevronDown size={11} />
-                      : <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true"><path d="M3 4L5.5 1.5L8 4M3 7L5.5 9.5L8 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    {ledgerSort === "kind" ? (
+                      ledgerDir === "asc" ? (
+                        <I.ChevronUp size={11} />
+                      ) : (
+                        <I.ChevronDown size={11} />
+                      )
+                    ) : (
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 11 11"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M3 4L5.5 1.5L8 4M3 7L5.5 9.5L8 7"
+                          stroke="currentColor"
+                          strokeWidth="1.4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
                   </span>
                 </th>
                 <th
                   className="admin-sort-th"
-                  aria-sort={ledgerSort === "amount" ? (ledgerDir === "asc" ? "ascending" : "descending") : undefined}
+                  aria-sort={
+                    ledgerSort === "amount"
+                      ? ledgerDir === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : undefined
+                  }
                   onClick={() => handleLedgerSort("amount")}
                 >
                   Amount
                   <span className="admin-sort-icon">
-                    {ledgerSort === "amount"
-                      ? ledgerDir === "asc" ? <I.ChevronUp size={11} /> : <I.ChevronDown size={11} />
-                      : <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true"><path d="M3 4L5.5 1.5L8 4M3 7L5.5 9.5L8 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    {ledgerSort === "amount" ? (
+                      ledgerDir === "asc" ? (
+                        <I.ChevronUp size={11} />
+                      ) : (
+                        <I.ChevronDown size={11} />
+                      )
+                    ) : (
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 11 11"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M3 4L5.5 1.5L8 4M3 7L5.5 9.5L8 7"
+                          stroke="currentColor"
+                          strokeWidth="1.4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
                   </span>
                 </th>
                 <th>Note</th>
@@ -393,7 +615,9 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
                   </td>
                   <td
                     className="mono admin-num"
-                    style={{ color: e.amount >= 0 ? "var(--layertone-green)" : "var(--layertone-red)" }}
+                    style={{
+                      color: e.amount >= 0 ? "var(--layertone-green)" : "var(--layertone-red)",
+                    }}
                   >
                     {e.amount > 0 ? `+${e.amount}` : e.amount}
                   </td>
@@ -405,7 +629,11 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
         )}
       </AdminSection>
 
-      <AdminSection title="Audit Log" description="System and operator events for this generation." flush>
+      <AdminSection
+        title="Audit Log"
+        description="System and operator events for this generation."
+        flush
+      >
         {data.audit.length === 0 ? (
           <div style={{ padding: "14px 18px" }} className="t-small muted">
             No audit events recorded.
@@ -413,13 +641,17 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
         ) : (
           <div className="admin-timeline" style={{ padding: "0 18px" }}>
             {data.audit.map((entry) => {
-              const isOp = entry.action.startsWith("operator_") || entry.action.startsWith("admin_");
-              const isDanger = entry.action.includes("flag") || entry.action.includes("suspend") || entry.action.includes("ban");
+              const isOp =
+                entry.action.startsWith("operator_") || entry.action.startsWith("admin_");
+              const isDanger =
+                entry.action.includes("flag") ||
+                entry.action.includes("suspend") ||
+                entry.action.includes("ban");
               const dotClass = isDanger
                 ? "admin-timeline-dot is-danger"
                 : isOp
-                ? "admin-timeline-dot is-accent"
-                : "admin-timeline-dot";
+                  ? "admin-timeline-dot is-accent"
+                  : "admin-timeline-dot";
 
               let payloadText: string | null = null;
               if (entry.payload) {
@@ -443,10 +675,8 @@ export function GenerationInspector({ data }: { data: InspectorData }) {
                       {entry.action.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                     </div>
                     <div className="admin-timeline-meta">
-                      {entry.actorUserId
-                        ? `By ${entry.actorUserId.slice(0, 8)}…`
-                        : "System"}{" "}
-                      · {formatAdminDate(entry.createdAt)}
+                      {entry.actorUserId ? `By ${entry.actorUserId.slice(0, 8)}…` : "System"} ·{" "}
+                      {formatAdminDate(entry.createdAt)}
                     </div>
                     {payloadText ? (
                       <div className="admin-timeline-payload">{payloadText}</div>

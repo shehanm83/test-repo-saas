@@ -60,4 +60,12 @@ describe("MoodApi", () => {
 
     expect(mood.slug).toBe("minimal-tech");
   });
+
+  it("does not reset recipe fields during a lifecycle-only update", async () => {
+    await api.adminUpdate("m1", { status: "published" });
+
+    expect(mocks.adminUpdateMood).toHaveBeenLastCalledWith(expect.anything(), "m1", {
+      status: "published",
+    });
+  });
 });

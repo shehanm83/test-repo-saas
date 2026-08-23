@@ -3,7 +3,6 @@ import {
   createDb,
   getGenerationFull,
   generationVariants,
-  generations,
   brandAssets,
   brands,
   moods,
@@ -252,7 +251,10 @@ async function evaluateVariantQuality(args: {
       ].join("\n\n"),
     });
     const parsed = JSON.parse(
-      response.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""),
+      response.text
+        .trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/, ""),
     ) as { summary?: unknown; dimensions?: Record<string, unknown> };
     const dimensions: Record<string, QualityDimension> = {};
     for (const name of QA_DIMENSIONS) {
@@ -271,7 +273,8 @@ async function evaluateVariantQuality(args: {
     const hardFailed = Object.values(dimensions).some(
       (dimension) => dimension.hardFailure && dimension.score < 45,
     );
-    const softFailed = !hardFailed && Object.values(dimensions).some((dimension) => dimension.score < 65);
+    const softFailed =
+      !hardFailed && Object.values(dimensions).some((dimension) => dimension.score < 65);
     return {
       status: hardFailed ? "hard_failed" : softFailed ? "soft_failed" : "passed",
       rank,
@@ -450,15 +453,13 @@ export class GenerationWorker {
       null) as VariantSpec | null;
 
     const commercial = settings.commercial;
-    const refinementSpec = v0.refinementSpec as
-      | { instruction?: string; locks?: string[] }
-      | null;
+    const refinementSpec = v0.refinementSpec as { instruction?: string; locks?: string[] } | null;
     const replacesMood = Boolean(
       refinementSpec?.instruction &&
-        !refinementSpec.locks?.includes("mood") &&
-        /\b(?:switch|change|replace|remove|drop|use)\b.{0,48}\b(?:mood|style|visual direction)\b/i.test(
-          refinementSpec.instruction,
-        ),
+      !refinementSpec.locks?.includes("mood") &&
+      /\b(?:switch|change|replace|remove|drop|use)\b.{0,48}\b(?:mood|style|visual direction)\b/i.test(
+        refinementSpec.instruction,
+      ),
     );
     const effectiveMood = replacesMood ? null : mood;
     if (commercial?.mode === "quick") {
@@ -651,10 +652,12 @@ export class GenerationWorker {
       if (variantSpec.ancestry) {
         promptParts.push(
           `This is a constrained refinement. Apply only this requested change: ${variantSpec.ancestry.changeRequest}`,
-          `Preserve locked context: ${Object.entries(variantSpec.locks)
-            .filter(([, locked]) => locked)
-            .map(([name]) => name)
-            .join(", ") || "none"}.`,
+          `Preserve locked context: ${
+            Object.entries(variantSpec.locks)
+              .filter(([, locked]) => locked)
+              .map(([name]) => name)
+              .join(", ") || "none"
+          }.`,
         );
       }
       if (variantSpec.moodRecipe) {
@@ -908,11 +911,9 @@ export class GenerationWorker {
         })
         .where(eq(generationVariants.id, job.variantId));
       try {
-        await this.adapters.queue.send(
-          this.config.queue.generationsQueue,
-          job,
-          { idempotencyKey: `${job.variantId}:qa-retry:1` },
-        );
+        await this.adapters.queue.send(this.config.queue.generationsQueue, job, {
+          idempotencyKey: `${job.variantId}:qa-retry:1`,
+        });
         this.adapters.telemetry.metric("variant.qa_auto_retry", 1, {
           reason: "hard_failure",
         });

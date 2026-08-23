@@ -3,17 +3,22 @@ import { NextResponse } from "next/server";
 import { StockApi } from "@layertone/api/stock";
 import { loadConfig } from "@layertone/shared/config";
 
-import { getSessionWorkspace } from "@/lib/auth/server";
+import { getAdminSessionWorkspace } from "@/lib/auth/server";
 import { createGlobalStorageAdapter, createServerAdapters } from "@/lib/server/adapters";
 import { writeAdminAudit } from "@/lib/server/admin";
 
 export async function GET() {
+  if (!(await getAdminSessionWorkspace())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const payload = await new StockApi(loadConfig(), createServerAdapters() as never).adminList();
   return NextResponse.json(payload);
 }
 
 export async function POST(request: Request) {
-  const { session } = await getSessionWorkspace();
+  const context = await getAdminSessionWorkspace();
+  if (!context) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { session } = context;
   const formData = await request.formData();
 
   const files = formData.getAll("files");

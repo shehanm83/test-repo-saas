@@ -3,15 +3,14 @@ import { NextResponse } from "next/server";
 import { MoodApi } from "@layertone/api/mood";
 import { loadConfig } from "@layertone/shared/config";
 
-import { getSessionWorkspace } from "@/lib/auth/server";
+import { getAdminSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";
 
-export async function DELETE(
-  _request: Request,
-  props: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
-  const { session } = await getSessionWorkspace();
+  const context = await getAdminSessionWorkspace();
+  if (!context) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { session } = context;
   await new MoodApi(loadConfig()).adminDelete(id);
   if (session.workspaceId) {
     await writeAdminAudit({
@@ -25,12 +24,11 @@ export async function DELETE(
   return NextResponse.json({ ok: true });
 }
 
-export async function PATCH(
-  request: Request,
-  props: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
-  const { session } = await getSessionWorkspace();
+  const context = await getAdminSessionWorkspace();
+  if (!context) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { session } = context;
   const body = await request.json();
   const payload = await new MoodApi(loadConfig()).adminUpdate(id, body);
   if (session.workspaceId) {

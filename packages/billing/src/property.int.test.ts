@@ -23,19 +23,19 @@ const operationArb = fc.oneof(
 
 describe("Ledger property test", () => {
   it("sum of postings equals final balance", async () => {
-    const [user] = await db
-      .insert(users)
-      .values({ email: `property-${Date.now()}@example.test` })
-      .returning();
-    const [workspace] = await db
-      .insert(workspaces)
-      .values({ ownerUserId: user!.id, name: "Property" })
-      .returning();
-
-    const ledger = new Ledger(db);
-
     await fc.assert(
       fc.asyncProperty(fc.array(operationArb, { minLength: 100, maxLength: 400 }), async (ops) => {
+        // Fast-check reruns the property while shrinking. Each attempt needs an
+        // isolated ledger or previous postings contaminate the expected sum.
+        const [user] = await db
+          .insert(users)
+          .values({ email: `property-${Date.now()}-${Math.random()}@example.test` })
+          .returning();
+        const [workspace] = await db
+          .insert(workspaces)
+          .values({ ownerUserId: user!.id, name: "Property" })
+          .returning();
+        const ledger = new Ledger(db);
         let expected = 0;
         let index = 0;
 
@@ -87,7 +87,10 @@ describe("Ledger property test", () => {
                             });
 
             const delta =
-              op.kind === "grant" || op.kind === "topup" || op.kind === "release"
+              op.kind === "grant" ||
+              op.kind === "topup" ||
+              op.kind === "release" ||
+              op.kind === "refund"
                 ? op.amount
                 : op.kind === "adjustment"
                   ? op.amount

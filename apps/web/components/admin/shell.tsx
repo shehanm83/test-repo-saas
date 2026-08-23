@@ -11,7 +11,11 @@ const groups = [
   {
     label: "Marketing",
     items: [
-      { href: "/admin/landing-hero", label: "Landing Hero", icon: <I.Image size={16} /> },
+      {
+        href: "/admin/landing-hero",
+        label: "Campaign Spotlight",
+        icon: <I.Image size={16} />,
+      },
       { href: "/admin/home-showcase", label: "Home Showcase", icon: <I.Layout size={16} /> },
     ],
   },
@@ -30,6 +34,7 @@ const groups = [
   {
     label: "Operations",
     items: [
+      { href: "/admin/quick-create", label: "Quick Create", icon: <I.Sparkle size={16} /> },
       { href: "/admin/generations", label: "Generation Inspector", icon: <I.Search size={16} /> },
       { href: "/admin/users", label: "Users & Workspaces", icon: <I.User size={16} /> },
       { href: "/admin/aup", label: "AUP Review", icon: <I.Shield size={16} /> },
@@ -58,7 +63,12 @@ export function AdminShell(props: { children: React.ReactNode }) {
           <I.X size={18} />
         ) : (
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M2 5h14M2 9h14M2 13h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+            <path
+              d="M2 5h14M2 9h14M2 13h14"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+            />
           </svg>
         )}
       </button>

@@ -137,6 +137,26 @@ export async function getSessionWorkspace() {
   return { session, workspace: workspace ?? null };
 }
 
+/**
+ * Resolve the current admin together with their active workspace. API routes
+ * must use this helper instead of relying on the `/admin` layout, because
+ * route handlers are not protected by that layout.
+ */
+export async function getAdminSessionWorkspace() {
+  const session = await getServerSession();
+  if (!session || session.role !== "admin") return null;
+  if (!session.workspaceId) return { session, workspace: null };
+
+  const db = createDb(loadConfig().db.url, "app_admin");
+  const [workspace] = await db
+    .select()
+    .from(workspaces)
+    .where(eq(workspaces.id, session.workspaceId))
+    .limit(1);
+
+  return { session, workspace: workspace ?? null };
+}
+
 export async function listWorkspaceMembers(workspaceId: string) {
   const db = createDb(loadConfig().db.url, "app_admin");
   return db

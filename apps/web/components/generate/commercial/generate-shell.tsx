@@ -327,7 +327,6 @@ export function GenerateShell(props: {
       dispatch({ type: "mood", moodId });
       setMoodMode("selected");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -389,10 +388,7 @@ export function GenerateShell(props: {
     if (!props.quickCreateV2 || !draftHydrated.current) return;
     const timer = window.setTimeout(() => {
       const draft = serializeQuickCreateDraft(state, moodMode, moodInfluence);
-      window.localStorage.setItem(
-        "layertone.quick-create-v2.draft",
-        JSON.stringify(draft),
-      );
+      window.localStorage.setItem("layertone.quick-create-v2.draft", JSON.stringify(draft));
       setDraftStatus("local");
       void fetch("/api/quick-create/draft", {
         method: "PUT",

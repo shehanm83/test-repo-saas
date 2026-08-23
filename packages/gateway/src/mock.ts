@@ -5,7 +5,13 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 import { promptFingerprint } from "./gateway";
-import type { ImageProvider, TextProvider, VisionProvider, ModerationProvider } from "./types";
+import type {
+  ImageProvider,
+  ModerationProvider,
+  ProviderCapabilities,
+  TextProvider,
+  VisionProvider,
+} from "./types";
 import type {
   AIImageRequest,
   AIImageResponse,
@@ -18,7 +24,7 @@ const DEFAULT_SAMPLES_DIR = resolve(__dirname, "../samples");
 const SAMPLE_COUNT = 4;
 
 export class MockImageProvider implements ImageProvider {
-  capabilities: import("./types").ProviderCapabilities = {
+  capabilities: ProviderCapabilities = {
     modelCodes: [
       "flux-1.1-pro",
       "gpt-image-2",

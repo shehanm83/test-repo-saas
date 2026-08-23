@@ -22,15 +22,16 @@ describe("Ledger", () => {
   it("supports grant, reserve, commit, and release", async () => {
     const { workspaceId } = await setup();
     const ledger = new Ledger(db);
+    const key = (suffix: string) => `${workspaceId}-${suffix}`;
 
-    await ledger.grant({ workspaceId, amount: 50, idempotencyKey: "g1" });
+    await ledger.grant({ workspaceId, amount: 50, idempotencyKey: key("g1") });
     expect(await ledger.getBalance(workspaceId)).toBe(50);
 
-    await ledger.reserve({ workspaceId, amount: 20, idempotencyKey: "r1" });
+    await ledger.reserve({ workspaceId, amount: 20, idempotencyKey: key("r1") });
     expect(await ledger.getBalance(workspaceId)).toBe(30);
 
-    await ledger.commit({ workspaceId, amount: 10, idempotencyKey: "c1" });
-    await ledger.release({ workspaceId, amount: 10, idempotencyKey: "rel1" });
+    await ledger.commit({ workspaceId, amount: 10, idempotencyKey: key("c1") });
+    await ledger.release({ workspaceId, amount: 10, idempotencyKey: key("rel1") });
 
     expect(await ledger.getBalance(workspaceId)).toBe(30);
   });
@@ -38,9 +39,10 @@ describe("Ledger", () => {
   it("is idempotent for reused keys", async () => {
     const { workspaceId } = await setup();
     const ledger = new Ledger(db);
+    const idempotencyKey = `${workspaceId}-idem-grant`;
 
-    await ledger.grant({ workspaceId, amount: 50, idempotencyKey: "idem-grant" });
-    const replay = await ledger.grant({ workspaceId, amount: 50, idempotencyKey: "idem-grant" });
+    await ledger.grant({ workspaceId, amount: 50, idempotencyKey });
+    const replay = await ledger.grant({ workspaceId, amount: 50, idempotencyKey });
 
     expect(replay.idempotent).toBe(true);
     expect(await ledger.getBalance(workspaceId)).toBe(50);
@@ -50,9 +52,9 @@ describe("Ledger", () => {
     const { workspaceId } = await setup();
     const ledger = new Ledger(db);
 
-    await ledger.grant({ workspaceId, amount: 10, idempotencyKey: "seed-10" });
+    await ledger.grant({ workspaceId, amount: 10, idempotencyKey: `${workspaceId}-seed-10` });
     await expect(
-      ledger.reserve({ workspaceId, amount: 20, idempotencyKey: "reserve-20" }),
+      ledger.reserve({ workspaceId, amount: 20, idempotencyKey: `${workspaceId}-reserve-20` }),
     ).rejects.toThrow(/insufficient/i);
   });
 
@@ -60,11 +62,15 @@ describe("Ledger", () => {
     const { workspaceId } = await setup();
     const ledger = new Ledger(db);
 
-    await ledger.grant({ workspaceId, amount: 50, idempotencyKey: "seed-50" });
+    await ledger.grant({ workspaceId, amount: 50, idempotencyKey: `${workspaceId}-seed-50` });
 
     const results = await Promise.allSettled(
       Array.from({ length: 100 }, (_, index) =>
-        ledger.reserve({ workspaceId, amount: 1, idempotencyKey: `parallel-${index}` }),
+        ledger.reserve({
+          workspaceId,
+          amount: 1,
+          idempotencyKey: `${workspaceId}-parallel-${index}`,
+        }),
       ),
     );
 

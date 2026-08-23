@@ -233,7 +233,11 @@ export function BillingPage(props: Props) {
                   : void changePlan("subscription")
               }
             >
-              {portal.pending || pendingPlan === "subscription" ? "Redirecting…" : props.planCode === "subscription" ? "Change plan" : "Subscribe"}
+              {portal.pending || pendingPlan === "subscription"
+                ? "Redirecting…"
+                : props.planCode === "subscription"
+                  ? "Change plan"
+                  : "Subscribe"}
             </button>
           </div>
           {planError ? (
@@ -249,7 +253,14 @@ export function BillingPage(props: Props) {
             <div className="t-eyebrow">Credits</div>
             <div style={{ fontFamily: "var(--font-display)", fontSize: 48, marginTop: 4 }}>
               {props.balance.toLocaleString()}{" "}
-              <span style={{ fontSize: 16, color: "var(--fg-3)", fontFamily: "var(--font-body)", fontWeight: 400 }}>
+              <span
+                style={{
+                  fontSize: 16,
+                  color: "var(--fg-3)",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 400,
+                }}
+              >
                 credits remaining
               </span>
             </div>
@@ -276,7 +287,9 @@ export function BillingPage(props: Props) {
           }}
         >
           <Sparkline values={props.sparkline} />
-          <div style={{ position: "absolute", left: 16, top: 12, fontSize: 11, color: "var(--fg-3)" }}>
+          <div
+            style={{ position: "absolute", left: 16, top: 12, fontSize: 11, color: "var(--fg-3)" }}
+          >
             Last 30 days · {props.sparkline.reduce((a, b) => a + b, 0)} credits used
           </div>
         </div>
@@ -291,7 +304,10 @@ export function BillingPage(props: Props) {
           {props.topupPacks.map((t) => (
             <div key={t.code} className="card" style={{ padding: 20, position: "relative" }}>
               {t.best ? (
-                <div className="pill pill--accent" style={{ position: "absolute", top: -10, left: 16 }}>
+                <div
+                  className="pill pill--accent"
+                  style={{ position: "absolute", top: -10, left: 16 }}
+                >
                   Best value
                 </div>
               ) : null}
@@ -299,7 +315,12 @@ export function BillingPage(props: Props) {
                 {t.credits.toLocaleString()} credits
               </div>
               <div
-                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: 12,
+                }}
               >
                 <div style={{ fontFamily: "var(--font-display)", fontSize: 22 }}>${t.priceUsd}</div>
                 <button
@@ -320,7 +341,8 @@ export function BillingPage(props: Props) {
           </div>
         ) : null}
         <div className="t-small" style={{ marginTop: 12 }}>
-          <I.Info size={11} style={{ verticalAlign: "-1px" }} /> Top-up credits never expire. Buying a pack moves Free workspaces to Pay As You Go.
+          <I.Info size={11} style={{ verticalAlign: "-1px" }} /> Top-up credits never expire. Buying
+          a pack moves Free workspaces to Pay As You Go.
         </div>
       </div>
 
@@ -328,7 +350,9 @@ export function BillingPage(props: Props) {
         <div className="t-eyebrow" style={{ marginBottom: 12 }}>
           Pricing rules
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, fontSize: 13 }}>
+        <div
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, fontSize: 13 }}
+        >
           <div>
             <strong>Free</strong>
             <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
@@ -338,13 +362,15 @@ export function BillingPage(props: Props) {
           <div>
             <strong>Subscription</strong>
             <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
-              Monthly credits expire each period. Moods, premium models, full stock, saved projects, and retention are included.
+              Monthly credits expire each period. Moods, premium models, full stock, saved projects,
+              and retention are included.
             </p>
           </div>
           <div>
             <strong>Pay As You Go</strong>
             <p style={{ margin: "6px 0 0", color: "var(--fg-3)" }}>
-              Credits never expire. Actions cost about 20% more than subscription, and retention uses day slots.
+              Credits never expire. Actions cost about 20% more than subscription, and retention
+              uses day slots.
             </p>
           </div>
         </div>
@@ -390,7 +416,7 @@ export function BillingPage(props: Props) {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--cal-gray-50)" }}>
-                {["Invoice", "Date", "Amount", "Status", ""].map((h, i) => (
+                {["Invoice", "Date", "Amount", "Status", ""].map((h) => (
                   <th
                     key={h || "action"}
                     style={{
@@ -411,7 +437,9 @@ export function BillingPage(props: Props) {
             <tbody>
               {props.invoices.map((iv) => (
                 <tr key={iv.invoiceId} style={{ borderTop: "1px solid var(--cal-gray-200)" }}>
-                  <td style={{ padding: "12px 24px", fontFamily: "var(--font-mono)", fontSize: 13 }}>
+                  <td
+                    style={{ padding: "12px 24px", fontFamily: "var(--font-mono)", fontSize: 13 }}
+                  >
                     {iv.invoiceId.slice(0, 12)}
                   </td>
                   <td style={{ padding: "12px 24px", fontSize: 14 }}>{iv.date ?? "—"}</td>
@@ -554,9 +582,15 @@ export function BillingPage(props: Props) {
                           type="button"
                           className="btn btn--secondary btn--sm"
                           disabled={portal.pending || pendingPlan !== null}
-                          onClick={() => void changePlan(p.code === "subscription" ? "subscription" : "free")}
+                          onClick={() =>
+                            void changePlan(p.code === "subscription" ? "subscription" : "free")
+                          }
                         >
-                          {pendingPlan === p.code ? "Redirecting…" : p.price > (currentPlan?.price ?? 0) ? "Upgrade" : "Switch"}
+                          {pendingPlan === p.code
+                            ? "Redirecting…"
+                            : p.price > (currentPlan?.price ?? 0)
+                              ? "Upgrade"
+                              : "Switch"}
                         </button>
                       )}
                     </td>

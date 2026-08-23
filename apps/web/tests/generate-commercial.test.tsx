@@ -15,14 +15,6 @@ const productId = "22222222-2222-4222-8222-222222222222";
 const logoAssetId = "66666666-6666-4666-8666-666666666666";
 const secondLogoAssetId = "77777777-7777-4777-8777-777777777777";
 
-function latestPromptPreviewBody(fetchMock: ReturnType<typeof vi.mocked<typeof fetch>>) {
-  const call = fetchMock.mock.calls
-    .filter(([input]) => String(input).endsWith("/api/generations/prompt-preview"))
-    .at(-1);
-  expect(call).toBeTruthy();
-  return JSON.parse((call?.[1] as RequestInit).body as string) as Record<string, unknown>;
-}
-
 const props = {
   brands: [
     {

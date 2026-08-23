@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { LandingHeroApi } from "@layertone/api/landing-hero";
 import { loadConfig } from "@layertone/shared/config";
 
-import { getSessionWorkspace } from "@/lib/auth/server";
+import { getAdminSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";
 import { createServerAdapters } from "@/lib/server/adapters";
 
@@ -15,7 +15,9 @@ export async function PATCH(
 ) {
   const { id, slot: rawSlot } = await ctx.params;
   const slot = Number(rawSlot);
-  const { session } = await getSessionWorkspace();
+  const context = await getAdminSessionWorkspace();
+  if (!context) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { session } = context;
 
   const contentType = request.headers.get("content-type") ?? "";
   let fields: Record<string, unknown>;

@@ -7,7 +7,7 @@ import { loadGoogleFont } from "./fonts";
 import type { RenderInput, RenderOutput } from "./types";
 
 export async function renderTemplate(input: RenderInput): Promise<RenderOutput> {
-  const start = Date.now();
+  const start = performance.now();
 
   const template = compileTemplate(input.templateJsxSource);
   const templateTree = template({
@@ -62,7 +62,7 @@ export async function renderTemplate(input: RenderInput): Promise<RenderOutput> 
   const resvg = new Resvg(svg, { fitTo: { mode: "width", value: input.output.width } });
   const pngBytes = resvg.render().asPng();
 
-  return { pngBytes, renderMs: Date.now() - start };
+  return { pngBytes, renderMs: Math.max(1, Math.round(performance.now() - start)) };
 }
 
 async function exactOverlayTree(input: RenderInput) {

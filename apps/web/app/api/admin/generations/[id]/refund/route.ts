@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { createDb, generations, creditLedgerEntries } from "@layertone/db";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { loadConfig } from "@layertone/shared/config";
 import { Ledger } from "@layertone/billing";
 
 import { getServerSession } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";
 
-export async function POST(
-  _request: Request,
-  props: { params: Promise<{ id: string }> },
-) {
+export async function POST(_request: Request, props: { params: Promise<{ id: string }> }) {
   const session = await getServerSession();
   if (!session || session.role !== "admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

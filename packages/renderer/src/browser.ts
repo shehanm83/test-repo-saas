@@ -17,7 +17,7 @@ async function getBrowser(): Promise<Browser> {
 }
 
 export async function renderTemplateBrowser(input: RenderInput): Promise<RenderOutput> {
-  const start = Date.now();
+  const start = performance.now();
   const browser = await getBrowser();
   const page = await browser.newPage();
   await page.setViewport({
@@ -34,7 +34,10 @@ export async function renderTemplateBrowser(input: RenderInput): Promise<RenderO
   });
   await page.close();
 
-  return { pngBytes: new Uint8Array(screenshot as Buffer), renderMs: Date.now() - start };
+  return {
+    pngBytes: new Uint8Array(screenshot as Buffer),
+    renderMs: Math.max(1, Math.round(performance.now() - start)),
+  };
 }
 
 async function renderToHtml(input: RenderInput): Promise<string> {

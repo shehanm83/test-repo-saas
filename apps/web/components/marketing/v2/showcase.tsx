@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { HomeShowcaseView } from "@layertone/shared/home-showcase";
 
 import { SHOWCASE_ASSETS } from "./assets";
-import { Eyebrow, SectionHeading, Serif } from "./primitives";
+import { Eyebrow, SectionHeading } from "./primitives";
 import { Reveal } from "./reveal";
 
 export function Showcase({ showcase }: { showcase: HomeShowcaseView }) {
@@ -15,9 +15,9 @@ export function Showcase({ showcase }: { showcase: HomeShowcaseView }) {
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <div className="text-center">
-            <Eyebrow className="text-brand">Made with Layertone</Eyebrow>
+            <Eyebrow className="text-brand">{showcase.config.kicker}</Eyebrow>
             <SectionHeading className="mx-auto mt-4 max-w-2xl">
-              Campaigns that look <Serif>art-directed.</Serif>
+              {showcase.config.galleryHeading}
             </SectionHeading>
           </div>
         </Reveal>
@@ -54,16 +54,23 @@ export function Showcase({ showcase }: { showcase: HomeShowcaseView }) {
               ))}
         </div>
         {showcase.config.cards.length > 0 ? (
-          <div className="mt-20 grid gap-6 md:grid-cols-3">
-            {showcase.config.cards.map((card, i) => (
-              <Reveal key={card.eyebrow} delay={0.1 * i}>
-                <div className="h-full rounded-[28px] border border-ink/8 bg-white p-8">
-                  <Eyebrow style={{ color: card.color }}>{card.eyebrow}</Eyebrow>
-                  <h3 className="mt-3 font-display text-xl text-ink">{card.heading}</h3>
-                  <p className="mt-2.5 text-[15px] leading-relaxed text-ink-soft">{card.body}</p>
-                </div>
-              </Reveal>
-            ))}
+          <div className="mt-20">
+            <Reveal>
+              <SectionHeading className="mx-auto max-w-4xl text-center">
+                {showcase.config.differentiatorHeading}
+              </SectionHeading>
+            </Reveal>
+            <div className="mt-10 grid gap-6 md:grid-cols-3">
+              {showcase.config.cards.map((card, i) => (
+                <Reveal key={card.eyebrow} delay={0.1 * i}>
+                  <div className="h-full rounded-[28px] border border-ink/8 bg-white p-8">
+                    <Eyebrow style={{ color: card.color }}>{card.eyebrow}</Eyebrow>
+                    <h3 className="mt-3 font-display text-xl text-ink">{card.heading}</h3>
+                    <p className="mt-2.5 text-[15px] leading-relaxed text-ink-soft">{card.body}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
           </div>
         ) : null}
       </div>

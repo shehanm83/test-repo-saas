@@ -3,15 +3,14 @@ import { NextResponse } from "next/server";
 import { TemplateApi } from "@layertone/api/template";
 import { loadConfig } from "@layertone/shared/config";
 
-import { getSessionWorkspace } from "@/lib/auth/server";
+import { getAdminSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";
 
-export async function PATCH(
-  request: Request,
-  props: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
-  const { session } = await getSessionWorkspace();
+  const context = await getAdminSessionWorkspace();
+  if (!context) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { session } = context;
   const body = await request.json();
   const payload = await new TemplateApi(loadConfig()).adminUpdate(id, body);
   if (session.workspaceId) {

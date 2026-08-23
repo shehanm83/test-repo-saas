@@ -103,7 +103,6 @@ export function QuickCreate(props: {
   // Sync platform/content selection into shared outputs.formats.
   useEffect(() => {
     props.onOutputsChange({ ...outputsRef.current, formats: [contentType] });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentType]);
 
   function handlePlatform(nextPlatform: PlatformId) {

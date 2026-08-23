@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { LandingHeroApi } from "@layertone/api/landing-hero";
 import { loadConfig } from "@layertone/shared/config";
 
-import { getSessionWorkspace } from "@/lib/auth/server";
+import { getAdminSessionWorkspace } from "@/lib/auth/server";
 import { writeAdminAudit } from "@/lib/server/admin";
 import { createServerAdapters } from "@/lib/server/adapters";
 
@@ -11,7 +11,9 @@ const api = () => new LandingHeroApi(loadConfig(), createServerAdapters() as nev
 
 export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const { session } = await getSessionWorkspace();
+  const context = await getAdminSessionWorkspace();
+  if (!context) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { session } = context;
   const row = await api().updateSet(id, await request.json());
   if (session.workspaceId) {
     await writeAdminAudit({
@@ -26,7 +28,9 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
 
 export async function DELETE(_request: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const { session } = await getSessionWorkspace();
+  const context = await getAdminSessionWorkspace();
+  if (!context) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { session } = context;
   await api().deleteSet(id);
   if (session.workspaceId) {
     await writeAdminAudit({

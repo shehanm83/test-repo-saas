@@ -199,7 +199,7 @@ export class LandingHeroApi {
   async createSet(input: unknown = {}) {
     const parsed = z
       .object({
-        name: z.string().min(1).max(80).default("New hero set"),
+        name: z.string().min(1).max(80).default("New spotlight set"),
         status: z.enum(["draft", "published", "archived"]).default("draft"),
         weight: z.number().int().min(1).max(100).default(1),
         config: HeroSetConfigSchema.default(DEFAULT_LANDING_HERO_CONFIG),
