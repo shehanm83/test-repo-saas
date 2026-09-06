@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
 
 import { ProductPicker } from "@/components/generate/commercial/product-picker";
+import { InlineProductEditor } from "@/components/generate/commercial/inline-product-editor";
 import type {
   ProductLite,
   ProductRole,
@@ -24,6 +25,7 @@ function labelFor(product: SelectedProduct): string {
 }
 
 export function ProductChips(props: {
+  brandId: string;
   products: ProductLite[];
   selected: SelectedProduct[];
   onChange: (selected: SelectedProduct[]) => void;
@@ -130,6 +132,9 @@ export function ProductChips(props: {
                   onRemove={remove}
                   onUpdateRole={updateRole}
                 />
+                <div className="mt-4 border-t border-ink/10 pt-4">
+                  <InlineProductEditor brandId={props.brandId} onAdd={add} />
+                </div>
               </div>
             </>,
             document.body,

@@ -1,22 +1,25 @@
-import { createDb, listBrands } from "@layertone/db";
+import { createDb, listBrands, listProductIdentityAssets, listProducts } from "@layertone/db";
 import { loadConfig } from "@layertone/shared/config";
 import { S3StorageAdapter } from "@layertone/storage";
 
 import { CampaignShell } from "@/components/campaign/campaign-shell";
 import { emptyBrief } from "@/components/campaign/brief/defaults";
-import { FIXTURE_PRODUCTS } from "@/components/campaign/brief/fixtures";
-import type { BrandLite } from "@/components/generate/commercial/types";
+import type { BrandLite, ProductLite } from "@/components/generate/commercial/types";
 import { getSessionWorkspace } from "@/lib/auth/server";
 
 /**
- * The campaign brief starts with the active workspace's real brand kits.
- * Products remain local until their backend slice is wired separately.
+ * The campaign brief is populated only with the active workspace's data.
  */
 export default async function NewCampaignPage() {
   const { session } = await getSessionWorkspace();
   const config = loadConfig();
   const db = createDb(config.db.url, "app_user");
-  const rows = session.workspaceId ? await listBrands(db, session.workspaceId) : [];
+  const [rows, productRows] = session.workspaceId
+    ? await Promise.all([
+        listBrands(db, session.workspaceId),
+        listProducts(db, session.workspaceId),
+      ])
+    : [[], []];
   const storage = createStorage(config);
   const brands: BrandLite[] = await Promise.all(
     rows.map(async (brand) => {
@@ -40,14 +43,44 @@ export default async function NewCampaignPage() {
       };
     }),
   );
+  const products: ProductLite[] = await Promise.all(
+    productRows.map(async (product) => {
+      const [primaryAsset] = session.workspaceId
+        ? await listProductIdentityAssets(db, session.workspaceId, product.id)
+        : [];
+
+      return {
+        id: product.id,
+        brandId: product.brandId,
+        name: product.name,
+        title: product.title,
+        subtitle: product.subtitle,
+        description: product.description,
+        brandLabel: product.brandLabel,
+        model: product.model,
+        sku: product.sku,
+        category: product.category,
+        priceMinor: product.priceMinor,
+        compareAtPriceMinor: product.compareAtPriceMinor,
+        currency: product.currency,
+        discountText: product.discountText,
+        keyFeatures: product.keyFeatures,
+        benefits: product.benefits,
+        targetAudience: product.targetAudience,
+        primaryAsset: primaryAsset
+          ? {
+              id: primaryAsset.id,
+              kind: primaryAsset.kind,
+              url: await storage.getSignedUrl(primaryAsset.s3Key, 60 * 60).catch(() => null),
+            }
+          : null,
+      };
+    }),
+  );
   const defaultBrandId = brands.length === 1 ? brands[0]!.id : "";
 
   return (
-    <CampaignShell
-      initialForm={emptyBrief(defaultBrandId)}
-      brands={brands}
-      products={FIXTURE_PRODUCTS}
-    />
+    <CampaignShell initialForm={emptyBrief(defaultBrandId)} brands={brands} products={products} />
   );
 }
 

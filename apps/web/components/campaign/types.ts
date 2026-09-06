@@ -19,8 +19,6 @@ export interface RecipeMeta {
   id: CampaignRecipe;
   label: string;
   blurb: string;
-  /** The phase shape the recipe produces — this is what the choice actually changes. */
-  phases: string;
   /** Recipes whose slots carry price / discount / badge overlays. */
   usesOffer: boolean;
   /** Recipes that can be planned without a product attached. */
@@ -32,7 +30,6 @@ export const CAMPAIGN_RECIPES: RecipeMeta[] = [
     id: "product_launch",
     label: "Product launch",
     blurb: "New product going live",
-    phases: "tease · launch · proof · last-call",
     usesOffer: true,
     productOptional: false,
   },
@@ -40,7 +37,6 @@ export const CAMPAIGN_RECIPES: RecipeMeta[] = [
     id: "offer",
     label: "Offer / sale",
     blurb: "Discount-driven push",
-    phases: "announce · remind · last-call",
     usesOffer: true,
     productOptional: false,
   },
@@ -48,7 +44,6 @@ export const CAMPAIGN_RECIPES: RecipeMeta[] = [
     id: "seasonal",
     label: "Seasonal",
     blurb: "Holiday or season moment",
-    phases: "build-up · peak · wind-down",
     usesOffer: false,
     productOptional: false,
   },
@@ -56,7 +51,6 @@ export const CAMPAIGN_RECIPES: RecipeMeta[] = [
     id: "always_on",
     label: "Always-on",
     blurb: "Keep posting consistently",
-    phases: "hero · hub · hygiene",
     usesOffer: false,
     productOptional: true,
   },
@@ -64,7 +58,6 @@ export const CAMPAIGN_RECIPES: RecipeMeta[] = [
     id: "catalogue",
     label: "Catalogue",
     blurb: "Many SKUs, print + digital",
-    phases: "single phase",
     usesOffer: false,
     productOptional: false,
   },
@@ -72,7 +65,6 @@ export const CAMPAIGN_RECIPES: RecipeMeta[] = [
     id: "comparison",
     label: "Comparison",
     blurb: "Before / after, or versus",
-    phases: "single phase",
     usesOffer: false,
     productOptional: false,
   },
@@ -80,7 +72,6 @@ export const CAMPAIGN_RECIPES: RecipeMeta[] = [
     id: "ad_test_pack",
     label: "Ad test pack",
     blurb: "Angles × formats for paid",
-    phases: "matrix",
     usesOffer: false,
     productOptional: false,
   },
@@ -180,7 +171,12 @@ export function toBriefInput(form: CampaignBriefForm): CampaignBriefInput {
 export interface BriefValidation {
   valid: boolean;
   /** Field key → message, for inline display. */
-  errors: Partial<Record<"name" | "brandId" | "productRefs" | "platforms" | "dates" | "brief", string>>;
+  errors: Partial<
+    Record<
+      "name" | "goal" | "audience" | "brandId" | "productRefs" | "platforms" | "dates" | "brief",
+      string
+    >
+  >;
   /** Why the primary button is disabled, or null when it is not. */
   blockingReason: string | null;
 }
@@ -190,6 +186,8 @@ export function validateBrief(form: CampaignBriefForm): BriefValidation {
   const errors: BriefValidation["errors"] = {};
 
   if (!form.name.trim()) errors.name = "Give the campaign a name.";
+  if (!form.goal.trim()) errors.goal = "Choose the business objective.";
+  if (!form.audience.trim()) errors.audience = "Define the audience this campaign is for.";
   if (!form.brandId) errors.brandId = "Pick the brand this campaign runs under.";
   if (!meta.productOptional && form.productRefs.length === 0) {
     errors.productRefs = "Add at least one product.";
@@ -197,8 +195,8 @@ export function validateBrief(form: CampaignBriefForm): BriefValidation {
   if (form.platforms.length === 0) errors.platforms = "Pick at least one platform.";
   if (!form.startsOn || !form.endsOn) {
     errors.dates = "Set a start and end date.";
-  } else if (form.endsOn <= form.startsOn) {
-    errors.dates = "The end date has to be after the start date.";
+  } else if (form.endsOn < form.startsOn) {
+    errors.dates = "The end date cannot be before the start date.";
   }
   if (form.brief.trim().length < 20) {
     errors.brief = `Describe the campaign in a sentence or two (${form.brief.trim().length}/20 characters).`;
@@ -219,7 +217,7 @@ export function durationDays(startsOn: string, endsOn: string): number | null {
 export function durationLabel(startsOn: string, endsOn: string): string | null {
   const days = durationDays(startsOn, endsOn);
   if (days === null) return null;
-  if (days < 14) return `${days} day${days === 1 ? "" : "s"}`;
-  const weeks = Math.round(days / 7);
+  if (days < 7 || days % 7 !== 0) return `${days} day${days === 1 ? "" : "s"}`;
+  const weeks = days / 7;
   return `${weeks} weeks`;
 }

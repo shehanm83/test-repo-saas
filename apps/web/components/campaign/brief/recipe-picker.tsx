@@ -33,13 +33,6 @@ export function RecipePicker(props: {
             >
               {recipe.blurb}
             </span>
-            <span
-              className={`mt-2 block font-mono text-[9.5px] tracking-[0.06em] ${
-                selected ? "text-brand-300" : "text-brand"
-              }`}
-            >
-              {recipe.phases}
-            </span>
           </button>
         );
       })}

@@ -5,11 +5,11 @@ import { Check } from "lucide-react";
 import type { CampaignStage } from "./types";
 
 const STAGES: Array<{ id: CampaignStage; label: string; separatorAfter?: boolean }> = [
-  { id: "brief", label: "Brief" },
-  { id: "plan", label: "Plan", separatorAfter: true },
-  { id: "look", label: "Look" },
-  { id: "board", label: "Board", separatorAfter: true },
-  { id: "deliver", label: "Deliver" },
+  { id: "brief", label: "Campaign details" },
+  { id: "plan", label: "Deliverables plan", separatorAfter: true },
+  { id: "look", label: "Visual direction" },
+  { id: "board", label: "Production", separatorAfter: true },
+  { id: "deliver", label: "Review & export" },
 ];
 
 export function StageRail(props: {

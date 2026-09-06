@@ -6,33 +6,22 @@ import { Megaphone } from "lucide-react";
 import type { BrandLite, ProductLite } from "@/components/generate/commercial/types";
 
 import { BriefScreen } from "./brief/brief-screen";
+import { createEmptyCampaignPlan, type CampaignPlan } from "./plan/plan-data";
+import { PlanScreen } from "./plan/plan-screen";
 import { StageRail } from "./stage-rail";
 import {
   CAMPAIGN_PLATFORMS,
+  durationLabel,
   recipeMeta,
-  toBriefInput,
   type CampaignBriefForm,
   type CampaignStage,
 } from "./types";
 
 const STAGE_ORDER: CampaignStage[] = ["brief", "plan", "look", "board", "deliver"];
 
-function formatRange(startsOn: string, endsOn: string): string | null {
-  if (!startsOn || !endsOn) return null;
-  const start = new Date(`${startsOn}T00:00:00Z`);
-  const end = new Date(`${endsOn}T00:00:00Z`);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
-  const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", timeZone: "UTC" };
-  const sameYear = start.getUTCFullYear() === end.getUTCFullYear();
-  const startText = start.toLocaleDateString("en-GB", opts);
-  const endText = end.toLocaleDateString("en-GB", { ...opts, year: "numeric" });
-  return sameYear ? `${startText} – ${endText}` : `${startText} ${start.getUTCFullYear()} – ${endText}`;
-}
-
 /**
- * Holds the campaign's stage state and renders the active screen. Slice 60·A
- * ships Brief; the other four stages are placeholders that the rail already
- * reaches, so each later slice only replaces its own panel.
+ * Holds the campaign's frontend stage state and renders the active screen.
+ * Brief and deliverables work locally until campaign persistence is introduced.
  */
 export function CampaignShell(props: {
   initialForm: CampaignBriefForm;
@@ -40,6 +29,7 @@ export function CampaignShell(props: {
   products: ProductLite[];
 }) {
   const [form, setForm] = useState<CampaignBriefForm>(props.initialForm);
+  const [plan, setPlan] = useState<CampaignPlan | null>(null);
   const [stage, setStage] = useState<CampaignStage>("brief");
   const [furthest, setFurthest] = useState<CampaignStage>("brief");
 
@@ -53,12 +43,9 @@ export function CampaignShell(props: {
     () => STAGE_ORDER.slice(0, STAGE_ORDER.indexOf(furthest) + 1),
     [furthest],
   );
-  const completed = useMemo(
-    () => STAGE_ORDER.slice(0, STAGE_ORDER.indexOf(furthest)),
-    [furthest],
-  );
+  const completed = useMemo(() => STAGE_ORDER.slice(0, STAGE_ORDER.indexOf(furthest)), [furthest]);
 
-  const subtitle = [brandName, formatRange(form.startsOn, form.endsOn), platformNames.join(", ")]
+  const subtitle = [brandName, durationLabel(form.startsOn, form.endsOn), platformNames.join(", ")]
     .filter(Boolean)
     .join(" · ");
 
@@ -80,12 +67,7 @@ export function CampaignShell(props: {
         </div>
       </div>
 
-      <StageRail
-        active={stage}
-        completed={completed}
-        reachable={reachable}
-        onSelect={setStage}
-      />
+      <StageRail active={stage} completed={completed} reachable={reachable} onSelect={setStage} />
 
       {stage === "brief" ? (
         <BriefScreen
@@ -94,11 +76,17 @@ export function CampaignShell(props: {
           products={props.products}
           onChange={setForm}
           onSubmit={(next) => {
-            // 60·A: no backend yet. 60·D replaces this with POST /api/campaigns.
-            // eslint-disable-next-line no-console
-            console.log("campaign brief", toBriefInput(next));
+            setForm(next);
+            setPlan(createEmptyCampaignPlan(next));
             advanceTo("plan");
           }}
+        />
+      ) : stage === "plan" && plan ? (
+        <PlanScreen
+          form={form}
+          plan={plan}
+          onChange={setPlan}
+          onApprove={() => advanceTo("look")}
         />
       ) : (
         <StagePlaceholder stage={stage} />
@@ -109,8 +97,8 @@ export function CampaignShell(props: {
 
 const PLACEHOLDER_COPY: Record<Exclude<CampaignStage, "brief">, { title: string; body: string }> = {
   plan: {
-    title: "The plan lands here",
-    body: "Phases with dates, and inside each phase a slot with an angle, a format and draft copy — the whole campaign, priced, before a single credit is spent.",
+    title: "Define campaign deliverables",
+    body: "Name each asset, its job, audience, channel, and where it belongs in the campaign timeline.",
   },
   look: {
     title: "One look, decided once",
@@ -118,11 +106,11 @@ const PLACEHOLDER_COPY: Record<Exclude<CampaignStage, "brief">, { title: string;
   },
   board: {
     title: "Production board",
-    body: "Every slot as a card, grouped by phase, anchored to the approved hero so the board fills in visibly as one campaign.",
+    body: "Every deliverable moves through copy, design, review, approval, scheduling, and publication with a visible owner and status.",
   },
   deliver: {
     title: "The campaign, packaged",
-    body: "A dated calendar, a per-post copy sheet, and every approved asset named by platform, format and date.",
+    body: "A campaign timeline, a per-post copy sheet, and every approved asset named by platform and format.",
   },
 };
 

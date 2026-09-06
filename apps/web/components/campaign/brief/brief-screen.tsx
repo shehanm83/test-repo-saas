@@ -7,15 +7,12 @@ import { ArrowRight, Lock } from "lucide-react";
 import type { BrandLite, ProductLite } from "@/components/generate/commercial/types";
 
 import {
-  durationDays,
   durationLabel,
   recipeMeta,
   validateBrief,
   type BriefValidation,
   type CampaignBriefForm,
 } from "../types";
-import { estimateBrief } from "./fixtures";
-import { BOX_INPUT, FieldBox } from "./field-box";
 import { OfferFields } from "./offer-fields";
 import { PlatformToggles } from "./platform-toggles";
 import { ProductChips } from "./product-chips";
@@ -23,11 +20,7 @@ import { RecipePicker } from "./recipe-picker";
 
 const LABEL = "mb-2.5 font-mono text-[10px] uppercase tracking-[0.15em] text-ink-soft/70";
 
-function Field(props: {
-  label: ReactNode;
-  error?: string | undefined;
-  children: ReactNode;
-}) {
+function Field(props: { label: ReactNode; error?: string | undefined; children: ReactNode }) {
   return (
     <div className="mb-[22px]">
       <p className={LABEL}>{props.label}</p>
@@ -50,13 +43,15 @@ export function BriefScreen(props: {
 }) {
   const { form } = props;
   const [touched, setTouched] = useState<ReadonlySet<ErrorKey>>(new Set());
+  const [campaignLengthDraft, setCampaignLengthDraft] = useState(() =>
+    String(campaignLengthAmount(form.startsOn, form.endsOn)),
+  );
+  const [campaignLengthUnitDraft, setCampaignLengthUnitDraft] = useState<CampaignLengthUnit>(() =>
+    campaignLengthUnit(form.startsOn, form.endsOn),
+  );
   const meta = recipeMeta(form.recipe);
   const validation = useMemo(() => validateBrief(form), [form]);
   const duration = durationLabel(form.startsOn, form.endsOn);
-  const estimate = useMemo(
-    () => estimateBrief(form, durationDays(form.startsOn, form.endsOn)),
-    [form],
-  );
   const brand = props.brands.find((entry) => entry.id === form.brandId) ?? null;
   const brandLogo = brand?.logoAssets?.find((asset) => asset.url)?.url ?? null;
   const brandProducts = props.products.filter(
@@ -88,11 +83,33 @@ export function BriefScreen(props: {
         </Field>
 
         <Field label="What are you doing?">
-          <RecipePicker
-            value={form.recipe}
-            onChange={(recipe) => patch({ recipe })}
-          />
+          <RecipePicker value={form.recipe} onChange={(recipe) => patch({ recipe })} />
         </Field>
+
+        <div className="grid gap-x-4 sm:grid-cols-2">
+          <Field label="Business objective" error={errorFor("goal")}>
+            <select
+              className="select"
+              value={form.goal}
+              aria-label="Business objective"
+              onChange={(event) => patch({ goal: event.target.value })}
+            >
+              <option value="">Choose the result…</option>
+              <option value="awareness">Awareness — reach or recall</option>
+              <option value="consideration">Consideration — interest or traffic</option>
+              <option value="conversion">Conversion — lead or sale</option>
+            </select>
+          </Field>
+          <Field label="Target audience" error={errorFor("audience")}>
+            <input
+              className="input"
+              value={form.audience}
+              aria-label="Target audience"
+              placeholder="e.g. Home coffee drinkers in Stockholm"
+              onChange={(event) => patch({ audience: event.target.value })}
+            />
+          </Field>
+        </div>
 
         <Field label="Brand" error={errorFor("brandId")}>
           <select
@@ -129,6 +146,7 @@ export function BriefScreen(props: {
           error={errorFor("productRefs")}
         >
           <ProductChips
+            brandId={form.brandId}
             products={brandProducts}
             selected={form.productRefs}
             onChange={(productRefs) => patch({ productRefs })}
@@ -139,29 +157,50 @@ export function BriefScreen(props: {
           <PlatformToggles value={form.platforms} onChange={(platforms) => patch({ platforms })} />
         </Field>
 
-        <Field label="When it runs" error={errorFor("dates")}>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <FieldBox label="Starts" className="w-[170px]">
-              <input
-                type="date"
-                className={BOX_INPUT}
-                value={form.startsOn}
-                onChange={(event) => patch({ startsOn: event.target.value })}
-              />
-            </FieldBox>
-            <span className="text-ink-soft/40" aria-hidden="true">
-              →
-            </span>
-            <FieldBox label="Ends" className="w-[170px]">
-              <input
-                type="date"
-                className={BOX_INPUT}
-                value={form.endsOn}
-                onChange={(event) => patch({ endsOn: event.target.value })}
-              />
-            </FieldBox>
-            {duration ? <span className="pill">{duration}</span> : null}
+        <Field label="Campaign length" error={errorFor("dates")}>
+          <div className="grid max-w-[360px] grid-cols-[1fr_150px] gap-2">
+            <input
+              type="number"
+              min="1"
+              max={campaignLengthUnitDraft === "weeks" ? "52" : "365"}
+              className="input"
+              value={campaignLengthDraft}
+              aria-label="Campaign duration"
+              onChange={(event) => {
+                const value = event.target.value;
+                setCampaignLengthDraft(value);
+                const amount = Number(value);
+                if (value !== "" && Number.isInteger(amount) && amount >= 1) {
+                  patch(relativeCampaignRange(amount, campaignLengthUnitDraft));
+                }
+              }}
+              onBlur={() => {
+                const limit = campaignLengthUnitDraft === "weeks" ? 52 : 365;
+                const amount = Math.min(limit, Math.max(1, Number(campaignLengthDraft) || 1));
+                setCampaignLengthDraft(String(amount));
+                patch(relativeCampaignRange(amount, campaignLengthUnitDraft));
+              }}
+            />
+            <select
+              className="select"
+              value={campaignLengthUnitDraft}
+              aria-label="Campaign duration unit"
+              onChange={(event) => {
+                const unit = event.target.value as CampaignLengthUnit;
+                const limit = unit === "weeks" ? 52 : 365;
+                const amount = Math.min(limit, Math.max(1, Number(campaignLengthDraft) || 1));
+                setCampaignLengthUnitDraft(unit);
+                setCampaignLengthDraft(String(amount));
+                patch(relativeCampaignRange(amount, unit));
+              }}
+            >
+              <option value="days">Day(s)</option>
+              <option value="weeks">Week(s)</option>
+            </select>
           </div>
+          <p className="mt-2 text-[11.5px] text-ink-soft/65">
+            Use one day for a one-off campaign, or enter any number of days or weeks.
+          </p>
         </Field>
 
         <Field label="What's the campaign about?" error={errorFor("brief")}>
@@ -196,7 +235,7 @@ export function BriefScreen(props: {
             disabled={!validation.valid}
             onClick={() => props.onSubmit(form)}
           >
-            Build the plan
+            Continue to deliverables
             <ArrowRight size={15} strokeWidth={2} />
           </button>
           {validation.blockingReason ? (
@@ -286,20 +325,16 @@ export function BriefScreen(props: {
 
         <div className="rounded-2xl bg-white px-4 py-4 shadow-card">
           <h5 className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[0.15em] text-ink-soft/70">
-            What you&rsquo;ll get
+            Planning inputs
           </h5>
-          <RailRow k="Planned assets" v={`~${estimate.slots}`} />
-          <RailRow k="Phases" v={String(estimate.phases)} />
-          <RailRow k="Captions + hashtags" v="included" />
-          <RailRow k="Video slots" v={estimate.videoSlots > 0 ? `~${estimate.videoSlots}` : "none"} />
-          <div className="mt-1.5 flex items-center gap-2.5 border-t border-ink/10 pt-2.5 text-[12.5px] font-semibold">
-            <span className="text-ink-soft">Est. credits</span>
-            <span className="ml-auto font-mono text-sm tabular-nums text-brand">
-              ~{estimate.credits}
-            </span>
-          </div>
+          <RailRow k="Products selected" v={String(form.productRefs.length)} />
+          <RailRow k="Platforms" v={String(form.platforms.length)} />
+          <RailRow k="Campaign length" v={duration ?? "Set dates"} />
+          <RailRow k="Objective" v={form.goal || "Not set"} />
+          <RailRow k="Audience" v={form.audience ? "Defined" : "Not set"} />
           <p className="mt-2.5 text-[11.5px] leading-[1.5] text-ink-soft/70">
-            Nothing is charged until you approve the plan.
+            The next screen turns this brief into named deliverables assigned to relative campaign
+            days or weeks. It starts empty and invents nothing.
           </p>
         </div>
       </aside>
@@ -325,4 +360,37 @@ function RailRow(props: { k: string; v: string }) {
       <span className="ml-auto font-mono text-[11.5px] tabular-nums">{props.v}</span>
     </div>
   );
+}
+
+type CampaignLengthUnit = "days" | "weeks";
+
+function campaignLengthDays(startsOn: string, endsOn: string): number {
+  const start = Date.parse(`${startsOn}T00:00:00Z`);
+  const end = Date.parse(`${endsOn}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 1;
+  return Math.round((end - start) / 86_400_000) + 1;
+}
+
+function campaignLengthUnit(startsOn: string, endsOn: string): CampaignLengthUnit {
+  const days = campaignLengthDays(startsOn, endsOn);
+  return days >= 7 && days % 7 === 0 ? "weeks" : "days";
+}
+
+function campaignLengthAmount(startsOn: string, endsOn: string): number {
+  const days = campaignLengthDays(startsOn, endsOn);
+  return campaignLengthUnit(startsOn, endsOn) === "weeks" ? days / 7 : days;
+}
+
+function relativeCampaignRange(
+  amount: number,
+  unit: CampaignLengthUnit,
+): Pick<CampaignBriefForm, "startsOn" | "endsOn"> {
+  const days = unit === "weeks" ? amount * 7 : amount;
+  const start = new Date();
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + days - 1);
+  return {
+    startsOn: start.toISOString().slice(0, 10),
+    endsOn: end.toISOString().slice(0, 10),
+  };
 }

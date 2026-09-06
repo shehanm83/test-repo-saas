@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { BriefScreen } from "@/components/campaign/brief/brief-screen";
 import { emptyBrief } from "@/components/campaign/brief/defaults";
+import { validateBrief } from "@/components/campaign/types";
 import type { BrandLite } from "@/components/generate/commercial/types";
 
 const brands: BrandLite[] = [
@@ -70,5 +71,33 @@ describe("campaign brief brands", () => {
     expect(screen.getByLabelText("Atlas Coffee palette")).toBeInTheDocument();
     expect(screen.getByText("Pacifico")).toBeInTheDocument();
     expect(screen.getByText("Inter")).toBeInTheDocument();
+  });
+
+  it("allows clearing the duration while editing and accepts a one-day campaign", () => {
+    const onChange = vi.fn();
+    render(
+      <BriefScreen
+        form={emptyBrief("")}
+        brands={[]}
+        products={[]}
+        onChange={onChange}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Campaign duration unit"), {
+      target: { value: "days" },
+    });
+    onChange.mockClear();
+    const duration = screen.getByLabelText("Campaign duration");
+    fireEvent.change(duration, { target: { value: "" } });
+    expect(duration).toHaveValue(null);
+    expect(onChange).not.toHaveBeenCalled();
+
+    fireEvent.blur(duration);
+    expect(duration).toHaveValue(1);
+    const nextForm = onChange.mock.calls.at(-1)?.[0];
+    expect(nextForm.startsOn).toBe(nextForm.endsOn);
+    expect(validateBrief(nextForm).errors.dates).toBeUndefined();
   });
 });
