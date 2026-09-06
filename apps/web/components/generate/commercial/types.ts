@@ -1,9 +1,15 @@
 "use client";
 
+import type { QuickCreatePlan } from "@layertone/shared/generation/quick-create-v2";
+
 export interface BrandLite {
   id: string;
   name: string;
   palette?: string[] | null;
+  fonts?: {
+    heading: { family: string; weight?: string };
+    body: { family: string; weight?: string };
+  } | null;
   logoAssets?: Array<{
     id: string;
     url?: string | null;
@@ -20,6 +26,16 @@ export interface MoodLite {
   group: "now" | "always" | "soon";
   img?: string | null;
   colors?: string[];
+  supportedAspectRatios?: string[];
+  entitled?: boolean;
+}
+
+export interface StockAssetLite {
+  id: string;
+  label: string;
+  category: string;
+  tags: string[];
+  url: string | null;
 }
 
 export interface ProductLite {
@@ -40,9 +56,10 @@ export interface ProductLite {
   keyFeatures?: string[] | null;
   benefits?: string[] | null;
   targetAudience?: string | null;
+  primaryAsset?: { id: string; kind: string; url: string | null } | null;
 }
 
-export type GenerateMode = "quick" | "campaign_builder";
+export type GenerateMode = "quick";
 export type CreationType =
   | "single_product"
   | "product_bundle"
@@ -116,7 +133,17 @@ export interface SelectedProduct {
   uploadId?: string;
   previewUrl?: string;
   uploadPending?: boolean;
+  uploadFailed?: boolean;
   commercialFields: ProductSnapshot;
+}
+
+export interface VisualReference {
+  localId: string;
+  uploadId?: string;
+  previewUrl?: string;
+  name: string;
+  uploadPending: boolean;
+  uploadFailed?: boolean;
 }
 
 export interface CampaignDetails {
@@ -177,8 +204,11 @@ export interface GenerateState {
   creationType: CreationType;
   brandId: string;
   moodId: string | null;
+  stockAssetId: string | null;
+  referenceInfluence: "subtle" | "balanced" | "strong";
   brief: string;
   selectedProducts: SelectedProduct[];
+  visualReferences: VisualReference[];
   campaign: CampaignDetails;
   template: TemplateSelection;
   composition: CompositionControls;
@@ -240,6 +270,9 @@ export type GeneratePayload = {
   creationType: CreationType;
   brandId?: string;
   moodId: string | null;
+  stockAssetId: string | null;
+  inspirationInfluence?: "subtle" | "balanced" | "strong";
+  inspirationUploadIds: string[];
   brief?: string;
   productRefs: Array<{
     productId?: string;
@@ -268,4 +301,5 @@ export type GeneratePayload = {
   outputs: OutputSettings;
   flags: BrandFlags;
   brandLogoAssetIds: string[];
+  creativePlan?: QuickCreatePlan;
 };

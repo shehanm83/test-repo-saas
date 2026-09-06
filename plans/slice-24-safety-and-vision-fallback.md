@@ -2,7 +2,7 @@
 
 **Phase:** 6 — AI Gateway
 **Depends on:** 22, 23
-**Spec references:** [Architecture § 4.4 (safety pipeline)](../specs/2026-04-25-studio-v1-architecture.md), [Architecture § 4.3 vision-fallback path](../specs/2026-04-25-studio-v1-architecture.md), [Spec § 3.6 (caption job)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Architecture § 4.4 (safety pipeline)](../specs/2026-04-25-layertone-v1-architecture.md), [Architecture § 4.3 vision-fallback path](../specs/2026-04-25-layertone-v1-architecture.md), [Spec § 3.6 (caption job)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `OpenAIModerationProvider` (text moderation via OpenAI Moderation API)
@@ -35,7 +35,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/gateway add @anthropic-ai/sdk
+pnpm --filter @layertone/gateway add @anthropic-ai/sdk
 ```
 
 - [ ] **Step 2 — Anthropic text provider**
@@ -44,7 +44,7 @@ pnpm --filter @vyora/gateway add @anthropic-ai/sdk
 // packages/gateway/src/providers/anthropic-text.ts
 import Anthropic from "@anthropic-ai/sdk";
 import type { TextProvider } from "../types.js";
-import type { AITextRequest, AITextResponse } from "@vyora/shared";
+import type { AITextRequest, AITextResponse } from "@layertone/shared";
 
 export class AnthropicTextProvider implements TextProvider {
   modelCodes = ["claude-haiku-4-5"];
@@ -258,7 +258,7 @@ git commit -m "feat(gateway): safety pipeline (mod + vision fallback) + Anthropi
 ## Verification
 
 ```bash
-pnpm --filter @vyora/gateway test
+pnpm --filter @layertone/gateway test
 ```
 
 ## Commit message

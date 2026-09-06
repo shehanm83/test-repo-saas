@@ -132,10 +132,10 @@ Run checks in `/api/generations/preflight` and store the final preflight result 
 ## Verification
 
 ```bash
-pnpm --filter @vyora/shared test
-pnpm --filter @vyora/api test -- generation-package
-pnpm --filter @vyora/web test
-pnpm --filter @vyora/worker test
+pnpm --filter @layertone/shared test
+pnpm --filter @layertone/api test -- generation-package
+pnpm --filter @layertone/web test
+pnpm --filter @layertone/worker test
 ```
 
 ## Commit Message

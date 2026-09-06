@@ -30,5 +30,6 @@ prompt: |
   Profile and cover guidance:
   Build for {{output.platform_label}} at {{output.width}} x {{output.height}} ({{output.aspect_ratio}}).
   Keep the result clean, recognizable, and resilient to circular profile crops or cover overlays.
+  Keep important product or subject edges away from every final crop boundary.
 negative_prompt: |
-  tiny details, important edge content, readable text, fake logo
+  tiny details, important edge content, readable text, fake logo, cropped product, clipped subject

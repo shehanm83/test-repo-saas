@@ -1,4 +1,4 @@
-import type { Adapters, Config } from "@vyora/shared";
+import type { Adapters, Config } from "@layertone/shared";
 
 import { GenerationApi } from "./generation";
 

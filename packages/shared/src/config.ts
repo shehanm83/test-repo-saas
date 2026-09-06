@@ -4,8 +4,18 @@ const baseSchema = z.object({
   DATABASE_URL: z.string().url().or(z.string().startsWith("postgres://")),
   APP_URL: z.string().url(),
 
+  QUICK_CREATE_V2_ENABLED: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
+  QUICK_CREATE_V2_ROLLOUT_PERCENT: z.coerce.number().int().min(0).max(100).default(100),
+
   AUTH_MODE: z.enum(["clerk", "dev"]).default("dev"),
-  DEV_USER_ID: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional(),
+  DEV_USER_ID: z
+    .string()
+    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+    .optional(),
+  ADMIN_EMAILS: z.string().optional(),
   CLERK_PUBLISHABLE_KEY: z.string().optional(),
   CLERK_SECRET_KEY: z.string().optional(),
   CLERK_WEBHOOK_SECRET: z.string().optional(),
@@ -30,6 +40,7 @@ const baseSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_FREE: z.string().optional(),
+  STRIPE_PRICE_SUBSCRIPTION: z.string().optional(),
   STRIPE_PRICE_STARTER: z.string().optional(),
   STRIPE_PRICE_PRO: z.string().optional(),
   STRIPE_PRICE_BUSINESS: z.string().optional(),
@@ -128,6 +139,10 @@ export type RawEnv = z.input<typeof baseSchema>;
 function shape(env: z.output<typeof baseSchema>) {
   return {
     appUrl: env.APP_URL,
+    features: {
+      quickCreateV2: env.QUICK_CREATE_V2_ENABLED,
+      quickCreateV2RolloutPercent: env.QUICK_CREATE_V2_ROLLOUT_PERCENT,
+    },
     db: { url: env.DATABASE_URL },
     auth:
       env.AUTH_MODE === "clerk"
@@ -165,6 +180,7 @@ function shape(env: z.output<typeof baseSchema>) {
       webhookSecret: env.STRIPE_WEBHOOK_SECRET,
       prices: {
         free: env.STRIPE_PRICE_FREE,
+        subscription: env.STRIPE_PRICE_SUBSCRIPTION ?? env.STRIPE_PRICE_PRO,
         starter: env.STRIPE_PRICE_STARTER,
         pro: env.STRIPE_PRICE_PRO,
         business: env.STRIPE_PRICE_BUSINESS,
@@ -200,7 +216,24 @@ function shape(env: z.output<typeof baseSchema>) {
   };
 }
 
-export type Config = ReturnType<typeof shape>;
+type ShapedConfig = ReturnType<typeof shape>;
+export type Config = Omit<ShapedConfig, "features"> & {
+  /** Optional so existing test/dev adapter fixtures remain source-compatible. */
+  features?: ShapedConfig["features"];
+};
+
+export function isQuickCreateV2Enabled(config: Config, workspaceId?: string | null): boolean {
+  if (!(config.features?.quickCreateV2 ?? false)) return false;
+  const rollout = config.features?.quickCreateV2RolloutPercent ?? 100;
+  if (rollout >= 100 || !workspaceId) return rollout > 0;
+  if (rollout <= 0) return false;
+  let hash = 2_166_136_261;
+  for (const character of workspaceId) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16_777_619);
+  }
+  return (hash >>> 0) % 100 < rollout;
+}
 
 export function parseConfig(
   env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,

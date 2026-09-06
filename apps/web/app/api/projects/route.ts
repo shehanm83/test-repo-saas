@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server";
 
-import { createDb, createProjectFromGeneration } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
+import { billingSegmentFor } from "@layertone/billing";
+import { createDb, createProjectFromGeneration } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request) {
-  const { session } = await getSessionWorkspace();
+  const { session, workspace } = await getSessionWorkspace();
   if (!session.workspaceId) {
     return NextResponse.json({ error: "no-workspace" }, { status: 400 });
+  }
+  if (billingSegmentFor(workspace?.planCode) === "free") {
+    return NextResponse.json(
+      { error: "saved-projects-unavailable-on-free" },
+      { status: 403 },
+    );
   }
 
   const input = (await request.json().catch(() => null)) as { generationId?: unknown } | null;

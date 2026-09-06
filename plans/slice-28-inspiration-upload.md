@@ -2,7 +2,7 @@
 
 **Phase:** 8 — Generation pipeline
 **Depends on:** 13
-**Spec references:** [Spec § 3.3.1 (inspiration upload endpoint)](../specs/2026-04-25-studio-v1-spec.md), [decision D15](../../../C--personal-saas-img-gen/memory/project_decisions.md).
+**Spec references:** [Spec § 3.3.1 (inspiration upload endpoint)](../specs/2026-04-25-layertone-v1-spec.md), [decision D15](../../../C--personal-saas-img-gen/memory/project_decisions.md).
 
 **Definition of done:**
 - `InspirationUploadApi.create({ workspaceId, userId, file })` validates + sanitizes + stores → returns `{ uploadId, s3Key, width, height }`
@@ -29,9 +29,9 @@
 // packages/api/src/inspiration.ts
 import { randomUUID } from "node:crypto";
 import { fileTypeFromBuffer } from "file-type";
-import { keys } from "@vyora/storage";
+import { keys } from "@layertone/storage";
 import { reencodeImage } from "./sanitize/image.js";
-import type { Adapters, Config } from "@vyora/shared";
+import type { Adapters, Config } from "@layertone/shared";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -65,7 +65,7 @@ export class InspirationUploadApi {
 ```
 
 ```bash
-pnpm --filter @vyora/api add file-type
+pnpm --filter @layertone/api add file-type
 ```
 
 - [ ] **Step 2 — Test**
@@ -139,7 +139,7 @@ git commit -m "feat(api): inspiration image upload + claim with mime-sniff and 2
 ## Verification
 
 ```bash
-pnpm --filter @vyora/api test
+pnpm --filter @layertone/api test
 ```
 
 ## Commit message

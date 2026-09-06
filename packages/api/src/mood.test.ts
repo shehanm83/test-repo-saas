@@ -1,4 +1,4 @@
-import type { Config } from "@vyora/shared/config";
+import type { Config } from "@layertone/shared/config";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   setBindings: vi.fn(async () => undefined),
 }));
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: mocks.createDb,
   listAvailableMoods: mocks.listAvailableMoods,
   adminListMoods: mocks.adminListMoods,
@@ -59,5 +59,13 @@ describe("MoodApi", () => {
     });
 
     expect(mood.slug).toBe("minimal-tech");
+  });
+
+  it("does not reset recipe fields during a lifecycle-only update", async () => {
+    await api.adminUpdate("m1", { status: "published" });
+
+    expect(mocks.adminUpdateMood).toHaveBeenLastCalledWith(expect.anything(), "m1", {
+      status: "published",
+    });
   });
 });

@@ -1,24 +1,42 @@
-import { StockApi } from "@vyora/api/stock";
-import { loadConfig } from "@vyora/shared/config";
+import { billingSegmentFor } from "@layertone/billing";
+import { StockApi } from "@layertone/api/stock";
+import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
+import { getSessionWorkspace } from "@/lib/auth/server";
+import { createGlobalStorageAdapter } from "@/lib/server/adapters";
+import { UpgradeInline } from "@/components/billing/upgrade-inline";
 
 export default async function StockPage() {
-  const items = await new StockApi(loadConfig(), {} as never).adminList().catch(() => []);
+  const { workspace } = await getSessionWorkspace();
+  const isFree = billingSegmentFor(workspace?.planCode) === "free";
+  const allItems = await new StockApi(loadConfig(), {} as never).adminList().catch(() => []);
+  const items = isFree ? allItems.slice(0, 6) : allItems;
+  const storage = createGlobalStorageAdapter();
+  const itemsWithUrls = await Promise.all(
+    items.map(async (item) => ({
+      ...item,
+      url: await storage.getSignedUrl(item.s3Key, 60 * 60).catch(() => null),
+    })),
+  );
 
   return (
     <div className="page page--wide">
       <div className="page__head">
         <div>
-          <div
-            className="t-eyebrow"
-            style={{ color: "var(--studio-violet)", marginBottom: 6 }}
-          >
+          <div className="t-eyebrow" style={{ color: "var(--layertone-violet)", marginBottom: 6 }}>
             <I.Image size={11} style={{ verticalAlign: "-1px" }} /> Reference assets
           </div>
           <h1 className="page__title">Stock library</h1>
           <p className="page__sub">
-            Curated stock used by moods, templates, and editorial references.
+            {isFree ? (
+              <>
+                Free workspaces can preview a limited stock set.{" "}
+                <UpgradeInline feature="stock" buttonLabel="Unlock the full library →" />
+              </>
+            ) : (
+              "Curated stock used by moods, templates, and editorial references."
+            )}
           </p>
         </div>
       </div>
@@ -56,7 +74,7 @@ export default async function StockPage() {
             gap: 12,
           }}
         >
-          {items.map((item) => (
+          {itemsWithUrls.map((item) => (
             <div
               key={item.id}
               className="card"
@@ -69,10 +87,19 @@ export default async function StockPage() {
               <div
                 style={{
                   aspectRatio: "1/1",
-                  background:
-                    "linear-gradient(135deg, var(--cal-gray-100) 0%, var(--cal-gray-200) 100%)",
+                  background: "var(--cal-gray-100)",
+                  overflow: "hidden",
                 }}
-              />
+              >
+                {item.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.url}
+                    alt={item.kind}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : null}
+              </div>
               <div style={{ padding: "10px 14px" }}>
                 <div style={{ fontSize: 13, fontWeight: 500 }}>{item.kind}</div>
                 <div
@@ -89,11 +116,7 @@ export default async function StockPage() {
                     <span style={{ color: "var(--fg-4)" }}>untagged</span>
                   ) : (
                     item.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="pill"
-                        style={{ height: 18, fontSize: 10 }}
-                      >
+                      <span key={t} className="pill" style={{ height: 18, fontSize: 10 }}>
                         {t}
                       </span>
                     ))

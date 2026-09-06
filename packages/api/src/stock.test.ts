@@ -1,4 +1,4 @@
-import type { Config } from "@vyora/shared/config";
+import type { Config } from "@layertone/shared/config";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   putBytes: vi.fn(async () => undefined),
 }));
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: mocks.createDb,
   adminInsertStock: mocks.adminInsertStock,
   adminListStock: mocks.adminListStock,
@@ -29,6 +29,8 @@ describe("StockApi", () => {
   it("uploads an svg asset", async () => {
     const asset = await api.adminUpload({
       kind: "icon",
+      category: "food-dietary",
+      label: "Arrow Icon",
       tags: ["arrow"],
       license: "internal",
       file: {

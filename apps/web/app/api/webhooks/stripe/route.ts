@@ -1,5 +1,5 @@
-import { StripeWebhookHandler } from "@vyora/billing";
-import { loadConfig } from "@vyora/shared/config";
+import { StripeWebhookHandler } from "@layertone/billing";
+import { loadConfig } from "@layertone/shared/config";
 
 export async function POST(request: Request): Promise<Response> {
   const rawBody = await request.text();

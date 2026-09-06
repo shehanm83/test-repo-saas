@@ -3,6 +3,7 @@ name: Quick Create Image Only
 category: image_generation
 version: 1
 compatible_models:
+  - gpt-image-2
   - gpt-image-1
   - flux-1.1-pro
   - recraft-v3
@@ -57,10 +58,12 @@ prompt: |
   {{overlay_summary}}
 
   Make the composition clean, production-ready, and suitable for the selected output size.
+  Keep the main subject fully inside the frame with all edges visible; zoom out rather than crop.
   Do not render readable text, prices, QR codes, URLs, phone numbers, or logos inside the image.
   If the user requested banner or sign text, leave a clean blank area for renderer-owned text overlay instead.
   Use original character designs rather than named copyrighted characters.
 negative_prompt: |
   misspelled text, unreadable text, fake logo, fake QR code, random pricing,
   watermark, UI screenshot, distorted objects, cluttered composition,
-  copyrighted character, named superhero, movie character likeness
+  copyrighted character, named superhero, movie character likeness,
+  cropped main subject, subject cut off, out-of-frame subject

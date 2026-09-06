@@ -17,13 +17,13 @@ export const workspaces = pgTable("workspaces", {
     .references(() => users.id, { onDelete: "restrict" }),
   name: text("name").notNull(),
   planCode: text("plan_code", {
-    enum: ["free", "starter", "pro", "business", "agency"],
+    enum: ["free", "subscription", "payg", "starter", "pro", "business", "agency"],
   })
     .notNull()
     .default("free"),
   brandQuota: integer("brand_quota").notNull().default(1),
   seatQuota: integer("seat_quota").notNull().default(1),
-  monthlyCreditGrant: integer("monthly_credit_grant").notNull().default(30),
+  monthlyCreditGrant: integer("monthly_credit_grant").notNull().default(20),
   stripeCustomerId: text("stripe_customer_id"),
   status: text("status", { enum: ["active", "read_only", "suspended", "deleted"] })
     .notNull()

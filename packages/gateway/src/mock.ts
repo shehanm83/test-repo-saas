@@ -4,19 +4,46 @@ import { fileURLToPath } from "node:url";
 
 import sharp from "sharp";
 
-import { promptFingerprint } from "./gateway.js";
-import type { ImageProvider, TextProvider, VisionProvider, ModerationProvider } from "./types.js";
-import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@vyora/shared";
+import { promptFingerprint } from "./gateway";
+import type {
+  ImageProvider,
+  ModerationProvider,
+  ProviderCapabilities,
+  TextProvider,
+  VisionProvider,
+} from "./types";
+import type {
+  AIImageRequest,
+  AIImageResponse,
+  AITextRequest,
+  AITextResponse,
+} from "@layertone/shared";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SAMPLES_DIR = resolve(__dirname, "../samples");
 const SAMPLE_COUNT = 4;
 
 export class MockImageProvider implements ImageProvider {
-  capabilities = {
-    modelCodes: ["flux-1.1-pro", "gpt-image-2", "gpt-image-1", "recraft-v3", "bedrock-sd35", "nova-canvas"],
+  capabilities: ProviderCapabilities = {
+    modelCodes: [
+      "flux-1.1-pro",
+      "gpt-image-2",
+      "gpt-image-1",
+      "recraft-v3",
+      "bedrock-sd35",
+      "nova-canvas",
+    ],
     supportsImageToImage: true,
     supportsMultiReference: true,
+    maxReferences: 64,
+    referenceRoles: [
+      "product_identity",
+      "style_reference",
+      "composition_reference",
+      "brand_reference",
+      "inspiration",
+    ],
+    supportsIdentityPreservation: true,
     tier: "fast" as const,
   };
 
@@ -42,7 +69,7 @@ export class MockImageProvider implements ImageProvider {
 
     const png = existsSync(samplePath)
       ? await sharp(samplePath)
-          .resize(req.width, req.height, { fit: "cover" })
+          .resize(req.width, req.height, { fit: "cover", position: "attention" })
           .png()
           .toBuffer()
       : await sharp({
@@ -64,9 +91,10 @@ export class MockImageProvider implements ImageProvider {
       imageBytes: png,
       modelUsedCode: req.modelCode,
       upstreamCostCents: 0,
-      latencyMs: this.maxDelayMs > 0
-        ? Math.round(this.minDelayMs + (this.maxDelayMs - this.minDelayMs) * 0.5)
-        : 5,
+      latencyMs:
+        this.maxDelayMs > 0
+          ? Math.round(this.minDelayMs + (this.maxDelayMs - this.minDelayMs) * 0.5)
+          : 5,
       safetyFlags: [],
     };
   }
@@ -96,6 +124,10 @@ export class MockVisionProvider implements VisionProvider {
 }
 
 export class MockModerationProvider implements ModerationProvider {
-  async moderateText(_text: string) { return { flagged: false, categories: [] }; }
-  async moderateImage(_bytes: Uint8Array) { return { flagged: false, categories: [] }; }
+  async moderateText(_text: string) {
+    return { flagged: false, categories: [] };
+  }
+  async moderateImage(_bytes: Uint8Array) {
+    return { flagged: false, categories: [] };
+  }
 }

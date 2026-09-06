@@ -1,8 +1,8 @@
-import { NoopTelemetry } from "@vyora/observability/noop";
-import { InlineQueueAdapter } from "@vyora/queue";
-import type { AIProvider, Config } from "@vyora/shared";
-import { S3StorageAdapter } from "@vyora/storage";
-import { GenerationWorker } from "@vyora/worker/handler";
+import { NoopTelemetry } from "@layertone/observability/noop";
+import { InlineQueueAdapter } from "@layertone/queue";
+import type { AIProvider, Config } from "@layertone/shared";
+import { S3StorageAdapter } from "@layertone/storage";
+import { GenerationWorker } from "@layertone/worker/handler";
 
 const MOCK_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",

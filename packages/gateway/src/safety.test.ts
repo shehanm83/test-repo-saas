@@ -17,7 +17,9 @@ describe("preFlightModerate", () => {
       moderateImage: vi.fn(),
     };
     let caught: unknown;
-    await preFlightModerate(mp, "bad text").catch((e) => { caught = e; });
+    await preFlightModerate(mp, "bad text").catch((e) => {
+      caught = e;
+    });
     const err = caught as Error & { code?: string };
     expect(err.message).toMatch(/safety-blocked/);
     expect(err.code).toBe("safety.text_blocked");
@@ -35,7 +37,9 @@ describe("postFlightModerate", () => {
       moderateImage: vi.fn(async () => ({ flagged: true, categories: ["nsfw"] })),
     };
     let caught: unknown;
-    await postFlightModerate(mp, new Uint8Array([1, 2])).catch((e) => { caught = e; });
+    await postFlightModerate(mp, new Uint8Array([1, 2])).catch((e) => {
+      caught = e;
+    });
     const err = caught as Error & { code?: string };
     expect(err.code).toBe("safety.image_blocked");
   });

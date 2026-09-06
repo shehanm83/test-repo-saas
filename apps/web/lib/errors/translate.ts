@@ -1,8 +1,10 @@
-import { CODES } from "@vyora/shared/errors/codes";
+import { CODES } from "@layertone/shared/errors/codes";
 
 export const FRIENDLY: Record<string, string> = {
   [CODES.BILLING_INSUFFICIENT_CREDITS]: "You don't have enough credits. Top up to continue.",
   [CODES.BILLING_WORKSPACE_READ_ONLY]: "Billing is paused. Please update your payment method.",
+  [CODES.BILLING_BRAND_QUOTA_EXCEEDED]:
+    "You've used every brand your plan includes. Upgrade to add another.",
   [CODES.GENERATION_CONCURRENT_CAP]: "You have too many generations running. Wait or upgrade your plan.",
   [CODES.SAFETY_TEXT_BLOCKED]: "Your brief was blocked by content moderation.",
   [CODES.SAFETY_IMAGE_BLOCKED]: "The generated image was blocked by content moderation.",

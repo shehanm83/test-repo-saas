@@ -1,25 +1,33 @@
-import { Ledger } from "@vyora/billing";
+import { Ledger } from "@layertone/billing";
 import {
   createDb,
   getGenerationFull,
   generationVariants,
-  generations,
   brandAssets,
   brands,
   moods,
   templates as templatesTable,
-} from "@vyora/db";
-import { tagSpan } from "@vyora/observability";
-import { render } from "@vyora/renderer";
+} from "@layertone/db";
+import { tagSpan } from "@layertone/observability";
+import { render } from "@layertone/renderer";
 import type {
   Adapters,
   Config,
   AIImageRequest,
+  AIImageReference,
   NormalizedCommercialGenerationInput,
+  QuickCreateAssetSnapshot,
+  QuickCreatePlan,
+  VariantSpec,
   ResolvedOutputTarget,
-} from "@vyora/shared";
-import { buildQuickCreatePrompt, type BuiltPrompt } from "@vyora/shared/prompt-templates";
-import { keys } from "@vyora/storage";
+} from "@layertone/shared";
+import {
+  buildQuickCreatePrompt,
+  NO_CROP_NEGATIVE_PROMPT,
+  NO_CROP_PROMPT_INSTRUCTION,
+  type BuiltPrompt,
+} from "@layertone/shared/prompt-templates";
+import { keys } from "@layertone/storage";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 // Backward-compatible: stored as JSON array string or legacy plain s3 key
@@ -33,9 +41,7 @@ function parseInspirationKeys(raw: string): string[] {
   return [raw];
 }
 
-function dedupeReferences(
-  refs: { s3Key: string; role: "brand_reference" | "inspiration"; weight: number }[],
-) {
+function dedupeReferences(refs: AIImageReference[]) {
   const seen = new Set<string>();
   return refs.filter((ref) => {
     const key = `${ref.role}:${ref.s3Key}`;
@@ -91,6 +97,7 @@ function buildLegacyPromptParts(args: {
   if (args.hasTextSafeZones) {
     promptParts.push("Leave the indicated negative space visually quiet for headline overlay.");
   }
+  promptParts.push(NO_CROP_PROMPT_INSTRUCTION);
   return promptParts;
 }
 
@@ -140,6 +147,7 @@ function buildQuickCreateNormalized(args: {
       formats: ["product_card"],
     },
     inspirationUploadIds: [],
+    stockAssetId: null,
     flags: {
       useBrandColors: flags.useBrandColors ?? true,
       useBrandLogo: flags.useBrandLogo ?? true,
@@ -159,13 +167,23 @@ function resolveWorkerTarget(
 ): ResolvedOutputTarget {
   if (outputTarget?.kind) return outputTarget;
   if (primaryOutputTarget?.kind) return primaryOutputTarget;
+  if (outputTarget) {
+    return {
+      kind: "image",
+      platform: null,
+      format: null,
+      aspectRatio: outputTarget.aspectRatio,
+      width: outputTarget.width,
+      height: outputTarget.height,
+    };
+  }
   return {
     kind: "image",
     platform: null,
     format: null,
-    aspectRatio: outputTarget.aspectRatio,
-    width: outputTarget.width,
-    height: outputTarget.height,
+    aspectRatio: "1:1",
+    width: 1080,
+    height: 1080,
   };
 }
 
@@ -177,33 +195,131 @@ function combineNegativePrompts(...values: Array<string | null | undefined>) {
   return combined || undefined;
 }
 
+const QA_DIMENSIONS = [
+  "intent_similarity",
+  "product_identity",
+  "subject_integrity",
+  "crop_safety",
+  "packaging_integrity",
+  "brand_fit",
+  "safe_zone_compliance",
+  "text_artifacts",
+  "overlay_legibility",
+  "mood_adherence",
+] as const;
+
+type QualityDimension = { score: number; reason: string; hardFailure: boolean };
+type QualityResult = {
+  status: "passed" | "soft_failed" | "hard_failed" | "unavailable";
+  rank: number | null;
+  result: {
+    version: 1;
+    summary: string;
+    evaluatedAt: string;
+    dimensions: Record<string, QualityDimension>;
+  } | null;
+};
+
+async function evaluateVariantQuality(args: {
+  adapters: Adapters;
+  config: Config;
+  outputS3Key: string;
+  brief: string;
+  variantSpec: VariantSpec | null;
+  referenceAssets: QuickCreateAssetSnapshot[];
+  moodName?: string | null;
+  target: ResolvedOutputTarget;
+}): Promise<QualityResult> {
+  try {
+    const { description } = await args.adapters.ai.describeImage(args.outputS3Key);
+    const response = await args.adapters.ai.generateText({
+      modelCode: args.config.ai.openaiTextModel,
+      systemPrompt:
+        "You are a strict commercial-image QA evaluator. Return JSON only. Do not assume an image is correct when evidence is absent.",
+      maxTokens: 1800,
+      prompt: [
+        `User request: ${args.brief}`,
+        `Planned direction: ${args.variantSpec ? JSON.stringify(args.variantSpec) : "not available"}`,
+        `Required references: ${JSON.stringify(args.referenceAssets.map((asset) => ({ role: asset.role, importance: asset.importance, purpose: asset.purpose })))}`,
+        `Mood: ${args.moodName ?? "brand only"}`,
+        `Output target: ${args.target.width}x${args.target.height} (${args.target.aspectRatio})`,
+        `Vision description of final rendered image: ${description}`,
+        "Score every required dimension from 0 to 100 and give a short evidence-based reason.",
+        `Dimensions: ${QA_DIMENSIONS.join(", ")}.`,
+        "Set hardFailure true only for a clearly wrong/missing product, missing/extra primary subject, destructive crop, illegible/distorted packaging, or severe generated text artifact.",
+        'Return exactly: {"summary":"...","dimensions":{"intent_similarity":{"score":0,"reason":"...","hardFailure":false}}}',
+      ].join("\n\n"),
+    });
+    const parsed = JSON.parse(
+      response.text
+        .trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/, ""),
+    ) as { summary?: unknown; dimensions?: Record<string, unknown> };
+    const dimensions: Record<string, QualityDimension> = {};
+    for (const name of QA_DIMENSIONS) {
+      const raw = parsed.dimensions?.[name] as Record<string, unknown> | undefined;
+      if (!raw || typeof raw.score !== "number" || typeof raw.reason !== "string") {
+        throw new Error(`qa-missing-${name}`);
+      }
+      dimensions[name] = {
+        score: Math.max(0, Math.min(100, Math.round(raw.score))),
+        reason: raw.reason.slice(0, 300),
+        hardFailure: raw.hardFailure === true,
+      };
+    }
+    const scores = Object.values(dimensions).map((dimension) => dimension.score);
+    const rank = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    const hardFailed = Object.values(dimensions).some(
+      (dimension) => dimension.hardFailure && dimension.score < 45,
+    );
+    const softFailed =
+      !hardFailed && Object.values(dimensions).some((dimension) => dimension.score < 65);
+    return {
+      status: hardFailed ? "hard_failed" : softFailed ? "soft_failed" : "passed",
+      rank,
+      result: {
+        version: 1,
+        summary:
+          typeof parsed.summary === "string"
+            ? parsed.summary.slice(0, 600)
+            : "Automated visual QA completed.",
+        evaluatedAt: new Date().toISOString(),
+        dimensions,
+      },
+    };
+  } catch (error) {
+    args.adapters.telemetry.captureException(error, { stage: "variant_quality_evaluation" });
+    return { status: "unavailable", rank: null, result: null };
+  }
+}
+
 async function persistQuickPromptMetadata(
   dbAdmin: DbAdmin,
-  generationId: string,
-  settings: WorkerSettings,
+  variantId: string,
   prompt: BuiltPrompt,
+  references: AIImageReference[],
+  provider: string,
+  variantSpec: VariantSpec | null,
 ) {
   await dbAdmin
-    .update(generations)
+    .update(generationVariants)
     .set({
-      settings: {
-        ...settings,
-        commercial: {
-          ...settings.commercial,
-          prompt: {
-            prompt_template_id: prompt.templateId,
-            prompt_template_version: prompt.templateVersion,
-            prompt_template_path: prompt.path,
-            rendered_prompt: prompt.prompt,
-            rendered_negative_prompt: prompt.negativePrompt ?? null,
-            overlay_slots: prompt.overlaySlots,
-            compatible_models: prompt.modelInstructions.compatibleModels,
-            safety_rules: prompt.modelInstructions.safetyRules,
-          },
-        },
+      promptMetadata: {
+        prompt_template_id: prompt.templateId,
+        prompt_template_version: prompt.templateVersion,
+        prompt_template_path: prompt.path,
+        rendered_prompt: prompt.prompt,
+        rendered_negative_prompt: prompt.negativePrompt ?? null,
+        overlay_slots: prompt.overlaySlots,
+        compatible_models: prompt.modelInstructions.compatibleModels,
+        safety_rules: prompt.modelInstructions.safetyRules,
+        reference_ordering: references,
+        provider_model: provider,
+        variant_spec: variantSpec,
       },
     })
-    .where(eq(generations.id, generationId));
+    .where(eq(generationVariants.id, variantId));
 }
 
 async function loadRendererLogo(
@@ -244,10 +360,12 @@ type WorkerSettings = {
   flags?: Record<string, boolean>;
   usePremiumModel?: boolean;
   commercial?: CommercialSettings;
+  typed_assets?: QuickCreateAssetSnapshot[];
+  creative_plan?: QuickCreatePlan | null;
 };
 
 type CommercialSettings = {
-  mode?: "quick" | "campaign_builder" | "legacy";
+  mode?: "quick" | "legacy";
   creation_type?: NormalizedCommercialGenerationInput["creationType"];
   project_id?: string | null;
   product_refs?: Array<
@@ -262,6 +380,7 @@ type CommercialSettings = {
   outputs?: NormalizedCommercialGenerationInput["outputs"];
   primary_output_target?: ResolvedOutputTarget;
   prompt?: unknown;
+  creative_plan?: QuickCreatePlan;
 };
 
 type LogoAssetRow = {
@@ -326,12 +445,46 @@ export class GenerationWorker {
       : null;
 
     const settings = gen.settings as WorkerSettings;
+    const typedAssets = settings.typed_assets ?? [];
+    const variantSpec = (v0.variantSpec ??
+      settings.creative_plan?.variants.find(
+        (spec) => spec.index === gen.variants.findIndex((item) => item.id === v0.id),
+      ) ??
+      null) as VariantSpec | null;
 
     const commercial = settings.commercial;
+    const refinementSpec = v0.refinementSpec as { instruction?: string; locks?: string[] } | null;
+    const replacesMood = Boolean(
+      refinementSpec?.instruction &&
+      !refinementSpec.locks?.includes("mood") &&
+      /\b(?:switch|change|replace|remove|drop|use)\b.{0,48}\b(?:mood|style|visual direction)\b/i.test(
+        refinementSpec.instruction,
+      ),
+    );
+    const effectiveMood = replacesMood ? null : mood;
+    if (commercial?.mode === "quick") {
+      await dbAdmin
+        .update(generationVariants)
+        .set({ qaStatus: "pending" })
+        .where(eq(generationVariants.id, job.variantId));
+    }
     const selectedLogoIds = commercial?.brand_logo_asset_ids ?? [];
-    let selectedLogoAssets: LogoAssetRow[] = [];
+    const useBrandLogo = settings.flags?.useBrandLogo ?? true;
+    let selectedLogoAssets: LogoAssetRow[] = typedAssets
+      .filter((asset) => asset.role === "logo_overlay")
+      .map((asset) => ({
+        s3Key: asset.s3Key,
+        mimeType: asset.mimeType,
+        width: null,
+        height: null,
+      }));
     let selectedLogoRefs: { s3Key: string; role: "brand_reference"; weight: number }[] = [];
-    if (gen.brandId && (settings.flags?.useBrandLogo ?? true) && selectedLogoIds.length > 0) {
+    if (
+      gen.brandId &&
+      useBrandLogo &&
+      selectedLogoIds.length > 0 &&
+      selectedLogoAssets.length === 0
+    ) {
       selectedLogoAssets = await dbAdmin
         .select({
           s3Key: brandAssets.s3Key,
@@ -355,6 +508,29 @@ export class GenerationWorker {
           weight: 0.95,
         }));
       }
+    }
+
+    // Nothing named a logo, so fall back to the one the brand kit marks primary.
+    // Overlay only — an unrequested logo should not steer the image model.
+    let primaryLogoAsset: LogoAssetRow | undefined;
+    if (gen.brandId && useBrandLogo && selectedLogoAssets.length === 0) {
+      [primaryLogoAsset] = await dbAdmin
+        .select({
+          s3Key: brandAssets.s3Key,
+          mimeType: brandAssets.mimeType,
+          width: brandAssets.width,
+          height: brandAssets.height,
+        })
+        .from(brandAssets)
+        .where(
+          and(
+            eq(brandAssets.workspaceId, job.workspaceId),
+            eq(brandAssets.brandId, gen.brandId),
+            eq(brandAssets.kind, "logo"),
+            eq(brandAssets.isPrimary, true),
+          ),
+        )
+        .limit(1);
     }
 
     // Brand grounding via embedding similarity. Logo assets are handled explicitly above.
@@ -390,6 +566,27 @@ export class GenerationWorker {
           weight: influenceWeight,
         }))
       : [];
+    const variantReferenceAssets =
+      (v0.referenceSnapshots as QuickCreateAssetSnapshot[] | null) ??
+      typedAssets.filter((asset) => !asset.role.endsWith("_overlay"));
+    const typedReferences: AIImageReference[] = variantReferenceAssets
+      .filter((asset) =>
+        [
+          "product_identity",
+          "style_reference",
+          "composition_reference",
+          "brand_reference",
+        ].includes(asset.role),
+      )
+      .sort((a, b) => a.providerOrder - b.providerOrder)
+      .map((asset) => ({
+        s3Key: asset.s3Key,
+        role: asset.role as AIImageReference["role"],
+        weight: asset.weight,
+        importance: asset.importance,
+        locked: asset.locked,
+        ...(asset.sourceAssetId ? { sourceAssetId: asset.sourceAssetId } : {}),
+      }));
 
     const target = resolveWorkerTarget(settings.output_target, commercial?.primary_output_target);
     const quickPrompt =
@@ -411,16 +608,17 @@ export class GenerationWorker {
                   voiceNotes: brand.voiceNotes,
                 }
               : null,
-            mood: mood
+            mood: effectiveMood
               ? {
-                  name: mood.name,
-                  promptModifiers: mood.promptModifiers,
-                  negativePrompts: mood.negativePrompts,
-                  accentPalette: mood.accentPalette,
-                  decorationTags: mood.decorationTags,
+                  name: effectiveMood.name,
+                  promptModifiers: effectiveMood.promptModifiers,
+                  negativePrompts: effectiveMood.negativePrompts,
+                  accentPalette: effectiveMood.accentPalette,
+                  decorationTags: effectiveMood.decorationTags,
                 }
               : null,
             outputFormat: commercial.outputs?.formats[0] ?? target.format ?? target.aspectRatio,
+            variantIndex: variantSpec?.index ?? 0,
           })
         : null;
 
@@ -443,9 +641,31 @@ export class GenerationWorker {
         "Compose for a very wide 1.91:1 final output. Keep the full subject, product edges, and any important visual details inside the vertical center safe area with quiet margin at the top and bottom.",
       );
     }
-
-    if (quickPrompt) {
-      await persistQuickPromptMetadata(dbAdmin, job.generationId, settings, quickPrompt);
+    promptParts.push(
+      `The provider source may be the closest supported ratio. Compose so an intentional center-weighted smart crop or background extension to ${target.width}x${target.height} (${target.aspectRatio}) preserves every locked subject and fills the canvas without bars.`,
+    );
+    if (variantSpec) {
+      promptParts.push(
+        `Creative direction ${variantSpec.index + 1} — ${variantSpec.label}: ${variantSpec.concept}`,
+        `Composition: ${variantSpec.composition}. Camera: ${variantSpec.camera}. Lighting: ${variantSpec.lighting}. Art direction: ${variantSpec.artDirection}.`,
+      );
+      if (variantSpec.ancestry) {
+        promptParts.push(
+          `This is a constrained refinement. Apply only this requested change: ${variantSpec.ancestry.changeRequest}`,
+          `Preserve locked context: ${
+            Object.entries(variantSpec.locks)
+              .filter(([, locked]) => locked)
+              .map(([name]) => name)
+              .join(", ") || "none"
+          }.`,
+        );
+      }
+      if (variantSpec.moodRecipe) {
+        promptParts.push(
+          `Mood snapshot ${variantSpec.moodRecipe.name} v${variantSpec.moodRecipe.version}: ${variantSpec.moodRecipe.visual.promptModifiers}`,
+          `Mood-specific negative constraints: ${variantSpec.moodRecipe.negativeConstraints.join(", ") || "none"}.`,
+        );
+      }
     }
 
     // Pre-flight moderation
@@ -468,20 +688,62 @@ export class GenerationWorker {
       !this.config.ai.replicateToken &&
       !this.config.ai.recraftKey;
     const modelCode =
-      settings.usePremiumModel || openAIOnlyRealMode
+      v0.modelUsed ??
+      (settings.usePremiumModel || openAIOnlyRealMode
         ? this.config.ai.openaiImageModel
-        : tpl.preferredModel;
-    const negPrompt = combineNegativePrompts(quickPrompt?.negativePrompt, mood?.negativePrompts);
+        : tpl.preferredModel);
+    if (quickPrompt && !quickPrompt.modelInstructions.compatibleModels.includes(modelCode)) {
+      await this.markFailed(
+        dbAdmin,
+        job,
+        "model_prompt_incompatible",
+        { modelCode, compatibleModels: quickPrompt.modelInstructions.compatibleModels },
+        "failed",
+      );
+      await this.releaseCredits(job, v0.creditCost);
+      return;
+    }
+    const negPrompt = combineNegativePrompts(
+      quickPrompt?.negativePrompt,
+      effectiveMood?.negativePrompts,
+      quickPrompt ? undefined : NO_CROP_NEGATIVE_PROMPT,
+    );
+    const allReferences = dedupeReferences([
+      ...typedReferences,
+      ...selectedLogoRefs,
+      ...brandRefs.map((ref) => ({ ...ref, importance: "supporting" as const })),
+      ...inspirationRef.map((ref) => ({ ...ref, importance: "supporting" as const })),
+    ]);
+    const essentialReferences = allReferences.filter(
+      (reference) => reference.importance === "essential",
+    );
+    const references = [
+      ...essentialReferences,
+      ...allReferences
+        .filter((reference) => reference.importance !== "essential")
+        .slice(0, Math.max(0, 16 - essentialReferences.length)),
+    ];
     const baseReq: AIImageRequest = {
       modelCode,
       prompt: promptParts.join("\n\n"),
       ...(negPrompt ? { negativePrompt: negPrompt } : {}),
-      references: dedupeReferences([...selectedLogoRefs, ...brandRefs, ...inspirationRef]),
+      references,
       aspectRatio: target.aspectRatio,
       width: target.width,
       height: target.height,
       safetyLevel: "default",
+      ...(variantSpec ? { seed: variantSpec.seed } : {}),
     };
+    if (quickPrompt) {
+      await persistQuickPromptMetadata(
+        dbAdmin,
+        job.variantId,
+        { ...quickPrompt, prompt: baseReq.prompt },
+        references,
+        modelCode,
+        variantSpec,
+      );
+    }
 
     // Generate with retry, then provider fallback when that provider is configured.
     let imageRes;
@@ -506,6 +768,9 @@ export class GenerationWorker {
         }
 
         try {
+          if (references.some((reference) => reference.importance === "essential")) {
+            throw retryError;
+          }
           const { references: _r, ...baseReqNoRefs } = baseReq;
           imageRes = await this.adapters.ai.generateImage({
             ...baseReqNoRefs,
@@ -547,13 +812,23 @@ export class GenerationWorker {
     await this.adapters.storage.putBytes(bgKey, imageRes.imageBytes, "image/png");
 
     // Render template overlay
-    const logoOverlay = await loadRendererLogo(this.adapters.storage, selectedLogoAssets[0]);
+    const logoOverlay = await loadRendererLogo(
+      this.adapters.storage,
+      selectedLogoAssets[0] ?? primaryLogoAsset,
+    );
     const overlaySlots = quickPrompt?.overlaySlots;
     const renderSlots = {
-      headline: overlaySlots?.headline ?? gen.brief,
-      ...(overlaySlots?.subtitle ? { subhead: overlaySlots.subtitle } : {}),
-      ...(overlaySlots?.cta ? { cta: overlaySlots.cta } : {}),
+      ...(overlaySlots ?? {}),
     };
+    const certificationAssets = await Promise.all(
+      typedAssets
+        .filter((asset) => asset.role === "certification_overlay")
+        .map(async (asset) => ({
+          bytes: await this.adapters.storage.getBytes(asset.s3Key),
+          mimeType: asset.mimeType,
+          ...(asset.purpose ? { label: asset.purpose } : {}),
+        })),
+    );
     const rendered = await render(
       {
         templateJsxSource: tpl.jsxSource,
@@ -571,12 +846,14 @@ export class GenerationWorker {
             useFonts: settings.flags?.useBrandFonts ?? true,
           },
         },
-        ...(mood
+        ...(effectiveMood
           ? {
               mood: {
-                accentPalette: mood.accentPalette ?? [],
-                decorationTags: mood.decorationTags ?? [],
-                ...(mood.typographyHint ? { typographyHint: mood.typographyHint } : {}),
+                accentPalette: effectiveMood.accentPalette ?? [],
+                decorationTags: effectiveMood.decorationTags ?? [],
+                ...(effectiveMood.typographyHint
+                  ? { typographyHint: effectiveMood.typographyHint }
+                  : {}),
                 flags: {
                   useDecorations: settings.flags?.applyMoodDecorations ?? true,
                   useAccentColors: settings.flags?.applyMoodAccentColors ?? true,
@@ -585,6 +862,7 @@ export class GenerationWorker {
             }
           : {}),
         slots: renderSlots,
+        ...(certificationAssets.length ? { exactOverlay: { certificationAssets } } : {}),
         output: { width: target.width, height: target.height },
       },
       { requiresBrowser: tpl.requiresBrowserRender },
@@ -592,6 +870,64 @@ export class GenerationWorker {
 
     const outKey = keys.generationVariant(job.workspaceId, job.generationId, job.variantId);
     await this.adapters.storage.putBytes(outKey, rendered.pngBytes, "image/png");
+
+    const quality =
+      commercial?.mode === "quick"
+        ? await evaluateVariantQuality({
+            adapters: this.adapters,
+            config: this.config,
+            outputS3Key: outKey,
+            brief: gen.brief,
+            variantSpec,
+            referenceAssets: variantReferenceAssets,
+            moodName: variantSpec?.moodRecipe?.name ?? effectiveMood?.name ?? null,
+            target,
+          })
+        : ({ status: "unavailable", rank: null, result: null } as const);
+
+    // One automatic retry is allowed only for a vision-confirmed hard failure. It reuses the
+    // existing reservation, so the user is never charged an extra credit for the QA retry.
+    if (quality.status === "hard_failed" && v0.autoRetryCount < 1) {
+      const retrySeed = Math.floor(Math.random() * 2_147_483_647);
+      const retryVariantSpec = variantSpec ? { ...variantSpec, seed: retrySeed } : null;
+      await dbAdmin
+        .update(generationVariants)
+        .set({
+          status: "queued",
+          qaStatus: "hard_failed",
+          qaResult: {
+            ...quality.result,
+            retryPolicy: {
+              automatic: true,
+              attempt: 1,
+              maxAttempts: 1,
+              additionalUserCredits: 0,
+            },
+          },
+          qaRank: quality.rank,
+          autoRetryCount: 1,
+          seed: retrySeed,
+          variantSpec: retryVariantSpec,
+        })
+        .where(eq(generationVariants.id, job.variantId));
+      try {
+        await this.adapters.queue.send(this.config.queue.generationsQueue, job, {
+          idempotencyKey: `${job.variantId}:qa-retry:1`,
+        });
+        this.adapters.telemetry.metric("variant.qa_auto_retry", 1, {
+          reason: "hard_failure",
+        });
+        return;
+      } catch (error) {
+        this.adapters.telemetry.captureException(error, { stage: "variant_qa_retry_enqueue" });
+        // Preserve the usable first result when retry scheduling itself is unavailable.
+      }
+    }
+
+    const persistedQualityResult =
+      quality.result && v0.autoRetryCount > 0 && v0.qaResult
+        ? { ...quality.result, retryHistory: [v0.qaResult] }
+        : quality.result;
 
     // Commit credits
     const ledger = new Ledger(dbAdmin, this.adapters.telemetry);
@@ -611,6 +947,9 @@ export class GenerationWorker {
         backgroundS3Key: bgKey,
         modelUsed: imageRes.modelUsedCode,
         renderMs: rendered.renderMs,
+        qaStatus: quality.status,
+        qaResult: persistedQualityResult,
+        qaRank: quality.rank,
         completedAt: sql`now()`,
       })
       .where(eq(generationVariants.id, job.variantId));

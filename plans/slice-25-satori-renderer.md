@@ -2,12 +2,12 @@
 
 **Phase:** 7 — Template renderer
 **Depends on:** 13, 17
-**Spec references:** [Architecture § 5 (Template renderer)](../specs/2026-04-25-studio-v1-architecture.md), [Spec § 3.4 step 8 (renderer call)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Architecture § 5 (Template renderer)](../specs/2026-04-25-layertone-v1-architecture.md), [Spec § 3.4 step 8 (renderer call)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
-- `@vyora/renderer` package exposes `renderTemplate(args)` returning `{ pngBytes, renderMs }`
+- `@layertone/renderer` package exposes `renderTemplate(args)` returning `{ pngBytes, renderMs }`
 - Loads template JSX source from DB and compiles in a sandboxed Function — input is the template's `jsx_source` text string with a known parameter shape: `({ background, brand, mood, slots, output }) => SatoriElement`
-- Loads brand fonts from `@vyora/storage` (cached in `/tmp` for warm starts)
+- Loads brand fonts from `@layertone/storage` (cached in `/tmp` for warm starts)
 - Renders via Satori → SVG → Resvg → PNG at exact pixel dimensions per `output.width × output.height`
 - Tests cover small/large/tall/wide aspect ratios with a fixture template
 
@@ -30,8 +30,8 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/renderer add satori @resvg/resvg-js
-pnpm --filter @vyora/renderer add @vyora/shared@workspace:*
+pnpm --filter @layertone/renderer add satori @resvg/resvg-js
+pnpm --filter @layertone/renderer add @layertone/shared@workspace:*
 ```
 
 - [ ] **Step 2 — Types**
@@ -76,7 +76,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const cacheDir = (() => {
-  try { return mkdtempSync(join(tmpdir(), "studio-fonts-")); } catch { return "/tmp"; }
+  try { return mkdtempSync(join(tmpdir(), "layertone-fonts-")); } catch { return "/tmp"; }
 })();
 
 interface FontEntry { family: string; weight: string; data: Uint8Array }
@@ -251,7 +251,7 @@ git commit -m "feat(renderer): Satori + Resvg template renderer with brand-font 
 ## Verification
 
 ```bash
-pnpm --filter @vyora/renderer test
+pnpm --filter @layertone/renderer test
 ```
 
 ## Commit message

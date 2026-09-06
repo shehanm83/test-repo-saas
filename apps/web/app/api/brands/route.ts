@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { BrandApi } from "@vyora/api/brand";
-import { createDb, listBrands } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
+import { BrandApi } from "@layertone/api/brand";
+import { createDb, listBrands } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
+import { apiError } from "@/lib/server/api-error";
 
 export async function GET() {
   const { session } = await getSessionWorkspace();
@@ -23,7 +24,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "no-workspace" }, { status: 400 });
   }
 
-  const api = new BrandApi(loadConfig(), createServerAdapters() as never);
-  const payload = await api.create(session.workspaceId, await request.json());
-  return NextResponse.json(payload);
+  try {
+    const api = new BrandApi(loadConfig(), createServerAdapters() as never);
+    const payload = await api.create(session.workspaceId, await request.json());
+    return NextResponse.json(payload);
+  } catch (error) {
+    return apiError(error);
+  }
 }

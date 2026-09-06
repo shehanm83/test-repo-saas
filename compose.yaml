@@ -1,17 +1,17 @@
-name: studio-v1
+name: layertone-v1
 
 services:
   postgres:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_USER: studio
+      POSTGRES_USER: layertone
       POSTGRES_PASSWORD: dev
-      POSTGRES_DB: studio
+      POSTGRES_DB: layertone
     ports: ["5432:5432"]
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U studio -d studio"]
+      test: ["CMD-SHELL", "pg_isready -U layertone -d layertone"]
       interval: 5s
       timeout: 3s
       retries: 10

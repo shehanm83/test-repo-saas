@@ -1,4 +1,4 @@
-import type { Adapters, Config } from "@vyora/shared";
+import type { Adapters, Config } from "@layertone/shared";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { GenerationApi } from "./generation.js";
@@ -12,9 +12,20 @@ vi.mock("./aup", () => ({
   assertBriefAllowed: vi.fn(async () => undefined),
 }));
 
-// Mock all @vyora/db imports
-vi.mock("@vyora/db", () => ({
-  createDb: vi.fn(() => ({})),
+// Mock all @layertone/db imports
+vi.mock("@layertone/db", () => ({
+  createDb: vi.fn(() => ({
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({ where: vi.fn(async () => []) })),
+    })),
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: vi.fn(() => ({
+          limit: vi.fn(async () => [{ planCode: "subscription" }]),
+        })),
+      })),
+    })),
+  })),
   listAvailableMoods: vi.fn(async () => [{ id: "mood-1", supportedAspectRatios: ["1:1", "4:5"] }]),
   pickTemplates: vi.fn(async () => [
     {
@@ -32,16 +43,17 @@ vi.mock("@vyora/db", () => ({
   updateGenerationInspirationKey: vi.fn(async () => undefined),
   priceBookLookup: vi.fn(async () => ({ creditCost: 10, version: 1 })),
   generations: {},
-  workspaces: {},
+  workspaces: { planCode: "plan_code", id: "id" },
   auditLog: {},
   and: vi.fn(),
   eq: vi.fn(),
 }));
 
-// Mock @vyora/billing
+// Mock @layertone/billing
 const mockReserve = vi.fn(async () => undefined);
+const mockRelease = vi.fn(async () => undefined);
 
-vi.mock("@vyora/billing", () => {
+vi.mock("@layertone/billing", () => {
   class InsufficientCredits extends Error {
     constructor(
       public readonly balance: number,
@@ -54,22 +66,67 @@ vi.mock("@vyora/billing", () => {
     return {
       reserve: mockReserve,
       commit: vi.fn(async () => undefined),
-      release: vi.fn(async () => undefined),
+      release: mockRelease,
     };
   });
-  return { Ledger, InsufficientCredits };
+  return {
+    Ledger,
+    InsufficientCredits,
+    billingSegmentFor: vi.fn(() => "subscription"),
+    priceCreditsForPlan: vi.fn((credits: number) => credits),
+  };
 });
 
-// Mock @vyora/storage
-vi.mock("@vyora/storage", () => ({
+// Mock @layertone/storage
+vi.mock("@layertone/storage", () => ({
   keys: {
     inspirationUploadStaging: vi.fn((ws: string, uid: string) => `staging/${ws}/${uid}.png`),
     inspirationClaimed: vi.fn((ws: string, gid: string) => `claimed/${ws}/${gid}.png`),
-    inspirationClaimedIdx: vi.fn((ws: string, gid: string, idx: number) => `claimed/${ws}/${gid}-${idx}.png`),
+    inspirationClaimedIdx: vi.fn(
+      (ws: string, gid: string, idx: number) => `claimed/${ws}/${gid}-${idx}.png`,
+    ),
   },
 }));
 
 type TestAdapters = Pick<Adapters, "storage" | "queue" | "telemetry">;
+
+const deliberatePlan = {
+  version: 1 as const,
+  facts: {
+    request: "A clean serum launch",
+    products: ["Serum"],
+    claims: [],
+    exactCopy: { title: "Glow launch" },
+    explicitConstraints: [],
+  },
+  suggestions: {
+    subject: "Serum",
+    scene: "Clean studio",
+    action: "Hero presentation",
+    audience: "Skincare customers",
+    visualStyle: "Premium commercial",
+    composition: "Centered",
+    copyIntent: "Overlay",
+    constraints: ["Keep product exact"],
+  },
+  clarification: null,
+  moodRecommendations: [],
+  variants: [
+    {
+      version: 1 as const,
+      index: 0,
+      label: "Clean studio hero",
+      concept: "Premium clean studio hero",
+      composition: "Centered with negative space",
+      camera: "Eye level",
+      lighting: "Soft directional",
+      artDirection: "Minimal editorial",
+      seed: 4242,
+      locks: { identity: true, claims: true, exactCopy: true, brand: true, mood: false },
+      moodRecipe: null,
+    },
+  ],
+};
 
 function makeAdapters(
   overrides: Partial<TestAdapters> = {},
@@ -103,7 +160,7 @@ function makeAdapters(
       telemetry: {
         captureException: vi.fn(),
         metric: vi.fn(),
-        startSpan: <T,>(_name: string, fn: () => Promise<T> | T): Promise<T> =>
+        startSpan: <T>(_name: string, fn: () => Promise<T> | T): Promise<T> =>
           Promise.resolve().then(fn),
         ...overrides.telemetry,
       },
@@ -193,7 +250,7 @@ describe("GenerationApi.create", () => {
   });
 
   it("rejects when no templates found", async () => {
-    const { pickTemplates } = await import("@vyora/db");
+    const { pickTemplates } = await import("@layertone/db");
     vi.mocked(pickTemplates).mockResolvedValueOnce([]);
     const [adapters] = makeAdapters();
     const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);
@@ -206,7 +263,7 @@ describe("GenerationApi.create", () => {
   });
 
   it("throws 402 billing code when insufficient credits", async () => {
-    const { InsufficientCredits } = await import("@vyora/billing");
+    const { InsufficientCredits } = await import("@layertone/billing");
     mockReserve.mockRejectedValueOnce(new InsufficientCredits(0, 10));
     const [adapters] = makeAdapters();
     const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);
@@ -230,8 +287,8 @@ describe("GenerationApi.create", () => {
     expect(deleteSpy).toHaveBeenCalledTimes(1);
   });
 
-  it("accepts commercial campaign input and stores a commercial snapshot", async () => {
-    const { insertGeneration } = await import("@vyora/db");
+  it("accepts Quick Create input and stores a commercial snapshot", async () => {
+    const { insertGeneration } = await import("@layertone/db");
     const [adapters] = makeAdapters();
     const api = new GenerationApi(makeConfig() as Config, adapters as Adapters);
 
@@ -239,7 +296,7 @@ describe("GenerationApi.create", () => {
       workspaceId: "ws-1",
       userId: "usr-1",
       input: {
-        mode: "campaign_builder",
+        mode: "quick",
         creationType: "social_ad_pack",
         brandId: "00000000-0000-0000-0000-000000000001",
         productRefs: [
@@ -273,5 +330,174 @@ describe("GenerationApi.create", () => {
         }),
       }),
     );
+  });
+
+  it("V2 snapshots an uploaded product as essential identity and persists deliberate variant metadata", async () => {
+    const { insertGeneration, insertVariants, pickTemplates } = await import("@layertone/db");
+    const [adapters] = makeAdapters({ storage: { exists: vi.fn(async () => true) } as never });
+    const config = { ...makeConfig(), features: { quickCreateV2: true } } as Config;
+    const api = new GenerationApi(config, adapters as Adapters);
+    const uploadId = "00000000-0000-0000-0000-000000000099";
+
+    await api.create({
+      workspaceId: "ws-1",
+      userId: "usr-1",
+      input: {
+        mode: "quick",
+        creationType: "single_product",
+        brief: "A clean serum launch",
+        productRefs: [{ uploadId, role: "hero", commercialFields: { name: "Serum" } }],
+        campaign: { title: "Glow launch" },
+        template: { family: "product_hero", layout: "centered_product_hero" },
+        outputs: {
+          variants: 1,
+          quality: "standard",
+          consistency: "off",
+          formats: ["instagram_square"],
+        },
+        creativePlan: deliberatePlan,
+      },
+    });
+
+    expect(pickTemplates).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        family: "product_hero",
+        layout: "centered_product_hero",
+        requiredSlots: ["headline"],
+      }),
+    );
+    expect(insertGeneration).toHaveBeenCalledWith(
+      expect.anything(),
+      "ws-1",
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          typed_assets: [
+            expect.objectContaining({
+              role: "product_identity",
+              importance: "essential",
+              locked: true,
+            }),
+          ],
+          creative_plan: deliberatePlan,
+        }),
+      }),
+    );
+    expect(insertVariants).toHaveBeenCalledWith(expect.anything(), "ws-1", [
+      expect.objectContaining({ seed: 4242, variantSpec: deliberatePlan.variants[0] }),
+    ]);
+  });
+
+  it("V2 snapshots a composer attachment as a supporting visual reference", async () => {
+    const { insertGeneration } = await import("@layertone/db");
+    const [adapters] = makeAdapters({ storage: { exists: vi.fn(async () => true) } as never });
+    const api = new GenerationApi(
+      { ...makeConfig(), features: { quickCreateV2: true } } as Config,
+      adapters as Adapters,
+    );
+    const uploadId = "00000000-0000-0000-0000-000000000098";
+
+    await api.create({
+      workspaceId: "ws-1",
+      userId: "usr-1",
+      input: {
+        mode: "quick",
+        creationType: "single_product",
+        brief: "Use the reference composition for a clean serum launch",
+        productRefs: [],
+        inspirationUploadIds: [uploadId],
+        outputs: {
+          variants: 1,
+          quality: "standard",
+          consistency: "off",
+          formats: ["instagram_square"],
+        },
+        creativePlan: deliberatePlan,
+      },
+    });
+
+    expect(insertGeneration).toHaveBeenCalledWith(
+      expect.anything(),
+      "ws-1",
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          typed_assets: [
+            expect.objectContaining({
+              role: "composition_reference",
+              importance: "supporting",
+              locked: false,
+              purpose: "User visual reference",
+            }),
+          ],
+        }),
+      }),
+    );
+  });
+
+  it("V2 blocks an upload that cannot be claimed before reserving credits", async () => {
+    const [adapters] = makeAdapters();
+    const api = new GenerationApi(
+      { ...makeConfig(), features: { quickCreateV2: true } } as Config,
+      adapters as Adapters,
+    );
+    await expect(
+      api.create({
+        workspaceId: "ws-1",
+        userId: "usr-1",
+        input: {
+          mode: "quick",
+          creationType: "single_product",
+          brief: "Serum hero",
+          productRefs: [{ uploadId: "00000000-0000-0000-0000-000000000099", role: "hero" }],
+          outputs: {
+            variants: 1,
+            quality: "standard",
+            consistency: "off",
+            formats: ["instagram_square"],
+          },
+        },
+      }),
+    ).rejects.toMatchObject({ code: "validation.failed", httpStatus: 400 });
+    expect(mockReserve).not.toHaveBeenCalled();
+  });
+
+  it("releases reserved credits when a required upload fails during claim", async () => {
+    const [adapters, sendSpy] = makeAdapters({
+      storage: {
+        exists: vi.fn(async () => true),
+        copy: vi.fn(async () => {
+          throw new Error("copy failed");
+        }),
+      } as never,
+    });
+    const api = new GenerationApi(
+      { ...makeConfig(), features: { quickCreateV2: true } } as Config,
+      adapters as Adapters,
+    );
+    await expect(
+      api.create({
+        workspaceId: "ws-1",
+        userId: "usr-1",
+        input: {
+          mode: "quick",
+          creationType: "single_product",
+          brief: "Serum hero",
+          productRefs: [{ uploadId: "00000000-0000-0000-0000-000000000099", role: "hero" }],
+          campaign: {},
+          template: { family: "product_hero", layout: "centered_product_hero" },
+          outputs: {
+            variants: 1,
+            quality: "standard",
+            consistency: "off",
+            formats: ["instagram_square"],
+          },
+          creativePlan: deliberatePlan,
+        },
+      }),
+    ).rejects.toMatchObject({ code: "validation.failed" });
+    expect(mockRelease).toHaveBeenCalledWith(
+      expect.objectContaining({ idempotencyKey: expect.stringContaining("gen-release-upload-") }),
+    );
+    expect(sendSpy).not.toHaveBeenCalled();
   });
 });

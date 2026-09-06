@@ -2,7 +2,7 @@
 
 **Phase:** 1 — Database schema
 **Depends on:** 07, 08
-**Spec references:** [Spec § 1.2 (generations, generation_variants, caption_jobs, credit_ledger_entries, subscriptions)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 6 (Billing & credit ledger)](../specs/2026-04-25-studio-v1-spec.md), [decision D14, D15 (output target + inspiration image)](../../../C--personal-saas-img-gen/memory/project_decisions.md).
+**Spec references:** [Spec § 1.2 (generations, generation_variants, caption_jobs, credit_ledger_entries, subscriptions)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 6 (Billing & credit ledger)](../specs/2026-04-25-layertone-v1-spec.md), [decision D14, D15 (output target + inspiration image)](../../../C--personal-saas-img-gen/memory/project_decisions.md).
 
 **Definition of done:**
 - Migration `0004_generation_billing.sql` creates: `generations`, `generation_variants`, `caption_jobs`, `credit_ledger_entries`, `subscriptions`
@@ -147,7 +147,7 @@ export * from "./billing.js";
 - [ ] **Step 4 — Generate migration + add RLS edits**
 
 ```bash
-pnpm --filter @vyora/db exec drizzle-kit generate --name=generation_billing
+pnpm --filter @layertone/db exec drizzle-kit generate --name=generation_billing
 ```
 
 Edit `0004_generation_billing.sql`. Append:
@@ -194,7 +194,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE
 - [ ] **Step 5 — Run migration**
 
 ```bash
-pnpm --filter @vyora/db db:migrate
+pnpm --filter @layertone/db db:migrate
 ```
 
 - [ ] **Step 6 — Enable CI integration job**
@@ -205,12 +205,12 @@ In `.github/workflows/ci.yaml`, change `if: false` to `if: true` for the `integr
     services:
       postgres:
         image: pgvector/pgvector:pg16
-        env: { POSTGRES_USER: studio, POSTGRES_PASSWORD: dev, POSTGRES_DB: studio }
+        env: { POSTGRES_USER: layertone, POSTGRES_PASSWORD: dev, POSTGRES_DB: layertone }
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U studio" --health-interval 5s --health-timeout 3s --health-retries 10
     env:
-      DATABASE_URL: postgres://studio:dev@localhost:5432/studio
+      DATABASE_URL: postgres://layertone:dev@localhost:5432/studio
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -218,7 +218,7 @@ In `.github/workflows/ci.yaml`, change `if: false` to `if: true` for the `integr
       - uses: actions/setup-node@v4
         with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @vyora/db db:migrate
+      - run: pnpm --filter @layertone/db db:migrate
       - run: pnpm test:int
 ```
 
@@ -234,7 +234,7 @@ git commit -m "feat(db): generation + billing schema with RLS, idempotency keys,
 ## Verification
 
 ```bash
-pnpm --filter @vyora/db db:migrate
+pnpm --filter @layertone/db db:migrate
 pnpm test:int
 psql "$DATABASE_URL" -c "\d credit_ledger_entries" | grep idempotency_key
 ```

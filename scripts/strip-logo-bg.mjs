@@ -56,7 +56,7 @@ for (let i = 0; i < data.length; i += 4) {
 console.log(`knocked: ${knocked}px, softened: ${softened}px, total: ${width * height}px`);
 
 // Re-encode to PNG, then trim away the transparent padding so the rendered
-// image is tight against the V/Vyora glyphs (no left-air, no top-air).
+// image is tight against the V/Layertone glyphs (no left-air, no top-air).
 const trimmed = await sharp(data, { raw: { width, height, channels } })
   .png({ compressionLevel: 9 })
   .trim({ threshold: 1 })

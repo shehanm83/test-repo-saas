@@ -2,7 +2,7 @@
 
 **Phase:** 17 — Marketing & deployment
 **Depends on:** 03, all prior
-**Spec references:** [Architecture § 3, § 7](../specs/2026-04-25-studio-v1-architecture.md), [decision D9 (cost-conscious AWS picks)](../../../C--personal-saas-img-gen/memory/project_decisions.md).
+**Spec references:** [Architecture § 3, § 7](../specs/2026-04-25-layertone-v1-architecture.md), [decision D9 (cost-conscious AWS picks)](../../../C--personal-saas-img-gen/memory/project_decisions.md).
 
 **Definition of done:**
 - OpenNext config in `apps/web` produces a Lambda-deployable bundle
@@ -10,7 +10,7 @@
 - S3 lifecycle rule on `workspaces/*/uploads/inspiration/` — expire after 1 day
 - CI: deploy job pushes to staging on `push to main`, manual approval gate to prod
 - Playwright E2E test suite (4 critical journeys) wired into CI
-- `pnpm --filter @vyora/web start:lambda` runs locally via `sst dev` or `aws-lambda-rie`
+- `pnpm --filter @layertone/web start:lambda` runs locally via `sst dev` or `aws-lambda-rie`
 
 ---
 
@@ -18,7 +18,7 @@
 
 **Create:**
 - `apps/web/open-next.config.ts`
-- `infra/{package.json,tsconfig.json,bin/studio.ts,lib/{web-stack.ts,worker-stack.ts,storage-stack.ts,queue-stack.ts}}` (CDK)
+- `infra/{package.json,tsconfig.json,bin/layertone.ts,lib/{web-stack.ts,worker-stack.ts,storage-stack.ts,queue-stack.ts}}` (CDK)
 - `e2e/{playwright.config.ts,package.json,tests/{signup-and-generate.spec.ts,brand-setup.spec.ts,topup.spec.ts,credit-exhaustion.spec.ts}}`
 - `.github/workflows/deploy.yaml`
 
@@ -34,7 +34,7 @@
 - [ ] **Step 1 — OpenNext**
 
 ```bash
-pnpm --filter @vyora/web add -D @opennextjs/aws
+pnpm --filter @layertone/web add -D @opennextjs/aws
 ```
 
 `apps/web/open-next.config.ts`:
@@ -53,8 +53,8 @@ export default {
 - [ ] **Step 2 — CDK app**
 
 ```bash
-pnpm --filter @vyora/infra add aws-cdk-lib constructs
-pnpm --filter @vyora/infra add -D aws-cdk
+pnpm --filter @layertone/infra add aws-cdk-lib constructs
+pnpm --filter @layertone/infra add -D aws-cdk
 ```
 
 `infra/lib/storage-stack.ts`:
@@ -69,7 +69,7 @@ export class StorageStack extends Stack {
   constructor(scope: Construct, id: string) {
     super(scope, id);
     this.appBucket = new Bucket(this, "AppAssets", {
-      bucketName: "studio-app-prod-assets",
+      bucketName: "layertone-app-prod-assets",
       encryption: BucketEncryption.S3_MANAGED,
       versioned: true,
       removalPolicy: RemovalPolicy.RETAIN,
@@ -87,7 +87,7 @@ export class StorageStack extends Stack {
     });
 
     this.globalBucket = new Bucket(this, "GlobalAssets", {
-      bucketName: "studio-app-prod-global",
+      bucketName: "layertone-app-prod-global",
       encryption: BucketEncryption.S3_MANAGED,
       versioned: true,
       removalPolicy: RemovalPolicy.RETAIN,
@@ -111,10 +111,10 @@ Use AWS Parameter Store SecureString for: Stripe keys, Clerk secrets, OpenAI/Ant
 CDK:
 ```ts
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
-new StringParameter(this, "StripeSecretKey", { parameterName: "/studio/prod/STRIPE_SECRET_KEY", stringValue: "<placeholder — set out of band>", tier: ParameterTier.STANDARD });
+new StringParameter(this, "StripeSecretKey", { parameterName: "/layertone/prod/STRIPE_SECRET_KEY", stringValue: "<placeholder — set out of band>", tier: ParameterTier.STANDARD });
 ```
 
-(Real values populated via CLI: `aws ssm put-parameter --name /studio/prod/STRIPE_SECRET_KEY --type SecureString --value $KEY`.)
+(Real values populated via CLI: `aws ssm put-parameter --name /layertone/prod/STRIPE_SECRET_KEY --type SecureString --value $KEY`.)
 
 ### B — E2E
 
@@ -127,7 +127,7 @@ export default defineConfig({
   testDir: "./tests",
   use: { baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000", screenshot: "only-on-failure", trace: "on-first-retry" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: process.env.CI ? undefined : { command: "pnpm --filter @vyora/web dev", url: "http://localhost:3000", reuseExistingServer: true },
+  webServer: process.env.CI ? undefined : { command: "pnpm --filter @layertone/web dev", url: "http://localhost:3000", reuseExistingServer: true },
 });
 ```
 
@@ -170,11 +170,11 @@ In `.github/workflows/ci.yaml`, replace the disabled `e2e` job:
     needs: install
     runs-on: ubuntu-latest
     services:
-      postgres: { image: pgvector/pgvector:pg16, env: { POSTGRES_USER: studio, POSTGRES_PASSWORD: dev, POSTGRES_DB: studio }, ports: ["5432:5432"], options: --health-cmd "pg_isready -U studio" --health-interval 5s --health-timeout 3s --health-retries 10 }
+      postgres: { image: pgvector/pgvector:pg16, env: { POSTGRES_USER: layertone, POSTGRES_PASSWORD: dev, POSTGRES_DB: layertone }, ports: ["5432:5432"], options: --health-cmd "pg_isready -U studio" --health-interval 5s --health-timeout 3s --health-retries 10 }
       minio:    { image: minio/minio, ports: ["9000:9000","9001:9001"], env: { MINIO_ROOT_USER: minio, MINIO_ROOT_PASSWORD: minio12345 }, options: --health-cmd "curl -f http://localhost:9000/minio/health/live" --health-interval 5s --health-retries 10 }
       elasticmq:{ image: softwaremill/elasticmq-native, ports: ["9324:9324"] }
     env:
-      DATABASE_URL: postgres://studio:dev@localhost:5432/studio
+      DATABASE_URL: postgres://layertone:dev@localhost:5432/studio
       AUTH_MODE: dev
       QUEUE_MODE: elasticmq
       SQS_ENDPOINT: http://localhost:9324
@@ -185,8 +185,8 @@ In `.github/workflows/ci.yaml`, replace the disabled `e2e` job:
       S3_REGION: us-east-1
       S3_ACCESS_KEY_ID: minio
       S3_SECRET_ACCESS_KEY: minio12345
-      S3_BUCKET_APP: studio-app
-      S3_BUCKET_GLOBAL: studio-global
+      S3_BUCKET_APP: layertone-app
+      S3_BUCKET_GLOBAL: layertone-global
       DEV_USER_ID: 00000000-0000-0000-0000-000000000001
       APP_URL: http://localhost:3000
     steps:
@@ -196,14 +196,14 @@ In `.github/workflows/ci.yaml`, replace the disabled `e2e` job:
       - uses: actions/setup-node@v4
         with: { node-version: "${{ env.NODE_VERSION }}", cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @vyora/db db:migrate
-      - run: pnpm --filter @vyora/db exec tsx scripts/seed-pricebook.ts
-      - run: pnpm --filter @vyora/web build
+      - run: pnpm --filter @layertone/db db:migrate
+      - run: pnpm --filter @layertone/db exec tsx scripts/seed-pricebook.ts
+      - run: pnpm --filter @layertone/web build
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm --filter @vyora/web exec next start &
-      - run: pnpm --filter @vyora/worker exec tsx scripts/dev.ts &
+      - run: pnpm --filter @layertone/web exec next start &
+      - run: pnpm --filter @layertone/worker exec tsx scripts/dev.ts &
       - run: sleep 10
-      - run: pnpm --filter @vyora/e2e test
+      - run: pnpm --filter @layertone/e2e test
 ```
 
 ### C — Deploy workflow
@@ -228,12 +228,12 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @vyora/db db:migrate
+      - run: pnpm --filter @layertone/db db:migrate
         env: { DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }} }
-      - run: pnpm --filter @vyora/web build:lambda
+      - run: pnpm --filter @layertone/web build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with: { role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_STAGING }}, aws-region: us-east-1 }
-      - run: pnpm --filter @vyora/infra exec cdk deploy --require-approval never
+      - run: pnpm --filter @layertone/infra exec cdk deploy --require-approval never
 
   deploy-prod:
     needs: deploy-staging
@@ -245,12 +245,12 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @vyora/db db:migrate
+      - run: pnpm --filter @layertone/db db:migrate
         env: { DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }} }
-      - run: pnpm --filter @vyora/web build:lambda
+      - run: pnpm --filter @layertone/web build:lambda
       - uses: aws-actions/configure-aws-credentials@v4
         with: { role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_PROD }}, aws-region: us-east-1 }
-      - run: pnpm --filter @vyora/infra exec cdk deploy --context env=prod --require-approval never
+      - run: pnpm --filter @layertone/infra exec cdk deploy --context env=prod --require-approval never
 ```
 
 - [ ] **Step 8 — Commit**
@@ -266,11 +266,11 @@ git commit -m "feat(deploy): OpenNext + CDK infra + Playwright E2E + CI deploy p
 
 ```bash
 # Local E2E
-pnpm --filter @vyora/web build
-pnpm --filter @vyora/e2e test
+pnpm --filter @layertone/web build
+pnpm --filter @layertone/e2e test
 
 # Local CDK synth
-pnpm --filter @vyora/infra exec cdk synth
+pnpm --filter @layertone/infra exec cdk synth
 
 # Staging deploy (after secrets configured in GitHub)
 gh workflow run deploy.yaml

@@ -2,7 +2,7 @@
 
 **Phase:** 15 — Admin back-office
 **Depends on:** 36, 16
-**Spec references:** [Spec § 5 (Admin back-office)](../specs/2026-04-25-studio-v1-spec.md), [UI Prompt 11 — Admin Mood Studio](../specs/2026-04-25-studio-v1-ui-prompts.md).
+**Spec references:** [Spec § 5 (Admin back-office)](../specs/2026-04-25-layertone-v1-spec.md), [UI Prompt 11 — Admin Mood Studio](../specs/2026-04-25-layertone-v1-ui-prompts.md).
 
 **Definition of done:**
 - `/admin/*` route group gated by `users.role='admin'`; non-admins redirected to /generate
@@ -89,7 +89,7 @@ Each calls `MoodApi.adminCreate`, `adminUpdate`, etc. Each writes an `audit_log`
 - [ ] **Step 5 — Tests + commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(admin): admin shell + Mood Studio (CRUD + lifecycle + test-render)"
 ```

@@ -1,6 +1,6 @@
-import { type Db, eq, workspaces } from "@vyora/db";
-import { AppError } from "@vyora/shared/errors/app-error";
-import { CODES } from "@vyora/shared/errors/codes";
+import { type Db, eq, workspaces } from "@layertone/db";
+import { AppError } from "@layertone/shared/errors/app-error";
+import { CODES } from "@layertone/shared/errors/codes";
 
 export async function assertWorkspaceCanGenerate(db: Db, workspaceId: string): Promise<void> {
   const [w] = await db

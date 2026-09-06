@@ -4,9 +4,9 @@
 **Date:** 2026-04-25
 **Owner:** Shehan Fernando
 **Companion docs:**
-- `2026-04-25-studio-v1-prd.md`
-- `2026-04-25-studio-v1-spec.md`
-- `2026-04-25-studio-v1-architecture.md`
+- `2026-04-25-layertone-v1-prd.md`
+- `2026-04-25-layertone-v1-spec.md`
+- `2026-04-25-layertone-v1-architecture.md`
 
 These prompts are designed to be paired with **your own reference screenshot(s)** when feeding an AI design tool (Vercel v0, Figma Make, Galileo AI, Lovable, UX Pilot, Stitch, etc.). Each prompt is **functionality-first**: it tells the design tool what the UI is for, what it must contain, what behavior it must convey, and what aesthetic constraints to respect — and then lets your reference screenshot dictate the visual style.
 

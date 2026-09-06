@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import React, { Suspense } from "react";
 
-import { loadConfig } from "@vyora/shared/config";
+import { loadConfig } from "@layertone/shared/config";
 
 import { NavProgress } from "@/components/nav-progress";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.vyora.io"),
-  title: "Vyora",
+  metadataBase: new URL("https://www.layertone.io"),
+  title: "Layertone",
   description: "On-brand images, in a sentence. Create beyond imagination.",
-  applicationName: "Vyora",
+  applicationName: "Layertone",
   icons: { icon: "/brand/logo.png" },
 };
 
@@ -29,7 +29,7 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=Fraunces:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap"
           rel="stylesheet"
         />
       </head>

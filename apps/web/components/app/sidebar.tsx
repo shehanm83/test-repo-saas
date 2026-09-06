@@ -2,190 +2,208 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import React from "react";
+import {
+  Bell,
+  Briefcase,
+  FolderOpen,
+  HelpCircle,
+  History,
+  Images,
+  Palette,
+  Megaphone,
+  Settings,
+  Shield,
+  Sparkles,
+  Tag,
+  Zap,
+} from "lucide-react";
 
-import { I } from "@/components/icons";
+import { LayertoneMark } from "@/components/brand/layertone-mark";
 
-const DOT_COLORS = ["#1D3B2A", "#5E5CE6", "#C97A3F", "#7A0E0E", "#1F7A5A", "#B5651D"];
-function dotColor(id: string): string {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return DOT_COLORS[h % DOT_COLORS.length]!;
+import { AvatarMenu } from "./avatar-menu";
+import { WorkspaceSwitcher } from "./workspace-switcher";
+
+const NAV_ITEM =
+  "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-ink-soft " +
+  "transition-colors duration-150 hover:bg-ink/5 hover:text-ink";
+const NAV_ACTIVE = "!bg-brand-50 !text-brand-700";
+
+function NavItem({
+  href,
+  icon: Icon,
+  label,
+  active,
+  count,
+}: {
+  href: string;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  label: string;
+  active: boolean;
+  count?: number;
+}) {
+  return (
+    <Link href={href} className={`${NAV_ITEM} ${active ? NAV_ACTIVE : ""}`}>
+      <Icon size={16} strokeWidth={2} className={active ? "text-brand" : "text-ink-soft/80"} />
+      <span className="flex-1">{label}</span>
+      {typeof count === "number" ? (
+        <span className="rounded-full bg-ink/6 px-2 py-0.5 font-mono text-[11px] text-ink-soft">
+          {count}
+        </span>
+      ) : null}
+    </Link>
+  );
 }
 
 export function Sidebar(props: {
-  brands: Array<{ id: string; name: string }>;
+  brandCount: number;
   planCode: string;
+  balance: number;
+  email: string;
+  authMode: "clerk" | "dev";
+  isAdmin: boolean;
+  workspaceId: string | null;
+  workspaces: Array<{ id: string; name: string }>;
+  activeWorkspaceName: string;
 }) {
   const pathname = usePathname() ?? "/";
-  const [brandsOpen, setBrandsOpen] = useState(true);
-  const isActive = (path: string): boolean =>
-    pathname === path || pathname.startsWith(path + "/");
+  const planName =
+    props.planCode === "subscription"
+      ? "Subscription"
+      : props.planCode === "payg"
+        ? "Pay As You Go"
+        : props.planCode === "pro" ||
+            props.planCode === "starter" ||
+            props.planCode === "business" ||
+            props.planCode === "agency"
+          ? "Subscription"
+          : "Free";
+  const isActive = (path: string): boolean => pathname === path || pathname.startsWith(path + "/");
 
   return (
-    <div className="sidebar">
-      <Link
-        href="/"
-        className={`nav-item ${pathname === "/" ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.Home size={16} className="nav-item__icon" />
-        <span>Home</span>
-      </Link>
-
-      <div style={{ height: 8 }} />
-
-      <Link href="/generate" className="nav-item nav-item--cta" style={{ textDecoration: "none" }}>
-        <I.Sparkle size={16} />
-        <span>Generate</span>
-        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
-          <span
-            className="kbd"
-            style={{
-              background: "rgba(255,255,255,0.15)",
-              color: "rgba(255,255,255,0.8)",
-              boxShadow: "none",
-            }}
-          >
-            G
-          </span>
+    <div className="flex min-h-full flex-col gap-1 px-4 py-5 font-sans">
+      <Link href="/" className="mb-3 flex items-center gap-2 px-1">
+        <LayertoneMark size={38} />
+        <span className="font-display text-[17px] tracking-tight text-ink">
+          Layer<b>tone</b>
         </span>
       </Link>
 
-      <div style={{ height: 12 }} />
-
-      <Link
-        href="/history"
-        className={`nav-item ${isActive("/history") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.History size={16} className="nav-item__icon" />
-        <span>History</span>
-      </Link>
-
-      <div className={`nav-group ${brandsOpen ? "is-open" : ""}`}>
-        <div className="nav-group__head" onClick={() => setBrandsOpen((o) => !o)}>
-          <I.ChevronRight
-            size={12}
-            className="nav-group__chev"
-            style={{ transform: brandsOpen ? "rotate(90deg)" : "" }}
-          />
-          <I.Briefcase size={16} style={{ color: "var(--fg-3)" }} />
-          <span>Brands</span>
-          <span className="nav-item__count" style={{ marginLeft: "auto" }}>
-            {props.brands.length}
-          </span>
-          <Link
-            href="/brands/new/identify?new=1"
-            className="nav-item__plus"
-            onClick={(e) => e.stopPropagation()}
-            style={{ textDecoration: "none" }}
-          >
-            <I.Plus size={12} />
-          </Link>
-        </div>
-        {brandsOpen ? (
-          <div className="nav-sub">
-            {props.brands.length === 0 ? (
-              <div className="nav-sub__item" style={{ color: "var(--fg-4)" }}>
-                No brands yet
-              </div>
-            ) : (
-              props.brands.map((b) => {
-                const active = pathname === `/brands/${b.id}`;
-                return (
-                  <Link
-                    key={b.id}
-                    href={`/brands/${b.id}`}
-                    className={`nav-sub__item ${active ? "is-active" : ""}`}
-                    style={
-                      active
-                        ? {
-                            color: "var(--fg-1)",
-                            background: "var(--cal-gray-100)",
-                            textDecoration: "none",
-                          }
-                        : { textDecoration: "none" }
-                    }
-                  >
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: 100,
-                          background: dotColor(b.id),
-                          flexShrink: 0,
-                        }}
-                      />
-                      {b.name}
-                    </span>
-                  </Link>
-                );
-              })
-            )}
-          </div>
-        ) : null}
+      <div className="mb-3">
+        <WorkspaceSwitcher
+          workspaceId={props.workspaceId}
+          workspaces={props.workspaces}
+          activeWorkspaceName={props.activeWorkspaceName}
+        />
       </div>
 
       <Link
-        href="/projects"
-        className={`nav-item ${isActive("/projects") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
+        href="/generate"
+        className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${
+          isActive("/generate")
+            ? "bg-ink-deep text-white shadow-pill-dark"
+            : "bg-white text-ink shadow-card hover:-translate-y-px"
+        }`}
       >
-        <I.Folder size={16} className="nav-item__icon" />
-        <span>Projects</span>
+        <Sparkles
+          size={16}
+          strokeWidth={2.2}
+          className={isActive("/generate") ? "text-brand-300" : "text-brand"}
+        />
+        <span className="flex-1">Quick Create</span>
+        <kbd
+          className={`rounded-md px-1.5 font-mono text-[11px] ${
+            isActive("/generate") ? "bg-white/15" : "bg-ink/6 text-ink-soft"
+          }`}
+        >
+          G
+        </kbd>
       </Link>
 
       <Link
-        href="/moods"
-        className={`nav-item ${isActive("/moods") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
+        href="/campaigns"
+        className={`mt-1.5 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${
+          isActive("/campaigns")
+            ? "bg-ink-deep text-white shadow-pill-dark"
+            : "bg-white text-ink shadow-card hover:-translate-y-px"
+        }`}
       >
-        <I.Library size={16} className="nav-item__icon" />
-        <span>Mood library</span>
+        <Megaphone
+          size={16}
+          strokeWidth={2.2}
+          className={isActive("/campaigns") ? "text-brand-300" : "text-brand"}
+        />
+        <span className="flex-1">Campaigns</span>
       </Link>
 
-      <Link
-        href="/stock"
-        className={`nav-item ${isActive("/stock") ? "is-active" : ""}`}
-        style={{ textDecoration: "none" }}
-      >
-        <I.Image size={16} className="nav-item__icon" />
-        <span>Stock library</span>
-      </Link>
+      <div className="mt-2">
+        <NavItem href="/history" icon={History} label="History" active={isActive("/history")} />
+      </div>
+
+      <p className="mb-1 mt-5 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/60">
+        Assets
+      </p>
+      <NavItem
+        href="/brands"
+        icon={Briefcase}
+        label="Brands"
+        active={isActive("/brands")}
+        count={props.brandCount}
+      />
+      <NavItem href="/products" icon={Tag} label="Products" active={isActive("/products")} />
+      <NavItem href="/projects" icon={FolderOpen} label="Projects" active={isActive("/projects")} />
+      <NavItem href="/moods" icon={Palette} label="Mood library" active={isActive("/moods")} />
+      <NavItem href="/stock" icon={Images} label="Stock library" active={isActive("/stock")} />
+
+      {props.isAdmin ? (
+        <>
+          <p className="mb-1 mt-5 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft/60">
+            Operator
+          </p>
+          <Link
+            href="/admin/generations"
+            className={`${NAV_ITEM} ${isActive("/admin") ? NAV_ACTIVE : ""}`}
+          >
+            <Shield
+              size={16}
+              strokeWidth={2}
+              className={isActive("/admin") ? "text-brand" : "text-ink-soft/80"}
+            />
+            <span className="flex-1">Admin console</span>
+          </Link>
+        </>
+      ) : null}
 
       <div className="grow" />
 
-      <div
-        style={{
-          marginTop: "auto",
-          paddingTop: 16,
-          borderTop: "1px solid var(--cal-gray-200)",
-        }}
-      >
-        <Link
-          href="/settings"
-          className={`nav-item ${isActive("/settings") ? "is-active" : ""}`}
-          style={{ textDecoration: "none" }}
-        >
-          <I.Settings size={16} className="nav-item__icon" />
-          <span>Settings</span>
-        </Link>
-        <Link href="/help" className="nav-item" style={{ textDecoration: "none" }}>
-          <I.HelpCircle size={16} className="nav-item__icon" />
-          <span>Help</span>
-        </Link>
+      <NavItem href="/settings" icon={Settings} label="Settings" active={isActive("/settings")} />
+      <NavItem href="/help" icon={HelpCircle} label="Help" active={false} />
+
+      <div className="mt-3 flex items-center gap-2">
         <Link
           href="/billing"
-          className="nav-item"
-          style={{ marginTop: 4, textDecoration: "none" }}
+          className="flex flex-1 items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[13px] font-semibold text-ink shadow-pill transition-transform duration-150 hover:-translate-y-px"
         >
-          <span className="pill pill--accent" style={{ height: 22, fontSize: 11 }}>
-            <I.Crown size={11} />
-            {props.planCode.charAt(0).toUpperCase() + props.planCode.slice(1)} plan
-          </span>
+          <Zap size={13} className="fill-brand text-brand" />
+          <span>{props.balance.toLocaleString()} credits</span>
         </Link>
+        <button
+          className="grid h-9 w-9 place-items-center rounded-full text-ink-soft transition-colors hover:bg-ink/5 hover:text-ink"
+          type="button"
+          title="Notifications"
+        >
+          <Bell size={15} strokeWidth={2} />
+        </button>
+      </div>
+
+      <div className="mt-2 rounded-2xl bg-white p-1.5 shadow-card">
+        <AvatarMenu
+          authMode={props.authMode}
+          email={props.email}
+          isAdmin={props.isAdmin}
+          dropUp
+          identity={{ primary: `${planName} plan`, secondary: props.email }}
+        />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rewrite the Quick Create tab to match the `vyora_image_generation_page.html` visual style — numbered section cards, option cards with hover lift, platform pills — while keeping all current multi-product functionality and adding a collapsible promotion toggle.
+**Goal:** Rewrite the Quick Create tab to match the `layertone_image_generation_page.html` visual style — numbered section cards, option cards with hover lift, platform pills — while keeping all current multi-product functionality and adding a collapsible promotion toggle.
 
 **Architecture:** Full rewrite of `quick-create.tsx` only; `generate-shell.tsx`, all step sub-components, the reducer, and the ReviewRail sidebar are untouched. Local state for `mediaType`, `platform`, and `promotionEnabled` lives in `quick-create.tsx` and syncs into the shared reducer via existing callbacks. New `qc-*` CSS classes are appended to `cal-studio.css`.
 
@@ -103,16 +103,16 @@ Open `apps/web/app/cal-studio.css` and append the following after the closing `}
 }
 
 .qc-option:hover {
-  border-color: var(--studio-violet);
+  border-color: var(--layertone-violet);
   background: linear-gradient(180deg, #ffffff, #f7f6ff);
   box-shadow: 0 14px 28px rgba(99,91,255,0.12);
   transform: translateY(-1px);
 }
 
 .qc-option.is-active {
-  border-color: var(--studio-violet);
+  border-color: var(--layertone-violet);
   background: linear-gradient(180deg, #ffffff, #f7f6ff);
-  box-shadow: 0 0 0 3px var(--studio-violet-100), 0 14px 28px rgba(99,91,255,0.12);
+  box-shadow: 0 0 0 3px var(--layertone-violet-100), 0 14px 28px rgba(99,91,255,0.12);
 }
 
 .qc-option-icon { font-size: 20px; }
@@ -154,9 +154,9 @@ Open `apps/web/app/cal-studio.css` and append the following after the closing `}
 }
 
 .qc-pill.is-active {
-  background: var(--studio-violet-50);
-  border-color: var(--studio-violet);
-  color: var(--studio-violet-700);
+  background: var(--layertone-violet-50);
+  border-color: var(--layertone-violet);
+  color: var(--layertone-violet-700);
   box-shadow: 0 6px 16px rgba(94,92,230,0.14);
 }
 
@@ -217,7 +217,7 @@ Open `apps/web/app/cal-studio.css` and append the following after the closing `}
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: var(--studio-violet);
+  accent-color: var(--layertone-violet);
 }
 
 .qc-promotion-row strong {
@@ -270,16 +270,16 @@ Open `apps/web/app/cal-studio.css` and append the following after the closing `}
 }
 
 .qc-gen-option:hover {
-  border-color: var(--studio-violet);
+  border-color: var(--layertone-violet);
   background: linear-gradient(180deg, #ffffff, #f7f6ff);
   box-shadow: 0 10px 20px rgba(99,91,255,0.1);
   transform: translateY(-1px);
 }
 
 .qc-gen-option.is-active {
-  border-color: var(--studio-violet);
+  border-color: var(--layertone-violet);
   background: linear-gradient(180deg, #ffffff, #f7f6ff);
-  box-shadow: 0 0 0 3px var(--studio-violet-100);
+  box-shadow: 0 0 0 3px var(--layertone-violet-100);
 }
 
 .qc-gen-option strong {
@@ -307,7 +307,7 @@ Open `apps/web/app/cal-studio.css` and append the following after the closing `}
 - [ ] **Step 2: Verify no TypeScript errors introduced by CSS change**
 
 ```bash
-pnpm --filter @vyora/web typecheck
+pnpm --filter @layertone/web typecheck
 ```
 
 Expected: exit 0 (CSS changes cannot break TS, this is just a sanity check)
@@ -618,7 +618,7 @@ export function QuickCreate(props: {
                   className="input"
                   value={campaign.website}
                   onChange={(e) => props.onCampaignChange({ website: e.target.value })}
-                  placeholder="vyora.example"
+                  placeholder="layertone.example"
                 />
               </label>
               <label>
@@ -747,7 +747,7 @@ export function QuickCreate(props: {
 - [ ] **Step 2: Run typecheck**
 
 ```bash
-pnpm --filter @vyora/web typecheck
+pnpm --filter @layertone/web typecheck
 ```
 
 Expected: exit 0 with no errors.
@@ -875,7 +875,7 @@ it("unchecking promotion toggle clears campaign fields from payload", async () =
 - [ ] **Step 4: Run the full test suite**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 ```
 
 Expected: all tests pass. If the `"renders server preflight warnings"` test fails because it tries to access `getByLabelText(/creative brief/i)` before selecting a product, check that the brief textarea is still accessible — the `aria-label="Creative brief"` attribute is present in the new JSX.
@@ -894,7 +894,7 @@ git commit -m "test(web): update Quick Create tests for media type and promotion
 - [ ] **Step 1: Full typecheck**
 
 ```bash
-pnpm --filter @vyora/web typecheck
+pnpm --filter @layertone/web typecheck
 ```
 
 Expected: exit 0
@@ -902,7 +902,7 @@ Expected: exit 0
 - [ ] **Step 2: Full test run**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 ```
 
 Expected: all tests pass
@@ -910,7 +910,7 @@ Expected: all tests pass
 - [ ] **Step 3: Start dev server and visually verify Quick Create**
 
 ```bash
-pnpm --filter @vyora/web dev
+pnpm --filter @layertone/web dev
 ```
 
 Open the generate page and check:

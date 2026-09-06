@@ -5,7 +5,7 @@ import { createDb } from "./client";
 import { users, workspaces } from "./schema";
 import { withWorkspace } from "./with-workspace";
 
-const databaseUrl = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const databaseUrl = process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/layertone";
 
 describe("withWorkspace RLS", () => {
   it("prevents cross-tenant workspace reads for app_user", async () => {

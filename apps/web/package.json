@@ -1,11 +1,11 @@
 {
-  "name": "@vyora/web",
+  "name": "@layertone/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "next build",
-    "build:lambda": "next build && open-next build",
+    "build": "next build --webpack",
+    "build:lambda": "next build --webpack && open-next build",
     "dev": "next dev",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
@@ -16,26 +16,31 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.7",
+    "@layertone/api": "workspace:*",
+    "@layertone/auth": "workspace:*",
+    "@layertone/billing": "workspace:*",
+    "@layertone/db": "workspace:*",
+    "@layertone/gateway": "workspace:*",
+    "@layertone/observability": "workspace:*",
+    "@layertone/queue": "workspace:*",
+    "@layertone/renderer": "workspace:*",
+    "@layertone/shared": "workspace:*",
+    "@layertone/storage": "workspace:*",
+    "@layertone/worker": "workspace:*",
     "@sentry/nextjs": "^10.50.0",
-    "@vyora/api": "workspace:*",
-    "@vyora/auth": "workspace:*",
-    "@vyora/billing": "workspace:*",
-    "@vyora/db": "workspace:*",
-    "@vyora/gateway": "workspace:*",
-    "@vyora/observability": "workspace:*",
-    "@vyora/queue": "workspace:*",
-    "@vyora/shared": "workspace:*",
-    "@vyora/renderer": "workspace:*",
-    "@vyora/storage": "workspace:*",
-    "@vyora/worker": "workspace:*",
     "drizzle-orm": "^0.45.2",
+    "lucide-react": "^1.24.0",
+    "motion": "^12.42.2",
     "next": "^16.2.4",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@opennextjs/aws": "^3.10.4",
+    "@tailwindcss/postcss": "^4.3.2",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2"
+    "@testing-library/react": "^16.3.2",
+    "tailwindcss": "^4.3.2"
   }
 }

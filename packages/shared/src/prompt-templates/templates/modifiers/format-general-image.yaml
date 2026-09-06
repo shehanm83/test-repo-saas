@@ -29,5 +29,6 @@ prompt: |
   Output guidance:
   Build for {{output.width}} x {{output.height}} ({{output.aspect_ratio}}).
   Use the selected frame intentionally and keep the image clean enough for downstream overlays.
+  Keep products and main subjects fully visible inside the final frame.
 negative_prompt: |
-  bad crop, crowded frame, fake text, fake logo
+  bad crop, crowded frame, fake text, fake logo, clipped subject, cropped product

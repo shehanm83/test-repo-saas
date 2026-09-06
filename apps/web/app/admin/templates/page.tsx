@@ -1,5 +1,5 @@
-import { TemplateApi } from "@vyora/api/template";
-import { loadConfig } from "@vyora/shared/config";
+import { TemplateApi } from "@layertone/api/template";
+import { loadConfig } from "@layertone/shared/config";
 
 import { TemplateStudio } from "@/components/admin/template-studio";
 

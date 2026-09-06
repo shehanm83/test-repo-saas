@@ -1,7 +1,7 @@
-import { ClerkAuthProvider, DevAuthProvider } from "@vyora/auth";
-import { StripeBillingProvider } from "@vyora/billing";
-import { NoopTelemetry } from "@vyora/observability/noop";
-import { S3StorageAdapter } from "@vyora/storage";
+import { ClerkAuthProvider, DevAuthProvider } from "@layertone/auth";
+import { StripeBillingProvider } from "@layertone/billing";
+import { NoopTelemetry } from "@layertone/observability/noop";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import type { Config } from "../config";
 
@@ -80,7 +80,7 @@ function buildTelemetry(config: Config): Telemetry {
   if (cachedTelemetry) return cachedTelemetry;
   if (config.observability.mode === "sentry" && config.observability.sentryDsn) {
     // Lazy require so @sentry/node + OpenTelemetry only load when actually configured.
-    const sentryModule = "@vyora/observability/sentry";
+    const sentryModule = "@layertone/observability/sentry";
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { SentryTelemetry } = require(sentryModule) as {
       SentryTelemetry: new (opts: {

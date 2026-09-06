@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Playwright uses its own directory so its dev server can run beside a
+  // developer's normal `next dev` process without fighting over the lockfile.
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   experimental: {
     webpackBuildWorker: false,
   },
@@ -27,18 +30,34 @@ const nextConfig: NextConfig = {
     "sharp",
   ],
   transpilePackages: [
-    "@vyora/api",
-    "@vyora/auth",
-    "@vyora/billing",
-    "@vyora/db",
-    "@vyora/gateway",
-    "@vyora/observability",
-    "@vyora/queue",
-    "@vyora/renderer",
-    "@vyora/shared",
-    "@vyora/storage",
-    "@vyora/worker",
+    "@layertone/api",
+    "@layertone/auth",
+    "@layertone/billing",
+    "@layertone/db",
+    "@layertone/gateway",
+    "@layertone/observability",
+    "@layertone/queue",
+    "@layertone/renderer",
+    "@layertone/shared",
+    "@layertone/storage",
+    "@layertone/worker",
   ],
+  webpack(config, { isServer }) {
+    if (isServer) {
+      config.externals = [
+        ...(Array.isArray(config.externals)
+          ? config.externals
+          : [config.externals].filter(Boolean)),
+        {
+          "@resvg/resvg-js": "commonjs @resvg/resvg-js",
+          "@resvg/resvg-js-linux-x64-gnu": "commonjs @resvg/resvg-js-linux-x64-gnu",
+          "@resvg/resvg-js-linux-x64-musl": "commonjs @resvg/resvg-js-linux-x64-musl",
+        },
+      ];
+    }
+
+    return config;
+  },
 };
 
 export default nextConfig;

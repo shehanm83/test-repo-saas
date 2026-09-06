@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { CaptionApi, rateLimit } from "@vyora/api";
-import { createDb } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
-import { AppError } from "@vyora/shared/errors/app-error";
+import { CaptionApi, rateLimit } from "@layertone/api";
+import { createDb } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
+import { AppError } from "@layertone/shared/errors/app-error";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";

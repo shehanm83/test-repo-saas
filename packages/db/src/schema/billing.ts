@@ -20,7 +20,7 @@ export const creditLedgerEntries = pgTable(
       .notNull()
       .references(() => workspaces.id, { onDelete: "cascade" }),
     kind: text("kind", {
-      enum: ["grant", "reservation", "commit", "release", "topup", "refund", "adjustment"],
+      enum: ["grant", "reservation", "commit", "release", "topup", "refund", "adjustment", "retention"],
     }).notNull(),
     amount: integer("amount").notNull(),
     balanceAfter: integer("balance_after").notNull(),
@@ -43,7 +43,7 @@ export const subscriptions = pgTable("subscriptions", {
     .references(() => workspaces.id, { onDelete: "cascade" }),
   stripeSubscriptionId: text("stripe_subscription_id").notNull(),
   planCode: text("plan_code", {
-    enum: ["free", "starter", "pro", "business", "agency"],
+    enum: ["free", "subscription", "payg", "starter", "pro", "business", "agency"],
   }).notNull(),
   status: text("status").notNull(),
   cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),

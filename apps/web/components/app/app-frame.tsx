@@ -1,11 +1,11 @@
 import React from "react";
 
-import { Ledger } from "@vyora/billing";
-import { createDb, listBrands } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
+import { Ledger } from "@layertone/billing";
+import { createDb, listBrands } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
 
+import { AppShell } from "./app-shell";
 import { Sidebar } from "./sidebar";
-import { TopBar } from "./top-bar";
 
 export async function AppFrame(props: {
   session: {
@@ -18,35 +18,36 @@ export async function AppFrame(props: {
   children: React.ReactNode;
 }) {
   const config = loadConfig();
-  const db = createDb(config.db.url, "app_admin");
+  const adminDb = createDb(config.db.url, "app_admin");
+  const userDb = createDb(config.db.url, "app_user");
   const balance = props.session.workspaceId
-    ? await new Ledger(db).getBalance(props.session.workspaceId)
+    ? await new Ledger(adminDb).getBalance(props.session.workspaceId)
     : 0;
-  const brands = props.session.workspaceId ? await listBrands(db, props.session.workspaceId) : [];
+  const brands = props.session.workspaceId
+    ? await listBrands(userDb, props.session.workspaceId)
+    : [];
   const activeWorkspace =
     props.session.workspaces.find((workspace) => workspace.id === props.session.workspaceId) ??
     props.session.workspaces[0] ??
     null;
 
   return (
-    <div className="app">
-      <div className="app__topbar">
-        <TopBar
+    <AppShell
+      sidebar={
+        <Sidebar
+          brandCount={brands.length}
+          planCode={activeWorkspace?.planCode ?? "free"}
           balance={balance}
           email={props.session.email}
+          authMode={config.auth.mode}
           isAdmin={props.session.role === "admin"}
           workspaceId={props.session.workspaceId}
           workspaces={props.session.workspaces.map((w) => ({ id: w.id, name: w.name }))}
           activeWorkspaceName={activeWorkspace?.name ?? "Workspace"}
         />
-      </div>
-      <div className="app__sidebar">
-        <Sidebar
-          brands={brands.map((b) => ({ id: b.id, name: b.name }))}
-          planCode={activeWorkspace?.planCode ?? "free"}
-        />
-      </div>
-      <div className="app__main">{props.children}</div>
-    </div>
+      }
+    >
+      {props.children}
+    </AppShell>
   );
 }

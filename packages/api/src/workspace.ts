@@ -6,9 +6,9 @@ import {
   listWorkspacesForUser,
   switchActiveWorkspace,
   revokeMember,
-} from "@vyora/db";
-import { createAdapters } from "@vyora/shared/adapters";
-import type { Config } from "@vyora/shared/config";
+} from "@layertone/db";
+import { createAdapters } from "@layertone/shared/adapters";
+import type { Config } from "@layertone/shared/config";
 import { z } from "zod";
 
 const inviteSchema = z.object({

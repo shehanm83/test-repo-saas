@@ -1,5 +1,5 @@
 {
-  "name": "@vyora/shared",
+  "name": "@layertone/shared",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -12,10 +12,14 @@
     "./errors/app-error": "./src/errors/app-error.ts",
     "./errors/codes": "./src/errors/codes.ts",
     "./generation/commercial-contract": "./src/generation/commercial-contract.ts",
+    "./generation/quick-create-v2": "./src/generation/quick-create-v2.ts",
     "./generation/preflight": "./src/generation/preflight.ts",
+    "./home-showcase": "./src/home-showcase.ts",
+    "./landing-hero": "./src/landing-hero.ts",
     "./output-targets": "./src/output-targets/index.ts",
     "./prompt-templates": "./src/prompt-templates/index.ts",
-    "./templates/schema": "./src/templates/schema.ts"
+    "./templates/schema": "./src/templates/schema.ts",
+    "./brand/fonts": "./src/brand/fonts.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -26,10 +30,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@vyora/auth": "workspace:*",
-    "@vyora/billing": "workspace:*",
-    "@vyora/observability": "workspace:*",
-    "@vyora/storage": "workspace:*",
+    "@layertone/auth": "workspace:*",
+    "@layertone/billing": "workspace:*",
+    "@layertone/observability": "workspace:*",
+    "@layertone/storage": "workspace:*",
     "yaml": "^2.8.4",
     "zod": "^4.3.6"
   }

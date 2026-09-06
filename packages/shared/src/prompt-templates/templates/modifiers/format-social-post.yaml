@@ -29,5 +29,6 @@ prompt: |
   Format guidance:
   Build for {{output.platform_label}} at {{output.width}} x {{output.height}} ({{output.aspect_ratio}}).
   Keep the main subject clear at social feed preview size and avoid placing important details at the outer edge.
+  Keep products and main subjects fully visible with clear margin inside the final frame.
 negative_prompt: |
-  cropped subject, edge clutter, unreadable small details
+  cropped subject, edge clutter, unreadable small details, cropped product, clipped packaging

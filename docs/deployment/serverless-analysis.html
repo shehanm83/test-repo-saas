@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serverless Strategy Analysis — Layertone Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f172a; --bg-card: #1e293b; --bg-card2: #162032;
+    --border: #334155; --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+    --green: #22c55e; --yellow: #eab308; --red: #ef4444; --purple: #a855f7;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.07); padding: 2px 7px; border-radius: 5px; font-size: 0.88em; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,23,42,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 24px;
+    padding: 0 32px; height: 60px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .nav-logo-icon { width: 32px; height: 32px; }
+  .nav-links { display: flex; gap: 4px; margin-left: auto; }
+  .nav-links a { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: all 0.15s; }
+  .nav-links a:hover, .nav-links a.active { background: var(--bg-card); color: var(--text); }
+
+  .page-hero { padding: 100px 32px 60px; max-width: 1100px; margin: 0 auto; }
+  .page-hero .breadcrumb { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+  .page-hero .breadcrumb a { color: var(--text-muted); }
+  .page-hero .breadcrumb span { margin: 0 8px; }
+  .page-hero h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .page-hero h1 span { color: #22d3ee; }
+  .page-hero p { font-size: 17px; color: var(--text-muted); line-height: 1.7; max-width: 680px; }
+
+  .section { max-width: 1100px; margin: 0 auto 60px; padding: 0 32px; }
+  .section h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .section .sub { color: var(--text-muted); margin-bottom: 28px; font-size: 15px; }
+
+  /* VERDICT CARDS */
+  .verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .verdict-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .verdict-card.winner { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.06); }
+  .verdict-icon { font-size: 32px; }
+  .verdict-title { font-size: 18px; font-weight: 700; }
+  .verdict-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+  .verdict-badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+    border-radius: 100px; font-size: 12px; font-weight: 700; width: fit-content;
+  }
+  .vb-green { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+  .vb-blue { background: rgba(37,99,235,0.15); color: #60a5fa; border: 1px solid rgba(37,99,235,0.3); }
+  .vb-yellow { background: rgba(234,179,8,0.15); color: #fbbf24; border: 1px solid rgba(234,179,8,0.3); }
+
+  /* FIT INDICATORS */
+  .fit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .fit-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .fit-card-header { display: flex; align-items: center; gap: 10px; }
+  .fit-card-header-icon { font-size: 22px; }
+  .fit-card-header-title { font-size: 14px; font-weight: 600; }
+  .fit-card-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .fit-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+  .fit-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* COMPARISON TABLE */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+  th { background: var(--bg-card2); font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  td.aws-col { background: rgba(249,115,22,0.04); }
+  td.vercel-col { background: rgba(37,99,235,0.04); }
+  .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .badge-blue { background: rgba(37,99,235,0.15); color: #60a5fa; }
+  .badge-yellow { background: rgba(234,179,8,0.15); color: #fbbf24; }
+  .badge-red { background: rgba(239,68,68,0.15); color: #f87171; }
+  .badge-orange { background: rgba(249,115,22,0.15); color: #fb923c; }
+
+  /* COST TABLE */
+  .cost-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .cost-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+  }
+  .cost-header {
+    padding: 16px 20px; font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .cost-header.aws { background: rgba(249,115,22,0.1); border-bottom: 1px solid var(--border); }
+  .cost-header.vercel { background: rgba(37,99,235,0.1); border-bottom: 1px solid var(--border); }
+  .cost-table { width: 100%; border-collapse: collapse; }
+  .cost-table td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid rgba(51,65,85,0.5); }
+  .cost-table tr:last-child td { border-bottom: none; font-weight: 700; font-size: 14px; }
+  .cost-service { color: var(--text-muted); }
+  .cost-amount { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  /* MIGRATION PATH */
+  .migration-step {
+    display: flex; gap: 20px; padding: 16px 20px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 10px;
+    align-items: flex-start;
+  }
+  .migration-effort {
+    min-width: 80px; text-align: center; font-size: 12px; font-weight: 700;
+    padding: 4px 8px; border-radius: 6px;
+  }
+  .eff-easy { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .eff-medium { background: rgba(234,179,8,0.15); color: #fbbf24; }
+  .eff-hard { background: rgba(239,68,68,0.15); color: #f87171; }
+  .migration-step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .migration-step-content p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+  /* AGNOSTICISM MAP */
+  .agn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .agn-group {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden;
+  }
+  .agn-group-header {
+    padding: 12px 16px; font-size: 12px; font-weight: 700;
+    border-bottom: 1px solid var(--border);
+  }
+  .agn-item {
+    padding: 10px 16px; font-size: 13px; border-bottom: 1px solid rgba(51,65,85,0.4);
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .agn-item:last-child { border-bottom: none; }
+  .agn-item-name { font-weight: 600; font-size: 12px; }
+  .agn-item-detail { font-size: 11px; color: var(--text-muted); }
+
+  footer { border-top: 1px solid var(--border); padding: 32px; text-align: center; color: var(--text-dim); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <svg class="nav-logo-icon" viewBox="0 0 64 64" fill="none">
+      <defs>
+        <linearGradient id="n1" x1="10" y1="6" x2="54" y2="28"><stop stop-color="#FF7B7B"/><stop offset="1" stop-color="#FF9A5C"/></linearGradient>
+        <linearGradient id="n2" x1="6" y1="24" x2="58" y2="40"><stop stop-color="#6C6FFF"/><stop offset="1" stop-color="#4DAFFF"/></linearGradient>
+        <linearGradient id="n3" x1="6" y1="42" x2="58" y2="58"><stop stop-color="#26C6DA"/><stop offset="1" stop-color="#00ACC1"/></linearGradient>
+      </defs>
+      <path d="M32 6 L54 18 L32 28 L10 18 Z" fill="url(#n1)"/>
+      <path d="M10 26 L32 36 L54 26 L54 30 L32 42 L10 30 Z" fill="url(#n2)"/>
+      <path d="M10 38 L32 48 L54 38 L54 44 L32 58 L10 44 Z" fill="url(#n3)"/>
+    </svg>
+    Layertone Docs
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="local-dev.html">Local Dev</a>
+    <a href="aws-cloud.html">AWS Cloud</a>
+    <a href="data-flow.html">Data Flow</a>
+    <a href="packages.html">Packages</a>
+    <a href="serverless-analysis.html" class="active">Analysis</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="breadcrumb"><a href="index.html">Home</a> <span>›</span> Serverless Analysis</div>
+  <h1>Serverless <span>Strategy</span> Analysis</h1>
+  <p>Honest opinion on whether serverless is the right model for this app, plus a detailed AWS CDK vs Vercel + QStash comparison with cost estimates and migration effort.</p>
+</div>
+
+<!-- VERDICT -->
+<div class="section">
+  <h2>Verdict: Is Serverless Right?</h2>
+  <div class="sub">Short answer: yes. This app was designed for serverless from day one.</div>
+
+  <div class="verdict-grid">
+    <div class="verdict-card winner">
+      <div class="verdict-icon">✅</div>
+      <div class="verdict-title">Serverless is the right choice</div>
+      <div class="verdict-desc">Image generation jobs arrive in bursts, not steady streams. The worker is already event-driven via SQS. AI API calls are the bottleneck — Lambda sits waiting, and Lambda is orders of magnitude cheaper per-idle-second than a container.</div>
+      <div class="verdict-badge vb-green">Excellent fit</div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-icon">⚡</div>
+      <div class="verdict-title">Two viable platform choices</div>
+      <div class="verdict-desc">AWS CDK (current plan) wins on cost at scale. Vercel + QStash wins on ops simplicity and faster iteration velocity. Both are genuinely viable — the right choice depends on team priorities.</div>
+      <div class="verdict-badge vb-blue">Decision required</div>
+    </div>
+    <div class="verdict-card">
+      <div class="verdict-icon">🐘</div>
+      <div class="verdict-title">PostgreSQL: use Neon</div>
+      <div class="verdict-desc">The only non-serverless piece is PostgreSQL. Neon is recommended — serverless Postgres with pgvector support, scales to zero, and is not AWS-locked. Avoids RDS always-on pricing at low scale.</div>
+      <div class="verdict-badge vb-yellow">Neon recommended</div>
+    </div>
+  </div>
+</div>
+
+<!-- WHY SERVERLESS FITS -->
+<div class="section">
+  <h2>Why This App Fits Serverless</h2>
+  <div class="sub">Six design signals that confirm serverless was the right architectural choice</div>
+
+  <div class="fit-grid">
+    <div class="fit-card">
+      <div class="fit-card-header">
+        <div class="fit-card-header-icon">📈</div>
+        <div class="fit-card-header-title">Bursty, not constant load</div>
+      </div>
+      <div class="fit-card-body">Image generation jobs arrive in batches. An always-on server would be idle most of the time. With Lambda, you pay for compute only when jobs run.</div>
+      <div class="fit-indicator"><div class="fit-dot" style="background:#4ade80"></div><span style="color:#4ade80">Strong fit signal</span></div>
+    </div>
+
+    <div class="fit-card">
+      <div class="fit-card-header">
+        <div class="fit-card-header-icon">📬</div>
+        <div class="fit-card-header-title">SQS decoupling already exists</div>
+      </div>
+      <div class="fit-card-body">The worker is already event-driven. Serverless is the natural runtime for an event-driven consumer. The SQS → Lambda wiring is almost zero configuration.</div>
+      <div class="fit-indicator"><div class="fit-dot" style="background:#4ade80"></div><span style="color:#4ade80">Designed for serverless</span></div>
+    </div>
+
+    <div class="fit-card">
+      <div class="fit-card-header">
+        <div class="fit-card-header-icon">⏳</div>
+        <div class="fit-card-header-title">AI API calls are the bottleneck</div>
+      </div>
+      <div class="fit-card-body">Lambda sits waiting for OpenAI/Replicate to respond. You pay for wall-clock time whether on Lambda or a container — but Lambda is far cheaper per idle second.</div>
+      <div class="fit-indicator"><div class="fit-dot" style="background:#4ade80"></div><span style="color:#4ade80">Cost optimal</span></div>
+    </div>
+
+    <div class="fit-card">
+      <div class="fit-card-header">
+        <div class="fit-card-header-icon">🌐</div>
+        <div class="fit-card-header-title">OpenNext already wired</div>
+      </div>
+      <div class="fit-card-body"><code>open-next.config.ts</code> configures <code>aws-lambda-streaming</code> mode. The web app build pipeline is Lambda-ready out of the box.</div>
+      <div class="fit-indicator"><div class="fit-dot" style="background:#4ade80"></div><span style="color:#4ade80">Zero web migration needed</span></div>
+    </div>
+
+    <div class="fit-card">
+      <div class="fit-card-header">
+        <div class="fit-card-header-icon">🖥️</div>
+        <div class="fit-card-header-title">@sparticuz/chromium included</div>
+      </div>
+      <div class="fit-card-body">The renderer uses <code>@sparticuz/chromium</code> — a deliberate dependency on the Lambda-optimized Chromium binary. This was a design choice that signals serverless intent.</div>
+      <div class="fit-indicator"><div class="fit-dot" style="background:#4ade80"></div><span style="color:#4ade80">Built for Lambda</span></div>
+    </div>
+
+    <div class="fit-card">
+      <div class="fit-card-header">
+        <div class="fit-card-header-icon">🔌</div>
+        <div class="fit-card-header-title">Storage and queue abstracted</div>
+      </div>
+      <div class="fit-card-body"><code>SqsQueueAdapter</code>, <code>StorageAdapter</code>, and their MinIO/ElasticMQ local equivalents mean core business logic has no direct cloud-SDK dependency.</div>
+      <div class="fit-indicator"><div class="fit-dot" style="background:#4ade80"></div><span style="color:#4ade80">Provider-agnostic core</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- AWS vs VERCEL COMPARISON -->
+<div class="section">
+  <h2>Option A vs Option B: Platform Comparison</h2>
+  <div class="sub">AWS CDK (current plan) vs Full Vercel + QStash — side-by-side on every dimension that matters</div>
+
+  <div style="display:grid;grid-template-columns:1fr 2fr 2fr;gap:0;background:var(--bg-card2);border:1px solid var(--border);border-radius:12px 12px 0 0;overflow:hidden;border-bottom:none">
+    <div style="padding:14px 16px;font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em">Dimension</div>
+    <div style="padding:14px 16px;font-size:13px;font-weight:700;color:#fb923c;background:rgba(249,115,22,0.06);border-left:1px solid var(--border)">☁️ Option A — AWS CDK</div>
+    <div style="padding:14px 16px;font-size:13px;font-weight:700;color:#60a5fa;background:rgba(37,99,235,0.06);border-left:1px solid var(--border)">▲ Option B — Vercel + QStash</div>
+  </div>
+  <div class="table-wrap" style="border-radius:0 0 12px 12px">
+    <table>
+      <tbody>
+        <tr>
+          <td><strong>Initial setup</strong></td>
+          <td class="aws-col">High — CDK, IAM roles, SSM params, 4 stacks</td>
+          <td class="vercel-col"><span class="badge badge-green">Low</span> — <code>vercel deploy</code>, QStash dashboard</td>
+        </tr>
+        <tr>
+          <td><strong>Web deployment</strong></td>
+          <td class="aws-col">OpenNext build + Lambda zip upload via CDK</td>
+          <td class="vercel-col"><span class="badge badge-green">Native</span> Next.js deploy, zero config</td>
+        </tr>
+        <tr>
+          <td><strong>Worker deployment</strong></td>
+          <td class="aws-col">Lambda zip + SQS trigger wired in CDK</td>
+          <td class="vercel-col">Vercel function with HTTP endpoint, QStash callback</td>
+        </tr>
+        <tr>
+          <td><strong>Worker timeout</strong></td>
+          <td class="aws-col">120s (configurable up to 15 min)</td>
+          <td class="vercel-col"><span class="badge badge-green">800s on Pro</span> (Fluid Compute) — more generous</td>
+        </tr>
+        <tr>
+          <td><strong>CI/CD</strong></td>
+          <td class="aws-col">GitHub Actions + CDK deploy — you write it</td>
+          <td class="vercel-col"><span class="badge badge-green">Built-in</span> — auto-deploy on push, preview per branch</td>
+        </tr>
+        <tr>
+          <td><strong>Secrets management</strong></td>
+          <td class="aws-col">SSM Parameter Store (per-stage, fine-grained)</td>
+          <td class="vercel-col">Vercel dashboard (project-scoped, simpler)</td>
+        </tr>
+        <tr>
+          <td><strong>Custom domains</strong></td>
+          <td class="aws-col">CloudFront + Route 53 (manual setup)</td>
+          <td class="vercel-col"><span class="badge badge-green">One-click</span> in Vercel dashboard</td>
+        </tr>
+        <tr>
+          <td><strong>Cold starts</strong></td>
+          <td class="aws-col">~1–3s for Node.js Lambda</td>
+          <td class="vercel-col"><span class="badge badge-green">~200–800ms</span> (Fluid Compute stays warm longer)</td>
+        </tr>
+        <tr>
+          <td><strong>Preview environments</strong></td>
+          <td class="aws-col">Complex to set up</td>
+          <td class="vercel-col"><span class="badge badge-green">Built-in</span> — every PR gets a URL</td>
+        </tr>
+        <tr>
+          <td><strong>Observability</strong></td>
+          <td class="aws-col">CloudWatch + Sentry</td>
+          <td class="vercel-col">Vercel built-in logs + Sentry</td>
+        </tr>
+        <tr>
+          <td><strong>Rollbacks</strong></td>
+          <td class="aws-col">Re-deploy CDK</td>
+          <td class="vercel-col"><span class="badge badge-green">One-click</span> in Vercel dashboard</td>
+        </tr>
+        <tr>
+          <td><strong>Vendor lock-in</strong></td>
+          <td class="aws-col">AWS (IAM, SQS, SSM, Lambda, CloudFront)</td>
+          <td class="vercel-col">Vercel + Upstash (different single-vendor stack)</td>
+        </tr>
+        <tr>
+          <td><strong>Scale advantage</strong></td>
+          <td class="aws-col"><span class="badge badge-green">Lower cost at high scale</span> (per-execution pricing)</td>
+          <td class="vercel-col">Flat Pro fee → overage pricing above quota</td>
+        </tr>
+        <tr>
+          <td><strong>Team ops burden</strong></td>
+          <td class="aws-col">Medium-high (IAM policies, CDK upgrades)</td>
+          <td class="vercel-col"><span class="badge badge-green">Low</span> — both fully managed</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- COST COMPARISON -->
+<div class="section">
+  <h2>Cost Comparison</h2>
+  <div class="sub">Estimates for a small production app: ~10,000 image jobs/month, ~50,000 web requests/day</div>
+
+  <div class="cost-grid">
+    <div class="cost-card">
+      <div class="cost-header aws">☁️ Option A — AWS CDK</div>
+      <table class="cost-table">
+        <tr>
+          <td class="cost-service">Lambda Web (50k req/day × 30 days × 0.5s avg × 1024MB)</td>
+          <td class="cost-amount">$4–8</td>
+        </tr>
+        <tr>
+          <td class="cost-service">Lambda Worker (10k jobs × 30s avg × 1536MB)</td>
+          <td class="cost-amount">$6–12</td>
+        </tr>
+        <tr>
+          <td class="cost-service">SQS (10k messages + polling)</td>
+          <td class="cost-amount">~$0.01</td>
+        </tr>
+        <tr>
+          <td class="cost-service">S3 (10k images ~1MB each = 10GB + transfers)</td>
+          <td class="cost-amount">$2–5</td>
+        </tr>
+        <tr>
+          <td class="cost-service">CloudFront (50k req/day, ~5GB transfer)</td>
+          <td class="cost-amount">$3–6</td>
+        </tr>
+        <tr>
+          <td class="cost-service">SSM Parameter Store (standard)</td>
+          <td class="cost-amount">Free</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700">Total estimate</td>
+          <td class="cost-amount" style="color:#4ade80;font-weight:700">$15–31/mo</td>
+        </tr>
+      </table>
+    </div>
+    <div class="cost-card">
+      <div class="cost-header vercel">▲ Option B — Vercel + QStash</div>
+      <table class="cost-table">
+        <tr>
+          <td class="cost-service">Vercel Pro (web + worker functions)</td>
+          <td class="cost-amount">$20 flat</td>
+        </tr>
+        <tr>
+          <td class="cost-service">Vercel compute beyond included quota</td>
+          <td class="cost-amount">$0–5</td>
+        </tr>
+        <tr>
+          <td class="cost-service">QStash / Upstash (10k msg/mo — within free tier)</td>
+          <td class="cost-amount">$0</td>
+        </tr>
+        <tr>
+          <td class="cost-service">S3 or Vercel Blob (10k images ~10GB)</td>
+          <td class="cost-amount">$2–5</td>
+        </tr>
+        <tr>
+          <td class="cost-service">&nbsp;</td>
+          <td class="cost-amount">&nbsp;</td>
+        </tr>
+        <tr>
+          <td class="cost-service">&nbsp;</td>
+          <td class="cost-amount">&nbsp;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700">Total estimate</td>
+          <td class="cost-amount" style="color:#60a5fa;font-weight:700">$22–30/mo</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:16px;font-size:13px;line-height:1.8;color:var(--text-muted)">
+    <strong style="color:var(--text)">Scale notes:</strong>
+    At <strong>small scale</strong> (10k jobs/month), both options cost roughly the same — Vercel Pro's flat fee dominates.
+    At <strong>medium scale</strong> (100k jobs/month), AWS Lambda pulls ahead on per-execution pricing.
+    At <strong>high scale</strong> (1M+ jobs/month), AWS is significantly cheaper.
+    <strong>Vercel's advantage is developer velocity, not compute cost.</strong>
+    Neither estimate includes DB (Neon free tier for early stage; ~$19/month after) or AI API costs (which dominate at any real scale).
+  </div>
+</div>
+
+<!-- VERCEL MIGRATION EFFORT -->
+<div class="section">
+  <h2>Option B Migration Effort (AWS → Vercel)</h2>
+  <div class="sub">~4–6 days of work. All business logic is untouched — only infrastructure edges change.</div>
+
+  <div class="migration-step">
+    <div class="migration-effort eff-easy">1–2 hrs</div>
+    <div class="migration-step-content">
+      <h4>Switch OpenNext adapter</h4>
+      <p>Change <code>open-next.config.ts</code> from <code>aws-lambda-streaming</code> to the Vercel adapter. No Next.js app code changes required.</p>
+    </div>
+  </div>
+  <div class="migration-step">
+    <div class="migration-effort eff-medium">1 day</div>
+    <div class="migration-step-content">
+      <h4>Create Vercel worker HTTP handler</h4>
+      <p>Write <code>apps/worker/src/vercel-handler.ts</code> — wraps the existing <code>GenerationWorker</code> and <code>CaptionWorker</code> as an HTTP POST route that QStash can call. The worker logic itself doesn't change.</p>
+    </div>
+  </div>
+  <div class="migration-step">
+    <div class="migration-effort eff-medium">1–2 days</div>
+    <div class="migration-step-content">
+      <h4>Write QStashQueueAdapter</h4>
+      <p>Implement the existing <code>QueueAdapter</code> interface using QStash's HTTP-push API. The abstraction already exists — this is a new adapter, not a rewrite. Replace <code>SqsQueueAdapter</code> with <code>QStashQueueAdapter</code> in the Vercel config.</p>
+    </div>
+  </div>
+  <div class="migration-step">
+    <div class="migration-effort eff-easy">0.5 day</div>
+    <div class="migration-step-content">
+      <h4>Replace queue bootstrapping</h4>
+      <p>Replace the <code>queue:bootstrap</code> script (ElasticMQ setup) with QStash topic configuration. QStash config is minimal — one topic per queue.</p>
+    </div>
+  </div>
+  <div class="migration-step">
+    <div class="migration-effort eff-medium">1 day</div>
+    <div class="migration-step-content">
+      <h4>Move secrets to Vercel environment variables</h4>
+      <p>Replace SSM <code>GetParameter</code> calls with <code>process.env</code> reads populated by the Vercel dashboard. Remove the SSM client dependency from both Lambdas.</p>
+    </div>
+  </div>
+  <div class="migration-step">
+    <div class="migration-effort eff-easy">0.5 day</div>
+    <div class="migration-step-content">
+      <h4>Remove CDK stacks (optional)</h4>
+      <p>Delete <code>infra/lib/web-stack.ts</code> and <code>infra/lib/worker-stack.ts</code>. Keep the storage stack if continuing to use S3, or replace with Vercel Blob.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PROVIDER AGNOSTICISM MAP -->
+<div class="section">
+  <h2>Provider Agnosticism Map</h2>
+  <div class="sub">Current state of lock-in across the system — the core is already cloud-free</div>
+
+  <div class="agn-grid">
+    <div class="agn-group">
+      <div class="agn-group-header" style="background:rgba(34,197,94,0.1);color:#4ade80">
+        ✅ Already abstracted — swap easily
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">Queue</div>
+        <div class="agn-item-detail">SqsQueueAdapter / ElasticMQ / Inline → add QStash, CloudTasks, etc.</div>
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">Storage</div>
+        <div class="agn-item-detail">S3StorageAdapter / MinIO → add GCSAdapter, R2Adapter, Blob</div>
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">AI Gateway</div>
+        <div class="agn-item-detail">ImageProvider / TextProvider interfaces → add any provider</div>
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">Web Runtime</div>
+        <div class="agn-item-detail">OpenNext supports Lambda, Vercel, Cloudflare, Node server</div>
+      </div>
+    </div>
+
+    <div class="agn-group">
+      <div class="agn-group-header" style="background:rgba(234,179,8,0.1);color:#fbbf24">
+        🟡 AWS-coupled — effort to swap
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">Secrets</div>
+        <div class="agn-item-detail">SSM Parameter Store → swap to process.env, Doppler, or 1Password</div>
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">Infra as Code</div>
+        <div class="agn-item-detail">AWS CDK → rewrite in Pulumi/Terraform for multi-cloud</div>
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">Bedrock (optional)</div>
+        <div class="agn-item-detail">IAM role on worker → remove if not using Bedrock fallback</div>
+      </div>
+    </div>
+
+    <div class="agn-group">
+      <div class="agn-group-header" style="background:rgba(37,99,235,0.1);color:#60a5fa">
+        🔵 Cloud-neutral — no change needed
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">Auth: Clerk</div>
+        <div class="agn-item-detail">Not AWS-specific — works on any runtime</div>
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">Billing: Stripe</div>
+        <div class="agn-item-detail">Not AWS-specific — webhook is just an HTTP POST</div>
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">Monitoring: Sentry</div>
+        <div class="agn-item-detail">Not AWS-specific — SDK works anywhere</div>
+      </div>
+      <div class="agn-item">
+        <div class="agn-item-name">DB: PostgreSQL (Neon)</div>
+        <div class="agn-item-detail">Use Neon, not RDS, to keep DB cloud-neutral</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DECISION SUMMARY -->
+<div class="section">
+  <h2>Decision Summary</h2>
+  <div class="sub">When to choose each option</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div style="background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.3);border-radius:14px;padding:28px">
+      <div style="font-size:22px;margin-bottom:12px">☁️</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px;color:#fb923c">Option A — AWS CDK</div>
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:16px">
+        Deploy the 4 CDK stacks as written. Add Neon for PostgreSQL. Populate SSM parameters before first deploy.
+      </div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">Choose this if:</div>
+      <ul style="list-style:none;font-size:13px;color:var(--text-muted);display:flex;flex-direction:column;gap:6px">
+        <li style="padding-left:16px;position:relative"><span style="position:absolute;left:0;color:#fb923c">•</span> Cost efficiency at scale matters more than ops simplicity</li>
+        <li style="padding-left:16px;position:relative"><span style="position:absolute;left:0;color:#fb923c">•</span> You want full control over IAM and infrastructure</li>
+        <li style="padding-left:16px;position:relative"><span style="position:absolute;left:0;color:#fb923c">•</span> You expect to scale to 100k+ jobs/month</li>
+        <li style="padding-left:16px;position:relative"><span style="position:absolute;left:0;color:#fb923c">•</span> Team has AWS experience</li>
+      </ul>
+    </div>
+    <div style="background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.3);border-radius:14px;padding:28px">
+      <div style="font-size:22px;margin-bottom:12px">▲</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px;color:#60a5fa">Option B — Vercel + QStash</div>
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:16px">
+        Switch OpenNext adapter, add QStash worker handler, replace SSM with env vars. ~4–6 days migration.
+      </div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">Choose this if:</div>
+      <ul style="list-style:none;font-size:13px;color:var(--text-muted);display:flex;flex-direction:column;gap:6px">
+        <li style="padding-left:16px;position:relative"><span style="position:absolute;left:0;color:#60a5fa">•</span> Fastest path to production with least ops overhead</li>
+        <li style="padding-left:16px;position:relative"><span style="position:absolute;left:0;color:#60a5fa">•</span> Still in rapid iteration phase — preview URLs per PR matter</li>
+        <li style="padding-left:16px;position:relative"><span style="position:absolute;left:0;color:#60a5fa">•</span> Small team, no dedicated DevOps</li>
+        <li style="padding-left:16px;position:relative"><span style="position:absolute;left:0;color:#60a5fa">•</span> You want one-click rollbacks and zero CI/CD setup</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:16px;font-size:14px;line-height:1.8;color:var(--text-muted)">
+    <strong style="color:var(--text)">Migration note:</strong> Because queue, storage, and AI gateway are abstracted, you can switch from Option B back to Option A at any time: swap in <code>SqsQueueAdapter</code> for <code>QStashAdapter</code>, switch <code>open-next.config.ts</code> back to <code>aws-lambda-streaming</code>, re-deploy CDK stacks. The business logic never changes — migration is at the infrastructure edges only.
+  </div>
+</div>
+
+<footer>Layertone Deployment Documentation · Serverless Analysis · Updated 2026-05-22</footer>
+
+</body>
+</html>

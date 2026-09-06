@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monorepo Packages — Layertone Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f172a; --bg-card: #1e293b; --bg-card2: #162032;
+    --border: #334155; --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+    --green: #22c55e; --yellow: #eab308; --red: #ef4444; --purple: #a855f7;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.07); padding: 2px 7px; border-radius: 5px; font-size: 0.88em; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,23,42,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 24px;
+    padding: 0 32px; height: 60px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .nav-logo-icon { width: 32px; height: 32px; }
+  .nav-links { display: flex; gap: 4px; margin-left: auto; }
+  .nav-links a { padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: all 0.15s; }
+  .nav-links a:hover, .nav-links a.active { background: var(--bg-card); color: var(--text); }
+
+  .page-hero { padding: 100px 32px 60px; max-width: 1100px; margin: 0 auto; }
+  .page-hero .breadcrumb { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+  .page-hero .breadcrumb a { color: var(--text-muted); }
+  .page-hero .breadcrumb span { margin: 0 8px; }
+  .page-hero h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .page-hero h1 span { color: #c084fc; }
+  .page-hero p { font-size: 17px; color: var(--text-muted); line-height: 1.7; max-width: 680px; }
+
+  .section { max-width: 1100px; margin: 0 auto 60px; padding: 0 32px; }
+  .section h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .section .sub { color: var(--text-muted); margin-bottom: 28px; font-size: 15px; }
+
+  /* PACKAGE RUNTIME TABLE */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+  th { background: var(--bg-card2); font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  td code { font-size: 12px; }
+  .check { color: #4ade80; font-size: 16px; }
+  .dash { color: var(--text-dim); }
+  .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+  .badge-blue { background: rgba(37,99,235,0.15); color: #60a5fa; }
+  .badge-purple { background: rgba(168,85,247,0.15); color: #c084fc; }
+  .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .badge-orange { background: rgba(249,115,22,0.15); color: #fb923c; }
+  .badge-teal { background: rgba(8,145,178,0.15); color: #22d3ee; }
+  .badge-gray { background: rgba(100,116,139,0.15); color: #94a3b8; }
+
+  /* PACKAGE CARDS */
+  .pkg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .pkg-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 22px;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .pkg-card:hover { border-color: rgba(168,85,247,0.4); transform: translateY(-2px); }
+  .pkg-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .pkg-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .pkg-name { font-size: 15px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .pkg-path { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .pkg-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
+  .pkg-runtime { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pkg-exports { margin-top: 10px; }
+  .pkg-exports-label { font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .pkg-export-item { font-size: 12px; font-family: 'JetBrains Mono', monospace; color: #94a3b8; padding: 2px 0; }
+
+  /* DEPENDENCY GRAPH */
+  .dep-diagram {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 36px;
+  }
+  .dep-row {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .dep-node {
+    border: 1px solid; border-radius: 10px; padding: 10px 16px;
+    font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+  }
+  .dn-app { background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.4); color: #fb923c; }
+  .dn-infra { background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.4); color: #fbbf24; }
+  .dn-domain { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.4); color: #60a5fa; }
+  .dn-shared { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.4); color: #4ade80; }
+  .dep-arrow { color: var(--text-dim); font-size: 20px; }
+  .dep-row-label { font-size: 11px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; margin-bottom: 12px; }
+  .dep-divider { border: none; border-top: 1px dashed var(--border); margin: 8px 0 20px; }
+
+  /* LAYERS LEGEND */
+  .layers { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+  .layer-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .layer-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+  footer { border-top: 1px solid var(--border); padding: 32px; text-align: center; color: var(--text-dim); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <svg class="nav-logo-icon" viewBox="0 0 64 64" fill="none">
+      <defs>
+        <linearGradient id="n1" x1="10" y1="6" x2="54" y2="28"><stop stop-color="#FF7B7B"/><stop offset="1" stop-color="#FF9A5C"/></linearGradient>
+        <linearGradient id="n2" x1="6" y1="24" x2="58" y2="40"><stop stop-color="#6C6FFF"/><stop offset="1" stop-color="#4DAFFF"/></linearGradient>
+        <linearGradient id="n3" x1="6" y1="42" x2="58" y2="58"><stop stop-color="#26C6DA"/><stop offset="1" stop-color="#00ACC1"/></linearGradient>
+      </defs>
+      <path d="M32 6 L54 18 L32 28 L10 18 Z" fill="url(#n1)"/>
+      <path d="M10 26 L32 36 L54 26 L54 30 L32 42 L10 30 Z" fill="url(#n2)"/>
+      <path d="M10 38 L32 48 L54 38 L54 44 L32 58 L10 44 Z" fill="url(#n3)"/>
+    </svg>
+    Layertone Docs
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="local-dev.html">Local Dev</a>
+    <a href="aws-cloud.html">AWS Cloud</a>
+    <a href="data-flow.html">Data Flow</a>
+    <a href="packages.html" class="active">Packages</a>
+    <a href="serverless-analysis.html">Analysis</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="breadcrumb"><a href="index.html">Home</a> <span>›</span> Packages</div>
+  <h1>Monorepo <span>Package</span> Map</h1>
+  <p>pnpm workspace with 2 apps and 10 packages. Each package has a single well-defined responsibility and communicates through explicit TypeScript interfaces. No package imports directly from another app.</p>
+</div>
+
+<!-- RUNTIME TABLE -->
+<div class="section">
+  <h2>Package → Runtime Map</h2>
+  <div class="sub">Which packages are bundled into each Lambda at deploy time</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Package</th>
+          <th>Path</th>
+          <th style="text-align:center">Web Lambda</th>
+          <th style="text-align:center">Worker Lambda</th>
+          <th>Key Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>@layertone/web</code></td>
+          <td><code>apps/web</code></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td style="text-align:center"><span class="dash">—</span></td>
+          <td>Next.js 16 app — all pages, API routes, middleware</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/worker</code></td>
+          <td><code>apps/worker</code></td>
+          <td style="text-align:center"><span class="dash">—</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>SQS consumer — GenerationWorker + CaptionWorker entry points</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/api</code></td>
+          <td><code>packages/api</code></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>REST API handlers shared between web routes and worker logic</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/auth</code></td>
+          <td><code>packages/auth</code></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td style="text-align:center"><span class="dash">—</span></td>
+          <td>Clerk authentication adapter — JWT verification, webhook handling</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/billing</code></td>
+          <td><code>packages/billing</code></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>Stripe integration + Ledger — credit reserve / commit / release</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/db</code></td>
+          <td><code>packages/db</code></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>Drizzle ORM schemas, migrations, and query helpers</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/gateway</code></td>
+          <td><code>packages/gateway</code></td>
+          <td style="text-align:center"><span class="dash">—</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>AI provider gateway — OpenAI, Replicate, Recraft, Bedrock, Mock adapters</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/observability</code></td>
+          <td><code>packages/observability</code></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>Sentry integration, CloudWatch metrics, telemetry adapters</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/queue</code></td>
+          <td><code>packages/queue</code></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>Queue abstraction — SqsQueueAdapter, ElasticMQ adapter, Inline adapter</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/renderer</code></td>
+          <td><code>packages/renderer</code></td>
+          <td style="text-align:center"><span class="dash">—</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>Template rendering — Satori (primary) + Puppeteer/Chromium (fallback)</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/shared</code></td>
+          <td><code>packages/shared</code></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>Config types, Adapters interface, prompt templates, shared utilities</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/storage</code></td>
+          <td><code>packages/storage</code></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td style="text-align:center"><span class="check">✓</span></td>
+          <td>Storage abstraction — S3StorageAdapter + MinIO (local)</td>
+        </tr>
+        <tr>
+          <td><code>@layertone/infra</code></td>
+          <td><code>infra/</code></td>
+          <td style="text-align:center"><span class="dash">—</span></td>
+          <td style="text-align:center"><span class="dash">—</span></td>
+          <td>CDK stacks (build-time only — not bundled into any Lambda)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- DEPENDENCY DIAGRAM -->
+<div class="section">
+  <h2>Package Dependency Layers</h2>
+  <div class="sub">Packages are organized in layers — upper layers depend on lower layers, never the reverse</div>
+
+  <div class="dep-diagram">
+    <div class="dep-row-label">Layer 4 — Applications (top-level, not imported by other packages)</div>
+    <div class="dep-row">
+      <div class="dep-node dn-app">apps/web</div>
+      <div class="dep-node dn-app">apps/worker</div>
+      <div class="dep-node dn-infra">infra/ (CDK)</div>
+      <div class="dep-node dn-infra">e2e/ (Playwright)</div>
+    </div>
+
+    <hr class="dep-divider">
+    <div class="dep-row-label">Layer 3 — Feature packages (used by apps)</div>
+    <div class="dep-row">
+      <div class="dep-node dn-domain">@layertone/api</div>
+      <div class="dep-node dn-domain">@layertone/auth</div>
+      <div class="dep-node dn-domain">@layertone/billing</div>
+      <div class="dep-node dn-domain">@layertone/gateway</div>
+      <div class="dep-node dn-domain">@layertone/renderer</div>
+    </div>
+
+    <hr class="dep-divider">
+    <div class="dep-row-label">Layer 2 — Infrastructure packages (used by features)</div>
+    <div class="dep-row">
+      <div class="dep-node dn-domain">@layertone/db</div>
+      <div class="dep-node dn-domain">@layertone/queue</div>
+      <div class="dep-node dn-domain">@layertone/storage</div>
+      <div class="dep-node dn-domain">@layertone/observability</div>
+    </div>
+
+    <hr class="dep-divider">
+    <div class="dep-row-label">Layer 1 — Foundation (no internal dependencies, only external npm)</div>
+    <div class="dep-row">
+      <div class="dep-node dn-shared">@layertone/shared</div>
+    </div>
+
+    <div class="layers">
+      <div class="layer-item"><div class="layer-dot" style="background:#fb923c"></div><span>Applications — entry points for Lambda functions</span></div>
+      <div class="layer-item"><div class="layer-dot" style="background:#60a5fa"></div><span>Feature + Infrastructure packages</span></div>
+      <div class="layer-item"><div class="layer-dot" style="background:#4ade80"></div><span>Shared foundation — types, interfaces, config</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PACKAGE CARDS -->
+<div class="section">
+  <h2>Package Details</h2>
+  <div class="sub">Each package has a single responsibility and exports a clean TypeScript interface</div>
+  <div class="pkg-grid">
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3)">🌐</div>
+        <div>
+          <div class="pkg-name">@layertone/shared</div>
+          <div class="pkg-path">packages/shared/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">Foundation package. Defines the <code>Config</code> type (all environment configuration), the <code>Adapters</code> interface (AI, queue, storage, telemetry), and shared types used across the monorepo. Zero internal dependencies.</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-blue">Web Lambda</span>
+        <span class="badge badge-purple">Worker Lambda</span>
+      </div>
+      <div class="pkg-exports">
+        <div class="pkg-exports-label">Key exports</div>
+        <div class="pkg-export-item">Config, Adapters, AIImageRequest</div>
+        <div class="pkg-export-item">NormalizedCommercialGenerationInput</div>
+        <div class="pkg-export-item">buildQuickCreatePrompt() — prompt templates</div>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3)">🐘</div>
+        <div>
+          <div class="pkg-name">@layertone/db</div>
+          <div class="pkg-path">packages/db/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">Drizzle ORM schema definitions for all tables (users, workspaces, brands, generations, generation_variants, templates, moods, ledger, caption_jobs, etc.), migration runner, and typed query helpers like <code>getGenerationFull()</code>.</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-blue">Web Lambda</span>
+        <span class="badge badge-purple">Worker Lambda</span>
+      </div>
+      <div class="pkg-exports">
+        <div class="pkg-exports-label">Key exports</div>
+        <div class="pkg-export-item">createDb(url, role) — creates typed db client</div>
+        <div class="pkg-export-item">Table schemas: generations, brands, moods, ...</div>
+        <div class="pkg-export-item">getGenerationFull(), updateCaption()</div>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(8,145,178,0.12);border:1px solid rgba(8,145,178,0.3)">🤖</div>
+        <div>
+          <div class="pkg-name">@layertone/gateway</div>
+          <div class="pkg-path">packages/gateway/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">AI provider gateway. Implements the <code>ImageProvider</code> and <code>TextProvider</code> interfaces for OpenAI (DALL-E 3, GPT-4o), Replicate, Recraft, AWS Bedrock (SD3.5), and a Mock provider for testing. Routing logic selects provider by model code.</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-purple">Worker Lambda only</span>
+      </div>
+      <div class="pkg-exports">
+        <div class="pkg-export-item">ImageProvider interface + implementations</div>
+        <div class="pkg-export-item">TextProvider interface + implementations</div>
+        <div class="pkg-export-item">MockImageProvider (dev/test)</div>
+        <div class="pkg-export-item">routeToProvider(modelCode)</div>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3)">✨</div>
+        <div>
+          <div class="pkg-name">@layertone/renderer</div>
+          <div class="pkg-path">packages/renderer/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">Template rendering engine. Takes a JSX template source, a background image, brand tokens (palette, fonts, logo), mood data, and overlay slots; returns a PNG buffer. Uses Satori for SVG→PNG rendering, with Puppeteer/Chromium fallback for complex templates.</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-purple">Worker Lambda only</span>
+      </div>
+      <div class="pkg-exports">
+        <div class="pkg-export-item">render(RenderInput, options) → PNG bytes</div>
+        <div class="pkg-export-item">Uses @sparticuz/chromium for Lambda-compatible Chromium</div>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.3)">💳</div>
+        <div>
+          <div class="pkg-name">@layertone/billing</div>
+          <div class="pkg-path">packages/billing/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">Stripe integration for subscriptions and top-ups. The <code>Ledger</code> class handles the credit lifecycle: reserve credits when a generation is created, commit on success, release on failure. All operations are idempotent via <code>idempotencyKey</code>.</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-blue">Web Lambda</span>
+        <span class="badge badge-purple">Worker Lambda</span>
+      </div>
+      <div class="pkg-exports">
+        <div class="pkg-export-item">Ledger.reserve(), .commit(), .release()</div>
+        <div class="pkg-export-item">Stripe subscription + top-up handlers</div>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.3)">🔐</div>
+        <div>
+          <div class="pkg-name">@layertone/auth</div>
+          <div class="pkg-path">packages/auth/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">Clerk authentication adapter. Handles JWT verification for API routes, Clerk webhook processing (user.created, user.deleted), and maps Clerk user IDs to workspace IDs in the database.</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-blue">Web Lambda only</span>
+      </div>
+      <div class="pkg-exports">
+        <div class="pkg-export-item">verifyJwt(token) — validates Clerk session tokens</div>
+        <div class="pkg-export-item">handleClerkWebhook(event)</div>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(234,179,8,0.12);border:1px solid rgba(234,179,8,0.3)">📬</div>
+        <div>
+          <div class="pkg-name">@layertone/queue</div>
+          <div class="pkg-path">packages/queue/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">Queue abstraction with three implementations: <code>SqsQueueAdapter</code> (AWS SQS / ElasticMQ), and <code>InlineQueueAdapter</code> (in-process for testing). The interface is trivial to extend — adding a QStash adapter for Vercel migration takes ~1–2 days.</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-blue">Web Lambda</span>
+        <span class="badge badge-purple">Worker Lambda</span>
+      </div>
+      <div class="pkg-exports">
+        <div class="pkg-export-item">QueueAdapter interface</div>
+        <div class="pkg-export-item">SqsQueueAdapter, InlineQueueAdapter</div>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3)">🗄️</div>
+        <div>
+          <div class="pkg-name">@layertone/storage</div>
+          <div class="pkg-path">packages/storage/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">Storage abstraction with an S3-compatible implementation that works with both AWS S3 and MinIO. The <code>keys</code> module provides canonical S3 key patterns for all object types (brand assets, generation backgrounds, variant outputs, inspiration uploads).</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-blue">Web Lambda</span>
+        <span class="badge badge-purple">Worker Lambda</span>
+      </div>
+      <div class="pkg-exports">
+        <div class="pkg-export-item">StorageAdapter interface</div>
+        <div class="pkg-export-item">S3StorageAdapter (AWS S3 + MinIO)</div>
+        <div class="pkg-export-item">keys.* — S3 key helpers</div>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3)">🔴</div>
+        <div>
+          <div class="pkg-name">@layertone/observability</div>
+          <div class="pkg-path">packages/observability/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">Sentry error monitoring and CloudWatch metrics. Exports a <code>TelemetryAdapter</code> that wraps Sentry's <code>captureException()</code> and CloudWatch's <code>PutMetricData</code> in a single interface. Instruments Lambda execution with tracing spans.</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-blue">Web Lambda</span>
+        <span class="badge badge-purple">Worker Lambda</span>
+      </div>
+      <div class="pkg-exports">
+        <div class="pkg-export-item">TelemetryAdapter.captureException()</div>
+        <div class="pkg-export-item">TelemetryAdapter.metric(name, value, tags)</div>
+        <div class="pkg-export-item">tagSpan() — adds attributes to current trace span</div>
+      </div>
+    </div>
+
+    <div class="pkg-card">
+      <div class="pkg-header">
+        <div class="pkg-icon" style="background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.3)">📡</div>
+        <div>
+          <div class="pkg-name">@layertone/api</div>
+          <div class="pkg-path">packages/api/</div>
+        </div>
+      </div>
+      <div class="pkg-desc">Shared API handler logic called by both the web Next.js API routes and the worker. Encapsulates generation creation, brand CRUD, template lookups, and other domain operations that need to be accessible from both runtimes.</div>
+      <div class="pkg-runtime">
+        <span class="badge badge-blue">Web Lambda</span>
+        <span class="badge badge-purple">Worker Lambda</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MONOREPO STRUCTURE -->
+<div class="section">
+  <h2>Workspace Structure</h2>
+  <div class="sub">pnpm workspace layout with <code>pnpm-workspace.yaml</code></div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:28px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.9;color:#94a3b8">
+    <span style="color:#fb923c">layertone/</span><br>
+    <span style="color:var(--text-dim)">├── </span><span style="color:#60a5fa">apps/</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#fb923c">web/</span><span style="color:var(--text-dim)">          ← Next.js 16 · Web Lambda · :3000 local</span><br>
+    <span style="color:var(--text-dim)">│   └── </span><span style="color:#fb923c">worker/</span><span style="color:var(--text-dim)">       ← SQS consumer · Worker Lambda</span><br>
+    <span style="color:var(--text-dim)">├── </span><span style="color:#60a5fa">packages/</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#4ade80">shared/</span><span style="color:var(--text-dim)">       ← types, config, adapters interfaces</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#4ade80">db/</span><span style="color:var(--text-dim)">           ← Drizzle ORM · migrations</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#4ade80">queue/</span><span style="color:var(--text-dim)">        ← SQS / ElasticMQ / Inline adapters</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#4ade80">storage/</span><span style="color:var(--text-dim)">      ← S3 / MinIO adapter · key helpers</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#4ade80">observability/</span><span style="color:var(--text-dim)">← Sentry · CloudWatch metrics</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#60a5fa">api/</span><span style="color:var(--text-dim)">          ← domain API handlers (web + worker)</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#60a5fa">auth/</span><span style="color:var(--text-dim)">         ← Clerk JWT + webhooks (web only)</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#60a5fa">billing/</span><span style="color:var(--text-dim)">      ← Stripe · Ledger credit system</span><br>
+    <span style="color:var(--text-dim)">│   ├── </span><span style="color:#c084fc">gateway/</span><span style="color:var(--text-dim)">      ← AI provider adapters (worker only)</span><br>
+    <span style="color:var(--text-dim)">│   └── </span><span style="color:#c084fc">renderer/</span><span style="color:var(--text-dim)">     ← Satori + Puppeteer template engine (worker only)</span><br>
+    <span style="color:var(--text-dim)">├── </span><span style="color:#fbbf24">infra/</span><span style="color:var(--text-dim)">            ← AWS CDK stacks (build-time only)</span><br>
+    <span style="color:var(--text-dim)">├── </span><span style="color:#fbbf24">e2e/</span><span style="color:var(--text-dim)">              ← Playwright end-to-end tests</span><br>
+    <span style="color:var(--text-dim)">├── </span>compose.yaml<span style="color:var(--text-dim)">      ← local infra (Postgres, MinIO, ElasticMQ, Mailpit)</span><br>
+    <span style="color:var(--text-dim)">└── </span>pnpm-workspace.yaml
+  </div>
+</div>
+
+<footer>Layertone Deployment Documentation · Monorepo Packages · Updated 2026-05-22</footer>
+
+</body>
+</html>

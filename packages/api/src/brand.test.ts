@@ -1,5 +1,5 @@
-import type { Config } from "@vyora/shared/config";
-import { describe, expect, it, vi } from "vitest";
+import type { Config } from "@layertone/shared/config";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createDb: vi.fn(() => ({})),
@@ -10,13 +10,30 @@ const mocks = vi.hoisted(() => ({
     ...input,
   })),
   updateBrand: vi.fn(async () => ({ id: "b1" })),
-  addBrandAsset: vi.fn(async () => ({ id: "asset_1" })),
+  addBrandAsset: vi.fn(async (_db: unknown, _w: string, asset: object) => ({
+    id: "asset_1",
+    ...asset,
+  })),
   listBrandAssets: vi.fn(async () => [{ id: "asset_1" }]),
+  deleteBrandAsset: vi.fn(async () => ({ id: "asset_1", s3Key: "logo.png", isPrimary: true })),
+  updateBrandAsset: vi.fn(async (_db: unknown, _w: string, _b: string, id: string, patch: object) => ({
+    id,
+    ...patch,
+  })),
+  getBrandQuotaStatus: vi.fn(async () => ({ used: 0, limit: 3 })),
   putBytes: vi.fn(async () => undefined),
+  deleteObject: vi.fn(async () => undefined),
   describeImage: vi.fn(async () => ({ description: "clean product shot" })),
+  embedText: vi.fn(async () => ({ vector: new Array(1536).fill(0) as number[] })),
+  reencodeImage: vi.fn(async () => ({
+    bytes: Buffer.from("png-bytes"),
+    mimeType: "image/png" as const,
+    width: 1200,
+    height: 300,
+  })),
 }));
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: mocks.createDb,
   listBrands: mocks.listBrands,
   getBrand: mocks.getBrand,
@@ -24,7 +41,12 @@ vi.mock("@vyora/db", () => ({
   updateBrand: mocks.updateBrand,
   addBrandAsset: mocks.addBrandAsset,
   listBrandAssets: mocks.listBrandAssets,
+  deleteBrandAsset: mocks.deleteBrandAsset,
+  updateBrandAsset: mocks.updateBrandAsset,
+  getBrandQuotaStatus: mocks.getBrandQuotaStatus,
 }));
+
+vi.mock("./sanitize/image", () => ({ reencodeImage: mocks.reencodeImage }));
 
 vi.mock("./url-extract", () => ({
   extractFromUrl: vi.fn(async () => ({
@@ -39,24 +61,24 @@ import { BrandApi } from "./brand";
 
 const config = {
   auth: { mode: "dev" as const, devUserId: "00000000-0000-0000-0000-000000000001" },
-  db: { url: "postgres://example.test/studio" },
+  db: { url: "postgres://example.test/layertone" },
   storage: {
     mode: "minio" as const,
     endpoint: "http://localhost:9000",
     region: "us-east-1",
     accessKeyId: "minio",
     secretAccessKey: "minio12345",
-    bucketApp: "studio-app",
-    bucketGlobal: "studio-global",
+    bucketApp: "layertone-app",
+    bucketGlobal: "layertone-global",
     cloudfrontDomain: undefined,
   },
   queue: {
     mode: "elasticmq" as const,
     endpoint: "http://localhost:9324",
     region: "us-east-1",
-    generationsQueue: "studio-generations",
-    captionsQueue: "studio-captions",
-    dlq: "studio-generations-dlq",
+    generationsQueue: "layertone-generations",
+    captionsQueue: "layertone-captions",
+    dlq: "layertone-generations-dlq",
   },
   billing: {
     mode: "stub" as const,
@@ -64,6 +86,7 @@ const config = {
     webhookSecret: undefined,
     prices: {
       free: undefined,
+      subscription: undefined,
       starter: undefined,
       pro: undefined,
       business: undefined,
@@ -94,24 +117,51 @@ const config = {
 const adapters = {
   storage: {
     putBytes: mocks.putBytes,
+    delete: mocks.deleteObject,
   },
   ai: {
     describeImage: mocks.describeImage,
+    embedText: mocks.embedText,
   },
 } as never;
 
+/** 1×1 PNG — enough for file-type to sniff a real magic number. */
+const PNG_BYTES = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
+
 describe("BrandApi", () => {
   const api = new BrandApi(config, adapters);
+
+  beforeEach(() => {
+    mocks.getBrandQuotaStatus.mockResolvedValue({ used: 0, limit: 3 });
+    mocks.getBrand.mockResolvedValue({ id: "b1", name: "Brand" } as never);
+    mocks.listBrandAssets.mockResolvedValue([{ id: "asset_1" }] as never);
+  });
 
   it("creates a brand", async () => {
     const result = await api.create("00000000-0000-0000-0000-000000000010", { name: "Acme" });
     expect(result.name).toBe("Acme");
   });
 
-  it("sanitizes and uploads svg logos", async () => {
+  it("refuses to create a brand past the plan's quota", async () => {
+    mocks.getBrandQuotaStatus.mockResolvedValue({ used: 1, limit: 1 });
+
+    await expect(
+      api.create("00000000-0000-0000-0000-000000000010", { name: "Second" }),
+    ).rejects.toMatchObject({ code: "billing.brand_quota_exceeded", httpStatus: 403 });
+    expect(mocks.createBrand).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ name: "Second" }),
+    );
+  });
+
+  it("sanitizes svg logos and records their intrinsic size", async () => {
     const result = await api.uploadLogo("w1", "b1", {
       bytes: Buffer.from(
-        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script><circle r="5"/></svg>',
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100"><script>alert(1)</script><circle r="5"/></svg>',
         "utf8",
       ),
       mimeType: "image/svg+xml",
@@ -119,24 +169,136 @@ describe("BrandApi", () => {
     });
 
     expect(result.mimeType).toBe("image/svg+xml");
+    expect(result.width).toBe(400);
+    expect(result.height).toBe(100);
     expect(mocks.putBytes).toHaveBeenCalled();
-    expect(mocks.addBrandAsset).toHaveBeenCalled();
+    expect(mocks.addBrandAsset).toHaveBeenCalledWith(
+      expect.anything(),
+      "w1",
+      expect.objectContaining({ width: 400, height: 100 }),
+    );
   });
 
-  it("uploads raster logos without image re-encoding", async () => {
+  it("re-encodes raster logos and stores their real dimensions", async () => {
     const result = await api.uploadLogo("w1", "b1", {
-      bytes: Buffer.from([0xff, 0xd8, 0xff, 0xd9]),
-      mimeType: "image/jpeg",
-      filename: "logo.jpg",
+      bytes: PNG_BYTES,
+      mimeType: "image/png",
+      filename: "logo.png",
     });
 
-    expect(result.mimeType).toBe("image/jpeg");
-    expect(mocks.putBytes).toHaveBeenCalledWith(
-      expect.stringContaining(".jpg"),
-      expect.any(Buffer),
-      "image/jpeg",
+    expect(result.mimeType).toBe("image/png");
+    expect(result.width).toBe(1200);
+    expect(result.height).toBe(300);
+    expect(mocks.reencodeImage).toHaveBeenCalled();
+    expect(mocks.addBrandAsset).toHaveBeenCalledWith(
+      expect.anything(),
+      "w1",
+      expect.objectContaining({ width: 1200, height: 300 }),
     );
-    expect(mocks.addBrandAsset).toHaveBeenCalled();
+  });
+
+  it("rejects a logo whose bytes are not a supported image", async () => {
+    await expect(
+      api.uploadLogo("w1", "b1", {
+        bytes: Buffer.from("MZ\u0000\u0000 not an image", "utf8"),
+        mimeType: "image/png",
+        filename: "logo.png",
+      }),
+    ).rejects.toMatchObject({ code: "validation.invalid_image", httpStatus: 415 });
+  });
+
+  it("promotes the next logo when the primary one is deleted", async () => {
+    mocks.getBrand.mockResolvedValue({ id: "b1", logoS3Key: "logo.png" } as never);
+    mocks.listBrandAssets.mockResolvedValue([
+      { id: "asset_2", kind: "logo", s3Key: "other-logo.png" },
+    ] as never);
+
+    await api.deleteAsset("w1", "b1", "asset_1");
+
+    expect(mocks.updateBrandAsset).toHaveBeenCalledWith(
+      expect.anything(),
+      "w1",
+      "b1",
+      "asset_2",
+      { isPrimary: true },
+    );
+    expect(mocks.deleteObject).toHaveBeenCalledWith("logo.png");
+  });
+
+  it("clears the logo key when the last logo is deleted", async () => {
+    mocks.getBrand.mockResolvedValue({ id: "b1", logoS3Key: "logo.png" } as never);
+    mocks.listBrandAssets.mockResolvedValue([
+      { id: "asset_9", kind: "reference", s3Key: "ref.png" },
+    ] as never);
+
+    await api.deleteAsset("w1", "b1", "asset_1");
+
+    expect(mocks.updateBrand).toHaveBeenCalledWith(expect.anything(), "w1", "b1", {
+      logoS3Key: null,
+    });
+  });
+
+  it("makes the first logo primary and describes it", async () => {
+    mocks.listBrandAssets.mockResolvedValue([] as never);
+
+    const result = await api.uploadLogo(
+      "w1",
+      "b1",
+      { bytes: PNG_BYTES, mimeType: "image/png", filename: "mark.png" },
+      { variant: "mark", background: "dark", label: "White mark" },
+    );
+
+    expect(result).toMatchObject({
+      isPrimary: true,
+      variant: "mark",
+      background: "dark",
+      label: "White mark",
+    });
+    expect(mocks.updateBrand).toHaveBeenCalledWith(
+      expect.anything(),
+      "w1",
+      "b1",
+      expect.objectContaining({ logoS3Key: expect.stringContaining(".png") }),
+    );
+  });
+
+  it("leaves the primary slot alone for a second logo", async () => {
+    mocks.listBrandAssets.mockResolvedValue([
+      { id: "asset_1", kind: "logo", isPrimary: true },
+    ] as never);
+
+    const result = await api.uploadLogo("w1", "b1", {
+      bytes: PNG_BYTES,
+      mimeType: "image/png",
+      filename: "alt.png",
+    });
+
+    expect(result.isPrimary).toBe(false);
+  });
+
+  it("normalizes brand fonts to a weight the renderer can fetch", async () => {
+    await api.update("w1", "b1", {
+      fonts: { heading: { family: "Anton", weight: "700" }, body: { family: "Lora" } },
+    });
+
+    expect(mocks.updateBrand).toHaveBeenCalledWith(expect.anything(), "w1", "b1", {
+      // Anton publishes 400 only; Lora takes the body default.
+      fonts: {
+        heading: { family: "Anton", weight: "400" },
+        body: { family: "Lora", weight: "400" },
+      },
+    });
+  });
+
+  it("rejects a font family the renderer cannot resolve", async () => {
+    await expect(
+      api.update("w1", "b1", {
+        fonts: {
+          heading: { family: "Helvetica Neue", weight: "700" },
+          body: { family: "Inter" },
+        },
+      }),
+    ).rejects.toMatchObject({ name: "ZodError" });
   });
 
   it("extracts metadata from a URL", async () => {

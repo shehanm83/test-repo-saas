@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 
-import { BrandApi } from "@vyora/api/brand";
-import { loadConfig } from "@vyora/shared/config";
+import { BrandApi } from "@layertone/api/brand";
+import { loadConfig } from "@layertone/shared/config";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 import { createServerAdapters } from "@/lib/server/adapters";
+import { apiError } from "@/lib/server/api-error";
 
-export async function GET(
-  _request: Request,
-  props: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const { session } = await getSessionWorkspace();
   if (!session.workspaceId) {
@@ -24,10 +22,7 @@ export async function GET(
   return NextResponse.json(payload);
 }
 
-export async function PATCH(
-  request: Request,
-  props: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const { session } = await getSessionWorkspace();
   if (!session.workspaceId) {
@@ -35,6 +30,14 @@ export async function PATCH(
   }
 
   const api = new BrandApi(loadConfig(), createServerAdapters() as never);
-  const payload = await api.update(session.workspaceId, id, await request.json());
+  let payload;
+  try {
+    payload = await api.update(session.workspaceId, id, await request.json());
+  } catch (error) {
+    return apiError(error);
+  }
+  if (!payload) {
+    return NextResponse.json({ error: "not-found" }, { status: 404 });
+  }
   return NextResponse.json(payload);
 }

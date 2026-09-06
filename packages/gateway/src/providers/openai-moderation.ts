@@ -1,4 +1,4 @@
-import type { ModerationProvider } from "../types.js";
+import type { ModerationProvider } from "../types";
 
 export class OpenAIModerationProvider implements ModerationProvider {
   constructor(private readonly opts: { apiKey: string }) {}
@@ -7,7 +7,7 @@ export class OpenAIModerationProvider implements ModerationProvider {
     const r = await fetch("https://api.openai.com/v1/moderations", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${this.opts.apiKey}`,
+        Authorization: `Bearer ${this.opts.apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ model: "omni-moderation-latest", input: text }),

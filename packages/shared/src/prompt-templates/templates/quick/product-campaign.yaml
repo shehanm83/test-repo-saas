@@ -3,6 +3,7 @@ name: Quick Create Product Campaign
 category: image_generation
 version: 1
 compatible_models:
+  - gpt-image-2
   - gpt-image-1
   - flux-1.1-pro
   - recraft-v3
@@ -69,7 +70,9 @@ prompt: |
   {{overlay_summary}}
 
   Present the product clearly and reserve clean overlay space for headline, offer, CTA, logo, and legal details.
+  Show the entire product and packaging in frame with all edges visible; place overlay space around it, never on top of it.
   Do not render readable campaign text, prices, QR codes, URLs, phone numbers, or logos inside the image.
 negative_prompt: |
   distorted product, warped packaging, unreadable label text, fake CTA, fake price,
-  fake QR code, fake URL, fake phone number, fake logo, watermark, cluttered layout
+  fake QR code, fake URL, fake phone number, fake logo, watermark, cluttered layout,
+  cropped product, cut off product, clipped packaging edges, overlay covering product

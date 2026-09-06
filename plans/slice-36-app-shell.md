@@ -2,7 +2,7 @@
 
 **Phase:** 11 — Frontend foundation
 **Depends on:** 35, 12
-**Spec references:** [UI Prompt 4 — App shell](../specs/2026-04-25-studio-v1-ui-prompts.md).
+**Spec references:** [UI Prompt 4 — App shell](../specs/2026-04-25-layertone-v1-ui-prompts.md).
 
 **Definition of done:**
 - `(app)` route group with shared layout: top bar + left sidebar
@@ -37,7 +37,7 @@
 ```ts
 // apps/web/src/lib/auth/server.ts
 import { headers } from "next/headers";
-import { loadConfig, createAdapters } from "@vyora/shared";
+import { loadConfig, createAdapters } from "@layertone/shared";
 
 export async function getServerSession() {
   const config = loadConfig();
@@ -86,7 +86,7 @@ import Link from "next/link";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { CreditPill } from "./credit-pill";
 import { AvatarMenu } from "./avatar-menu";
-import type { AuthIdentity } from "@vyora/shared";
+import type { AuthIdentity } from "@layertone/shared";
 
 export function TopBar({ session }: { session: AuthIdentity }) {
   return (
@@ -167,8 +167,8 @@ export function Sidebar() {
 // apps/web/src/app/api/workspaces/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
-import { WorkspaceApi } from "@vyora/api";
-import { loadConfig } from "@vyora/shared";
+import { WorkspaceApi } from "@layertone/api";
+import { loadConfig } from "@layertone/shared";
 
 export async function GET() {
   const session = await getServerSession();
@@ -182,7 +182,7 @@ export async function GET() {
 // apps/web/src/app/api/workspaces/switch/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
-import { loadConfig, createAdapters } from "@vyora/shared";
+import { loadConfig, createAdapters } from "@layertone/shared";
 
 export async function POST(req: Request) {
   const session = await getServerSession();
@@ -216,7 +216,7 @@ describe("Sidebar", () => {
 - [ ] **Step 7 — Commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(web): app shell with top bar, sidebar, workspace switcher, credit pill"
 ```
@@ -226,7 +226,7 @@ git commit -m "feat(web): app shell with top bar, sidebar, workspace switcher, c
 ## Verification
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 pnpm dev   # navigate to /generate, sidebar highlights it
 ```
 

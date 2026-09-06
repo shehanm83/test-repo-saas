@@ -1,4 +1,4 @@
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 
 import type { Db } from "../client";
 import { productAssets, productLines, products, productVariants } from "../schema";
@@ -157,7 +157,33 @@ export async function listProductAssets(db: Db, workspaceId: string, productId: 
     tx
       .select()
       .from(productAssets)
-      .where(eq(productAssets.productId, productId))
+      .where(
+        and(
+          eq(productAssets.productId, productId),
+          inArray(productAssets.kind, ["cutout", "product", "packaging", "label_detail"]),
+        ),
+      )
       .orderBy(desc(productAssets.createdAt)),
+  );
+}
+
+/** Identity-first ordering used when Quick Create snapshots a saved product. */
+export async function listProductIdentityAssets(db: Db, workspaceId: string, productId: string) {
+  return withWorkspace(db, workspaceId, (tx) =>
+    tx
+      .select()
+      .from(productAssets)
+      .where(eq(productAssets.productId, productId))
+      .orderBy(
+        sql`CASE ${productAssets.kind}
+          WHEN 'cutout' THEN 0
+          WHEN 'product' THEN 1
+          WHEN 'packaging' THEN 2
+          WHEN 'label_detail' THEN 3
+          ELSE 4
+        END`,
+        desc(productAssets.qualityScore),
+        desc(productAssets.createdAt),
+      ),
   );
 }

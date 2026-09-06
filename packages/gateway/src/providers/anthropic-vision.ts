@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { VisionProvider } from "../types.js";
+import type { VisionProvider } from "../types";
 
 export class AnthropicVisionProvider implements VisionProvider {
   private client: Anthropic;

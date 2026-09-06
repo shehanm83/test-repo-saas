@@ -116,9 +116,9 @@ Use the existing app shell and tokens, but the page should feel like a professio
 ## Verification
 
 ```bash
-pnpm --filter @vyora/web test
-pnpm --filter @vyora/web typecheck
-pnpm --filter @vyora/e2e test -- signup-and-generate
+pnpm --filter @layertone/web test
+pnpm --filter @layertone/web typecheck
+pnpm --filter @layertone/e2e test -- signup-and-generate
 ```
 
 ## Commit Message

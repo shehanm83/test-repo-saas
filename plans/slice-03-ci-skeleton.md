@@ -105,7 +105,7 @@ jobs:
         image: pgvector/pgvector:pg16
         env:
           POSTGRES_PASSWORD: dev
-          POSTGRES_DB: studio
+          POSTGRES_DB: layertone
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres"

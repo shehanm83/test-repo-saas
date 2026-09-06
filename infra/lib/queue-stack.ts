@@ -15,18 +15,18 @@ export class QueueStack extends Stack {
     super(scope, id, props);
 
     this.dlq = new Queue(this, "GenerationsDLQ", {
-      queueName: `studio-${props.stage}-generations-dlq`,
+      queueName: `layertone-${props.stage}-generations-dlq`,
       retentionPeriod: Duration.days(14),
     });
 
     this.mainQueue = new Queue(this, "GenerationsQueue", {
-      queueName: `studio-${props.stage}-generations`,
+      queueName: `layertone-${props.stage}-generations`,
       visibilityTimeout: Duration.seconds(180),
       deadLetterQueue: { queue: this.dlq, maxReceiveCount: 3 },
     });
 
     this.captionsQueue = new Queue(this, "CaptionsQueue", {
-      queueName: `studio-${props.stage}-captions`,
+      queueName: `layertone-${props.stage}-captions`,
       visibilityTimeout: Duration.seconds(60),
       deadLetterQueue: { queue: this.dlq, maxReceiveCount: 3 },
     });

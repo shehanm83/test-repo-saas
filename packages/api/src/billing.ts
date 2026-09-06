@@ -1,7 +1,8 @@
-import { createDb, workspaces } from "@vyora/db";
-import { eq } from "@vyora/db/operators";
-import type { Adapters, Config } from "@vyora/shared";
+import { createDb, workspaces } from "@layertone/db";
+import { eq } from "@layertone/db/operators";
+import type { Adapters, Config } from "@layertone/shared";
 import { z } from "zod";
+import { Ledger, PLANS, TOPUP_PACKS } from "@layertone/billing";
 
 export class BillingApi {
   constructor(
@@ -17,29 +18,36 @@ export class BillingApi {
   async startSubscription(args: { workspaceId: string; customerId: string; input: unknown }) {
     const v = z
       .object({
-        planCode: z.enum(["free", "starter", "pro", "business", "agency"]),
+        planCode: z.enum(["free", "subscription"]),
       })
       .parse(args.input);
 
     if (v.planCode === "free") {
       const db = createDb(this.config.db.url, "app_admin");
+      const plan = PLANS.free;
       await db
         .update(workspaces)
-        .set({ planCode: "free" })
+        .set({
+          planCode: "free",
+          brandQuota: plan.brandQuota,
+          seatQuota: plan.seatQuota,
+          monthlyCreditGrant: plan.monthlyCreditGrant,
+        })
         .where(eq(workspaces.id, args.workspaceId));
       return { url: `${this.config.appUrl}/billing?subscription=success` };
     }
 
     const priceId = this.config.billing.prices[v.planCode];
-    if (!priceId) {
-      throw new Error(`missing-stripe-price-for-plan-${v.planCode}`);
-    }
+    const plan = PLANS[v.planCode];
 
     return this.adapters.billing.createSubscriptionCheckout({
       workspaceId: args.workspaceId,
       customerId: args.customerId,
-      priceId,
-      successUrl: `${this.config.appUrl}/billing?subscription=success`,
+      ...(priceId ? { priceId } : {}),
+      planCode: v.planCode,
+      planName: plan.name,
+      unitAmountCents: plan.price * 100,
+      successUrl: `${this.config.appUrl}/billing?subscription=success&checkout_session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${this.config.appUrl}/billing?subscription=cancel`,
     });
   }
@@ -47,11 +55,29 @@ export class BillingApi {
   async startTopup(args: { workspaceId: string; customerId: string; input: unknown }) {
     const v = z.object({ packCode: z.enum(["p200", "p750", "p2500"]) }).parse(args.input);
 
+    if (this.config.billing.mode === "stub") {
+      const db = createDb(this.config.db.url, "app_admin");
+      await db
+        .update(workspaces)
+        .set({
+          planCode: "payg",
+          brandQuota: PLANS.payg.brandQuota,
+          seatQuota: PLANS.payg.seatQuota,
+          monthlyCreditGrant: PLANS.payg.monthlyCreditGrant,
+        })
+        .where(eq(workspaces.id, args.workspaceId));
+      await new Ledger(db).topup({
+        workspaceId: args.workspaceId,
+        amount: TOPUP_PACKS[v.packCode].credits,
+        idempotencyKey: `stub-topup-${args.workspaceId}-${v.packCode}-${Date.now()}`,
+      });
+    }
+
     return this.adapters.billing.createTopupCheckout({
       workspaceId: args.workspaceId,
       customerId: args.customerId,
       packCode: v.packCode,
-      successUrl: `${this.config.appUrl}/billing?topup=success`,
+      successUrl: `${this.config.appUrl}/billing?topup=success&checkout_session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${this.config.appUrl}/billing?topup=cancel`,
     });
   }

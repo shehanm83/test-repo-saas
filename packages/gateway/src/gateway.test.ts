@@ -3,8 +3,9 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
+import sharp from "sharp";
 import { Gateway } from "./gateway.js";
-import { MockImageProvider, MockTextProvider, MockVisionProvider } from "./mock.js";
+import { MockImageProvider, MockVisionProvider } from "./mock.js";
 
 describe("Gateway", () => {
   it("routes to registered provider", async () => {
@@ -37,6 +38,20 @@ describe("Gateway", () => {
     ).rejects.toThrow(/unknown model/);
   });
 
+  it("exposes the registered provider capability matrix", () => {
+    const gateway = new Gateway();
+    gateway.registerImage(new MockImageProvider());
+    expect(gateway.capabilityMatrix()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          modelCodes: expect.arrayContaining(["gpt-image-2"]),
+          supportsImageToImage: true,
+          referenceRoles: expect.arrayContaining(["product_identity"]),
+        }),
+      ]),
+    );
+  });
+
   it("promotes to i2i model when needed", async () => {
     const gw = new Gateway();
     gw.registerImage(new MockImageProvider());
@@ -55,6 +70,40 @@ describe("Gateway", () => {
 });
 
 describe("Gateway vision-fallback", () => {
+  it("never drops an essential product identity reference", async () => {
+    const provider = {
+      capabilities: {
+        modelCodes: ["identity-unsafe"],
+        supportsImageToImage: false,
+        supportsMultiReference: false,
+        tier: "fallback" as const,
+      },
+      generate: vi.fn(),
+    };
+    const gateway = new Gateway();
+    gateway.registerImage(provider);
+    await expect(
+      gateway.generateImage({
+        modelCode: "identity-unsafe",
+        prompt: "Product hero",
+        aspectRatio: "1:1",
+        width: 512,
+        height: 512,
+        safetyLevel: "default",
+        references: [
+          {
+            s3Key: "product.png",
+            role: "product_identity",
+            weight: 1,
+            importance: "essential",
+            locked: true,
+          },
+        ],
+      }),
+    ).rejects.toThrow(/essential references unsupported/);
+    expect(provider.generate).not.toHaveBeenCalled();
+  });
+
   it("rewrites prompt with vision description when needsVisionFallback", async () => {
     // Build a mock image provider that does NOT support i2i so fallback is triggered
     const noI2IProvider = {
@@ -64,14 +113,23 @@ describe("Gateway vision-fallback", () => {
         supportsMultiReference: false,
         tier: "fallback" as const,
       },
-      generate: vi.fn(async (req: { prompt: string; modelCode: string; safetyLevel: string; aspectRatio: string; width: number; height: number }) => ({
-        imageBytes: Buffer.from([1, 2, 3]),
-        modelUsedCode: "test-model",
-        upstreamCostCents: 0,
-        latencyMs: 1,
-        safetyFlags: [],
-        _prompt: req.prompt,
-      })),
+      generate: vi.fn(
+        async (req: {
+          prompt: string;
+          modelCode: string;
+          safetyLevel: string;
+          aspectRatio: string;
+          width: number;
+          height: number;
+        }) => ({
+          imageBytes: Buffer.from([1, 2, 3]),
+          modelUsedCode: "test-model",
+          upstreamCostCents: 0,
+          latencyMs: 1,
+          safetyFlags: [],
+          _prompt: req.prompt,
+        }),
+      ),
     };
 
     const storage = { getBytes: vi.fn(async () => new Uint8Array([1, 2, 3])) } as never;
@@ -99,11 +157,32 @@ describe("Gateway vision-fallback", () => {
 });
 
 describe("MockImageProvider with samples", () => {
+  it.each([
+    ["1:1", 256, 256],
+    ["4:5", 256, 320],
+    ["9:16", 256, 455],
+    ["16:9", 455, 256],
+    ["1.91:1", 489, 256],
+    ["2:3", 256, 384],
+  ])(
+    "fills the exact %s target canvas without letterbox dimensions",
+    async (aspectRatio, width, height) => {
+      const provider = new MockImageProvider({ samplesDir: "/nonexistent/path" });
+      const response = await provider.generate({
+        modelCode: "gpt-image-2",
+        prompt: "aspect golden",
+        aspectRatio,
+        width,
+        height,
+        safetyLevel: "default",
+      });
+      const metadata = await sharp(response.imageBytes).metadata();
+      expect([metadata.width, metadata.height]).toEqual([width, height]);
+    },
+  );
+
   it("returns a PNG of the requested dimensions when samples exist", async () => {
-    const samplesDir = resolve(
-      dirname(fileURLToPath(import.meta.url)),
-      "../samples",
-    );
+    const samplesDir = resolve(dirname(fileURLToPath(import.meta.url)), "../samples");
     if (!existsSync(samplesDir)) {
       return;
     }

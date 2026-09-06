@@ -1,4 +1,4 @@
-import { config } from "@vyora/shared/config";
+import { config } from "@layertone/shared/config";
 import { NextResponse } from "next/server";
 
 export function GET() {

@@ -1,4 +1,4 @@
-import type { Config } from "@vyora/shared/config";
+import type { Config } from "@layertone/shared/config";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   listPublishedTemplatesForRouting: vi.fn(async () => []),
 }));
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: mocks.createDb,
   adminListTemplates: mocks.adminListTemplates,
   adminCreateTemplate: mocks.adminCreateTemplate,
@@ -51,5 +51,13 @@ describe("TemplateApi", () => {
     });
 
     expect(template.slug).toBe("minimal-square");
+  });
+
+  it("does not reset routing metadata during a source-only update", async () => {
+    await api.adminUpdate("t1", { jsxSource: "<svg>updated</svg>" });
+
+    expect(mocks.adminUpdateTemplate).toHaveBeenLastCalledWith(expect.anything(), "t1", {
+      jsxSource: "<svg>updated</svg>",
+    });
   });
 });

@@ -9,10 +9,10 @@
 **Tech Stack:** TypeScript + pnpm workspaces · Next.js 15 (App Router, RSC) · Tailwind + shadcn/ui · Drizzle ORM · Postgres + pgvector · S3 + CloudFront · SQS · AWS Lambda · OpenNext · Clerk · Stripe Billing · Satori + Resvg · Sharp · Vitest + Playwright · Resend · Sentry.
 
 **Companion docs:**
-- [PRD](../specs/2026-04-25-studio-v1-prd.md)
-- [Spec](../specs/2026-04-25-studio-v1-spec.md)
-- [Architecture](../specs/2026-04-25-studio-v1-architecture.md)
-- [UI prompts](../specs/2026-04-25-studio-v1-ui-prompts.md)
+- [PRD](../specs/2026-04-25-layertone-v1-prd.md)
+- [Spec](../specs/2026-04-25-layertone-v1-spec.md)
+- [Architecture](../specs/2026-04-25-layertone-v1-architecture.md)
+- [UI prompts](../specs/2026-04-25-layertone-v1-ui-prompts.md)
 
 **Slice budget:** Each slice file is sized to fit comfortably in a 200k-token agent context window (slice content ≤ ~30k tokens; agent has ≥ 170k for spec lookups + edits + tests).
 

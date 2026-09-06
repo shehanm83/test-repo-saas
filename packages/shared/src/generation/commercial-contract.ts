@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 import type { ResolvedOutputTarget } from "../output-targets";
+import { QuickCreatePlan } from "./quick-create-v2";
 
 const UUID = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+const BRIEF_MAX_LENGTH = 4000;
 
 export const CreationType = z.enum([
   "single_product",
@@ -13,13 +15,7 @@ export const CreationType = z.enum([
   "social_ad_pack",
 ]);
 
-export const ProductRole = z.enum([
-  "hero",
-  "bundle_item",
-  "catalogue_item",
-  "before",
-  "after",
-]);
+export const ProductRole = z.enum(["hero", "bundle_item", "catalogue_item", "before", "after"]);
 
 export const OutputFormat = z.enum([
   "instagram_square",
@@ -68,6 +64,25 @@ export const ProductRef = z.object({
   uploadId: UUID.optional(),
   role: ProductRole,
   commercialFields: ProductSnapshot.optional(),
+  assetSnapshots: z
+    .array(
+      z.object({
+        id: UUID,
+        s3Key: z.string().min(1),
+        mimeType: z.string().min(1),
+        kind: z.enum([
+          "product",
+          "packaging",
+          "lifestyle",
+          "label_detail",
+          "before",
+          "after",
+          "cutout",
+        ]),
+      }),
+    )
+    .max(4)
+    .optional(),
 });
 
 export const CampaignDetails = z.object({
@@ -122,7 +137,7 @@ export const OutputSettings = z.object({
 const LegacyInput = z.object({
   brandId: UUID,
   moodId: UUID.optional().nullable(),
-  brief: z.string().min(1).max(500),
+  brief: z.string().min(1).max(BRIEF_MAX_LENGTH),
   outputTarget: z.unknown(),
   inspirationUploadId: UUID.optional(),
   inspirationUploadIds: z.array(UUID).max(5).optional(),
@@ -144,14 +159,15 @@ const LegacyInput = z.object({
 });
 
 const CommercialInput = z.object({
-  mode: z.enum(["quick", "campaign_builder"]),
+  mode: z.literal("quick"),
   creationType: CreationType,
   brandId: UUID.optional().nullable(),
   projectId: UUID.optional().nullable(),
   moodId: UUID.optional().nullable(),
-  brief: z.string().min(1).max(500).optional(),
+  brief: z.string().min(1).max(BRIEF_MAX_LENGTH).optional(),
   outputTarget: z.unknown().optional(),
   productRefs: z.array(ProductRef).max(40).default([]),
+  inspirationUploadIds: z.array(UUID).max(4).default([]),
   brandLogoAssetIds: z.array(UUID).max(5).default([]),
   campaign: CampaignDetails.default({}),
   template: TemplateSelection.default({ family: "product_hero", layout: "centered_product_hero" }),
@@ -168,12 +184,14 @@ const CommercialInput = z.object({
   }),
   outputs: OutputSettings,
   inspirationInfluence: z.enum(["subtle", "balanced", "strong"]).optional(),
+  stockAssetId: UUID.nullable().optional(),
+  creativePlan: QuickCreatePlan.optional(),
   flags: LegacyInput.shape.flags,
 });
 
 export type CommercialGenerationInput = z.infer<typeof CommercialInput>;
 export type NormalizedCommercialGenerationInput = {
-  mode: "legacy" | "quick" | "campaign_builder";
+  mode: "legacy" | "quick";
   creationType: z.infer<typeof CreationType>;
   brandId: string | null;
   projectId: string | null;
@@ -188,6 +206,8 @@ export type NormalizedCommercialGenerationInput = {
   outputs: z.infer<typeof OutputSettings>;
   inspirationUploadIds: string[];
   inspirationInfluence?: "subtle" | "balanced" | "strong";
+  stockAssetId: string | null;
+  creativePlan?: z.infer<typeof QuickCreatePlan>;
   flags: {
     useBrandColors: boolean;
     useBrandLogo: boolean;
@@ -206,8 +226,16 @@ export const OUTPUT_FORMAT_TARGETS: Record<z.infer<typeof OutputFormat>, unknown
   instagram_landscape: { kind: "social", platform: "instagram", format: "post_landscape" },
   instagram_story: { kind: "social", platform: "instagram", format: "story" },
   instagram_reel: { kind: "social", platform: "instagram", format: "reel" },
-  instagram_feed_video_portrait: { kind: "social", platform: "instagram", format: "feed_video_portrait" },
-  instagram_feed_video_square: { kind: "social", platform: "instagram", format: "feed_video_square" },
+  instagram_feed_video_portrait: {
+    kind: "social",
+    platform: "instagram",
+    format: "feed_video_portrait",
+  },
+  instagram_feed_video_square: {
+    kind: "social",
+    platform: "instagram",
+    format: "feed_video_square",
+  },
   facebook_feed: { kind: "social", platform: "facebook", format: "post" },
   facebook_square: { kind: "social", platform: "facebook", format: "post_square" },
   facebook_portrait: { kind: "social", platform: "facebook", format: "post_portrait" },
@@ -240,9 +268,10 @@ export function normalizeCommercialGenerationInput(
 ): NormalizedCommercialGenerationInput {
   if (isCommercialLike(input)) {
     const parsed = CommercialInput.parse(input);
-    const uploadIds = parsed.productRefs
+    const productUploadIds = parsed.productRefs
       .map((ref) => ref.uploadId)
       .filter((id): id is string => typeof id === "string");
+    const uploadIds = [...new Set([...productUploadIds, ...parsed.inspirationUploadIds])];
     const brief = buildCommercialBrief(parsed);
     const normalized: NormalizedCommercialGenerationInput = {
       mode: parsed.mode,
@@ -259,6 +288,8 @@ export function normalizeCommercialGenerationInput(
       composition: parsed.composition,
       outputs: parsed.outputs,
       inspirationUploadIds: uploadIds,
+      stockAssetId: parsed.stockAssetId ?? null,
+      ...(parsed.creativePlan ? { creativePlan: parsed.creativePlan } : {}),
       flags: mergeFlags(parsed.flags),
     };
     if (parsed.inspirationInfluence) {
@@ -304,6 +335,7 @@ export function normalizeCommercialGenerationInput(
       formats: ["product_card"],
     },
     inspirationUploadIds: uploadIds,
+    stockAssetId: null,
     flags: mergeFlags(parsed.flags),
   };
   if (parsed.inspirationInfluence) {
@@ -327,6 +359,7 @@ export function commercialSettingsSnapshot(
     composition: normalized.composition,
     outputs: normalized.outputs,
     primary_output_target: resolvedTarget,
+    ...(normalized.creativePlan ? { creative_plan: normalized.creativePlan } : {}),
   };
 }
 
@@ -349,7 +382,9 @@ function buildCommercialBrief(parsed: z.infer<typeof CommercialInput>) {
     `Template: ${parsed.template.family} / ${parsed.template.layout}`,
     `Composition: ${parsed.composition.backgroundStyle}, ${parsed.composition.realism}`,
   ].filter((piece): piece is string => !!piece && piece.trim().length > 0);
-  return pieces.join("\n").slice(0, 500) || "Create a polished commercial product image.";
+  return (
+    pieces.join("\n").slice(0, BRIEF_MAX_LENGTH) || "Create a polished commercial product image."
+  );
 }
 
 type ParsedFlags = {

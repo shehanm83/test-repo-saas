@@ -1,6 +1,6 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
-import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse } from "@vyora/shared";
+import type { ImageProvider, ProviderCapabilities } from "../types";
+import type { AIImageRequest, AIImageResponse } from "@layertone/shared";
 
 const BEDROCK_SD35_COST_CENTS = 3;
 const NOVA_COST_CENTS = 4;
@@ -10,6 +10,9 @@ export class BedrockImageProvider implements ImageProvider {
     modelCodes: ["bedrock-sd35", "nova-canvas"],
     supportsImageToImage: false,
     supportsMultiReference: false,
+    maxReferences: 0,
+    referenceRoles: [],
+    supportsIdentityPreservation: false,
     tier: "fallback",
   };
 
@@ -22,9 +25,7 @@ export class BedrockImageProvider implements ImageProvider {
   async generate(req: AIImageRequest): Promise<AIImageResponse> {
     const start = Date.now();
     const modelId =
-      req.modelCode === "nova-canvas"
-        ? "amazon.nova-canvas-v1:0"
-        : "stability.sd3-large-v1:0";
+      req.modelCode === "nova-canvas" ? "amazon.nova-canvas-v1:0" : "stability.sd3-large-v1:0";
 
     const body =
       req.modelCode === "nova-canvas"
@@ -59,7 +60,8 @@ export class BedrockImageProvider implements ImageProvider {
     return {
       imageBytes: bytes,
       modelUsedCode: req.modelCode,
-      upstreamCostCents: req.modelCode === "nova-canvas" ? NOVA_COST_CENTS : BEDROCK_SD35_COST_CENTS,
+      upstreamCostCents:
+        req.modelCode === "nova-canvas" ? NOVA_COST_CENTS : BEDROCK_SD35_COST_CENTS,
       latencyMs: Date.now() - start,
       safetyFlags: [],
     };

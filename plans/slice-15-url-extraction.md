@@ -2,7 +2,7 @@
 
 **Phase:** 3 — Storage + brand kit
 **Depends on:** 14
-**Spec references:** [Spec § 3.2 step 1 (URL pre-fill)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 7 (URL extraction SSRF)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 3.2 step 1 (URL pre-fill)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 7 (URL extraction SSRF)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `extractFromUrl(url)` fetches a webpage SSRF-safely and returns `{ title, dominantColors[], candidateLogos[], description }`
@@ -29,7 +29,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/api add cheerio node-vibrant
+pnpm --filter @layertone/api add cheerio node-vibrant
 ```
 
 - [ ] **Step 2 — `ssrf.ts`**
@@ -204,7 +204,7 @@ git commit -m "feat(api): SSRF-safe URL extraction for brand pre-fill"
 ## Verification
 
 ```bash
-pnpm --filter @vyora/api test
+pnpm --filter @layertone/api test
 ```
 
 ## Commit message

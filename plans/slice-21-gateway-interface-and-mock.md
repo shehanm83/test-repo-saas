@@ -2,10 +2,10 @@
 
 **Phase:** 6 — AI Gateway
 **Depends on:** 05
-**Spec references:** [Architecture § 4 (AI gateway)](../specs/2026-04-25-studio-v1-architecture.md), [decision D15 (i2i routing)](../../../C--personal-saas-img-gen/memory/project_decisions.md).
+**Spec references:** [Architecture § 4 (AI gateway)](../specs/2026-04-25-layertone-v1-architecture.md), [decision D15 (i2i routing)](../../../C--personal-saas-img-gen/memory/project_decisions.md).
 
 **Definition of done:**
-- `@vyora/gateway` exports a unified `Gateway` class implementing `AIProvider`
+- `@layertone/gateway` exports a unified `Gateway` class implementing `AIProvider`
 - Provider registry: providers register themselves under model codes
 - Routing table:
   - `flux-1.1-pro` → Flux provider (i2i: yes)
@@ -48,7 +48,7 @@ export interface AIProvider {
 `packages/gateway/src/types.ts`:
 
 ```ts
-import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@layertone/shared";
 
 export interface ProviderCapabilities {
   modelCodes: string[];
@@ -133,7 +133,7 @@ export function chooseProvider(
 import { createHash } from "node:crypto";
 import type {
   AIImageRequest, AIImageResponse, AIProvider, AITextRequest, AITextResponse,
-} from "@vyora/shared";
+} from "@layertone/shared";
 import type { ImageProvider, TextProvider, VisionProvider, ModerationProvider } from "./types.js";
 import { chooseProvider } from "./routing.js";
 
@@ -214,7 +214,7 @@ export function promptFingerprint(req: AIImageRequest): string {
 import sharp from "sharp";
 import { promptFingerprint } from "./gateway.js";
 import type { ImageProvider } from "./types.js";
-import type { AIImageRequest, AIImageResponse } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse } from "@layertone/shared";
 
 export class MockImageProvider implements ImageProvider {
   capabilities = {
@@ -282,7 +282,7 @@ describe("Gateway", () => {
 In `packages/shared/src/adapters/factory.ts`, when `config.ai.mode === "mock"`:
 
 ```ts
-import { Gateway, MockImageProvider } from "@vyora/gateway";
+import { Gateway, MockImageProvider } from "@layertone/gateway";
 const gw = new Gateway();
 gw.registerImage(new MockImageProvider());
 // text/vision/moderation mocks added in slice 24
@@ -302,7 +302,7 @@ git commit -m "feat(gateway): provider interface, routing with i2i promotion, mo
 ## Verification
 
 ```bash
-pnpm --filter @vyora/gateway test
+pnpm --filter @layertone/gateway test
 ```
 
 ## Commit message

@@ -8,7 +8,7 @@
 - Tailwind CSS configured with shadcn/ui design tokens
 - Reusable primitives via shadcn: Button, Input, Textarea, Label, Toggle (Switch), Select, Checkbox, Dialog, Drawer, Toast (Sonner), Card, Tabs, Badge, Skeleton
 - `app/layout.tsx` with global font (Inter), color theme, basic chrome
-- `pnpm --filter @vyora/web dev` runs and shows a Hello page
+- `pnpm --filter @layertone/web dev` runs and shows a Hello page
 - Component test setup (RTL + jsdom) verifies a Button renders
 
 ---
@@ -38,16 +38,16 @@
 - [ ] **Step 1 — Add Next + Tailwind + shadcn deps**
 
 ```bash
-pnpm --filter @vyora/web add next@latest react@^19 react-dom@^19
-pnpm --filter @vyora/web add -D @types/react @types/react-dom typescript tailwindcss postcss autoprefixer @tailwindcss/postcss class-variance-authority clsx tailwind-merge lucide-react
-pnpm --filter @vyora/web add @testing-library/react @testing-library/user-event @testing-library/dom @testing-library/jest-dom jsdom
+pnpm --filter @layertone/web add next@latest react@^19 react-dom@^19
+pnpm --filter @layertone/web add -D @types/react @types/react-dom typescript tailwindcss postcss autoprefixer @tailwindcss/postcss class-variance-authority clsx tailwind-merge lucide-react
+pnpm --filter @layertone/web add @testing-library/react @testing-library/user-event @testing-library/dom @testing-library/jest-dom jsdom
 ```
 
 - [ ] **Step 2 — Init shadcn**
 
 ```bash
-pnpm --filter @vyora/web exec shadcn@latest init -y
-pnpm --filter @vyora/web exec shadcn@latest add button input label textarea switch select checkbox dialog drawer card tabs badge skeleton sonner
+pnpm --filter @layertone/web exec shadcn@latest init -y
+pnpm --filter @layertone/web exec shadcn@latest add button input label textarea switch select checkbox dialog drawer card tabs badge skeleton sonner
 ```
 
 (If the CLI scaffolds outside `src/`, move into `src/components/ui/` and update `components.json`.)
@@ -180,8 +180,8 @@ In `apps/web/package.json`:
 - [ ] **Step 9 — Run + commit**
 
 ```bash
-pnpm --filter @vyora/web test
-pnpm --filter @vyora/web dev   # browse http://localhost:3000
+pnpm --filter @layertone/web test
+pnpm --filter @layertone/web dev   # browse http://localhost:3000
 git add -A
 git commit -m "feat(web): Next.js + Tailwind + shadcn foundation with design tokens"
 ```
@@ -191,8 +191,8 @@ git commit -m "feat(web): Next.js + Tailwind + shadcn foundation with design tok
 ## Verification
 
 ```bash
-pnpm --filter @vyora/web test
-pnpm --filter @vyora/web build
+pnpm --filter @layertone/web test
+pnpm --filter @layertone/web build
 ```
 
 ## Commit message

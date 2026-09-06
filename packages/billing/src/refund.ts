@@ -1,4 +1,4 @@
-import type { BillingProvider } from "@vyora/shared";
+import type { BillingProvider } from "@layertone/shared";
 
 export class RefundService {
   constructor(private readonly billing: BillingProvider) {}

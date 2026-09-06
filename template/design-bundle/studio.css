@@ -6,17 +6,17 @@
 
 :root {
   /* Studio accent — single violet, used sparingly */
-  --studio-violet: #5E5CE6;
-  --studio-violet-600: #4F4DD9;
-  --studio-violet-700: #3F3CC2;
-  --studio-violet-50: #F1F1FE;
-  --studio-violet-100: #E4E3FC;
-  --studio-violet-fg: #FFFFFF;
+  --layertone-violet: #5E5CE6;
+  --layertone-violet-600: #4F4DD9;
+  --layertone-violet-700: #3F3CC2;
+  --layertone-violet-50: #F1F1FE;
+  --layertone-violet-100: #E4E3FC;
+  --layertone-violet-fg: #FFFFFF;
 
   /* Status colors — used very sparingly */
-  --studio-green: #1F7A5A;
+  --layertone-green: #1F7A5A;
   --studio-amber: #B5651D;
-  --studio-red:   #C2362C;
+  --layertone-red:   #C2362C;
 
   --header-h: 56px;
   --sidebar-w: 240px;
@@ -38,7 +38,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 img { display: block; max-width: 100%; }
 hr { border: 0; border-top: 1px solid var(--cal-gray-200); margin: 0; }
 
-::selection { background: var(--studio-violet-100); color: var(--cal-charcoal); }
+::selection { background: var(--layertone-violet-100); color: var(--cal-charcoal); }
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -72,12 +72,12 @@ hr { border: 0; border-top: 1px solid var(--cal-gray-200); margin: 0; }
 
 /* accent — Studio violet, the ONLY violet surface in the app */
 .btn--accent {
-  background: var(--studio-violet);
-  color: var(--studio-violet-fg);
+  background: var(--layertone-violet);
+  color: var(--layertone-violet-fg);
   box-shadow: var(--shadow-button-highlight);
 }
-.btn--accent:hover:not(:disabled) { background: var(--studio-violet-600); }
-.btn--accent:active:not(:disabled) { background: var(--studio-violet-700); }
+.btn--accent:hover:not(:disabled) { background: var(--layertone-violet-600); }
+.btn--accent:active:not(:disabled) { background: var(--layertone-violet-700); }
 
 /* secondary — white card with hairline ring */
 .btn--secondary {
@@ -96,7 +96,7 @@ hr { border: 0; border-top: 1px solid var(--cal-gray-200); margin: 0; }
 .btn--icon { width: 32px; height: 32px; padding: 0; border-radius: 6px; }
 .btn--icon-lg { width: 36px; height: 36px; padding: 0; border-radius: 8px; }
 .btn--full { width: 100%; }
-.btn--danger { color: var(--studio-red); }
+.btn--danger { color: var(--layertone-red); }
 .btn--danger:hover { background: #FCEEEE; }
 
 /* ---------- Inputs ---------- */
@@ -114,7 +114,7 @@ hr { border: 0; border-top: 1px solid var(--cal-gray-200); margin: 0; }
 }
 .input:focus, .textarea:focus, .select:focus {
   outline: 0;
-  box-shadow: 0 0 0 1px var(--studio-violet), 0 0 0 4px var(--studio-violet-50);
+  box-shadow: 0 0 0 1px var(--layertone-violet), 0 0 0 4px var(--layertone-violet-50);
 }
 .input::placeholder, .textarea::placeholder { color: var(--fg-4); }
 .input--lg { padding: 12px 14px; font-size: 15px; }
@@ -158,10 +158,10 @@ hr { border: 0; border-top: 1px solid var(--cal-gray-200); margin: 0; }
   white-space: nowrap;
 }
 .pill--ring { background: var(--cal-white); box-shadow: var(--shadow-ring); }
-.pill--accent { background: var(--studio-violet-50); color: var(--studio-violet-700); }
-.pill--green { background: #E8F4EF; color: var(--studio-green); }
+.pill--accent { background: var(--layertone-violet-50); color: var(--layertone-violet-700); }
+.pill--green { background: #E8F4EF; color: var(--layertone-green); }
 .pill--amber { background: #FBF1E2; color: var(--studio-amber); }
-.pill--red { background: #FCEEEE; color: var(--studio-red); }
+.pill--red { background: #FCEEEE; color: var(--layertone-red); }
 .pill--dark { background: var(--cal-charcoal); color: var(--cal-white); }
 .pill .dot { width: 6px; height: 6px; border-radius: 100px; background: currentColor; }
 
@@ -188,7 +188,7 @@ hr { border: 0; border-top: 1px solid var(--cal-gray-200); margin: 0; }
   box-shadow: 0 1px 2px rgba(0,0,0,0.2);
   transition: transform var(--duration-fast) var(--ease-standard);
 }
-.switch.is-on { background: var(--studio-violet); }
+.switch.is-on { background: var(--layertone-violet); }
 .switch.is-on::after { transform: translateX(14px); }
 
 /* ---------- Tooltip / dropdown helpers ---------- */
@@ -212,7 +212,7 @@ hr { border: 0; border-top: 1px solid var(--cal-gray-200); margin: 0; }
   text-align: left;
 }
 .menu-item:hover { background: var(--cal-gray-100); }
-.menu-item--danger { color: var(--studio-red); }
+.menu-item--danger { color: var(--layertone-red); }
 .menu-divider { height: 1px; background: var(--cal-gray-200); margin: 4px 0; }
 
 /* ---------- Tabs ---------- */

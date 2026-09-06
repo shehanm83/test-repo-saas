@@ -12,7 +12,7 @@ export default function HelpPage() {
     {
       icon: <I.Briefcase size={22} />,
       title: "Brand kit",
-      body: "Upload a logo, paste your palette, pick fonts, write voice notes. Vyora uses these to ground every generation.",
+      body: "Upload a logo, paste your palette, pick fonts, write voice notes. Layertone uses these to ground every generation.",
       bg: "linear-gradient(135deg, #E8E7FA, #D4D2F5)",
       iconBg: "#5E5CE6",
     },
@@ -37,7 +37,7 @@ export default function HelpPage() {
         <div>
           <div
             className="t-eyebrow"
-            style={{ color: "var(--studio-violet)", marginBottom: 6 }}
+            style={{ color: "var(--layertone-violet)", marginBottom: 6 }}
           >
             <I.HelpCircle size={11} style={{ verticalAlign: "-1px" }} /> Quickstart
           </div>

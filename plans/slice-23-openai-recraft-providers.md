@@ -24,7 +24,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/gateway add openai
+pnpm --filter @layertone/gateway add openai
 ```
 
 - [ ] **Step 2 — `openai-image.ts`**
@@ -32,7 +32,7 @@ pnpm --filter @vyora/gateway add openai
 ```ts
 import OpenAI from "openai";
 import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@layertone/shared";
 
 const SIZE_TO_OPENAI: Record<string, string> = {
   "1:1": "1024x1024",
@@ -118,7 +118,7 @@ export class OpenAIImageProvider implements ImageProvider {
 
 ```ts
 import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@layertone/shared";
 
 const COST_STD = 8;
 const COST_LARGE = 12;
@@ -187,7 +187,7 @@ git commit -m "feat(gateway): OpenAI gpt-image-1 + Recraft V3 providers (i2i sup
 ## Verification
 
 ```bash
-pnpm --filter @vyora/gateway test
+pnpm --filter @layertone/gateway test
 ```
 
 ## Commit message

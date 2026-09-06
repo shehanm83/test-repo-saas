@@ -2,7 +2,7 @@
 
 **Phase:** 0 — Foundation
 **Depends on:** 02
-**Spec references:** [Architecture § 6.2 (Docker Compose stack)](../specs/2026-04-25-studio-v1-architecture.md), [Spec § 10 (Local development env flags)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Architecture § 6.2 (Docker Compose stack)](../specs/2026-04-25-layertone-v1-architecture.md), [Spec § 10 (Local development env flags)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `compose.yaml` boots Postgres+pgvector, MinIO, ElasticMQ, Mailpit
@@ -28,20 +28,20 @@
 - [ ] **Step 1 — Create `compose.yaml`**
 
 ```yaml
-name: studio-v1
+name: layertone-v1
 
 services:
   postgres:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_USER: studio
+      POSTGRES_USER: layertone
       POSTGRES_PASSWORD: dev
-      POSTGRES_DB: studio
+      POSTGRES_DB: layertone
     ports: ["5432:5432"]
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U studio -d studio"]
+      test: ["CMD-SHELL", "pg_isready -U layertone -d layertone"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -89,7 +89,7 @@ CLERK_SECRET_KEY=
 CLERK_WEBHOOK_SECRET=
 
 # DB
-DATABASE_URL=postgres://studio:dev@localhost:5432/studio
+DATABASE_URL=postgres://layertone:dev@localhost:5432/studio
 
 # Storage (MinIO compatible with AWS SDK)
 STORAGE_MODE=minio
@@ -97,17 +97,17 @@ S3_ENDPOINT=http://localhost:9000
 S3_REGION=us-east-1
 S3_ACCESS_KEY_ID=minio
 S3_SECRET_ACCESS_KEY=minio12345
-S3_BUCKET_APP=studio-app
-S3_BUCKET_GLOBAL=studio-global
+S3_BUCKET_APP=layertone-app
+S3_BUCKET_GLOBAL=layertone-global
 CLOUDFRONT_DOMAIN=
 
 # Queue
 QUEUE_MODE=elasticmq
 SQS_ENDPOINT=http://localhost:9324
 SQS_REGION=us-east-1
-SQS_QUEUE_GENERATIONS=studio-generations
-SQS_QUEUE_CAPTIONS=studio-captions
-SQS_DLQ_GENERATIONS=studio-generations-dlq
+SQS_QUEUE_GENERATIONS=layertone-generations
+SQS_QUEUE_CAPTIONS=layertone-captions
+SQS_DLQ_GENERATIONS=layertone-generations-dlq
 
 # Billing
 BILLING_MODE=stub
@@ -151,8 +151,8 @@ set -euo pipefail
 ENDPOINT="${S3_ENDPOINT:-http://localhost:9000}"
 ACCESS_KEY="${S3_ACCESS_KEY_ID:-minio}"
 SECRET_KEY="${S3_SECRET_ACCESS_KEY:-minio12345}"
-APP_BUCKET="${S3_BUCKET_APP:-studio-app}"
-GLOBAL_BUCKET="${S3_BUCKET_GLOBAL:-studio-global}"
+APP_BUCKET="${S3_BUCKET_APP:-layertone-app}"
+GLOBAL_BUCKET="${S3_BUCKET_GLOBAL:-layertone-global}"
 
 # Wait for MinIO
 until curl -fsS "$ENDPOINT/minio/health/live" >/dev/null; do sleep 1; done
@@ -238,7 +238,7 @@ Expected: "MinIO buckets created"
 - [ ] **Step 7 — Verify each service**
 
 ```bash
-psql "postgres://studio:dev@localhost:5432/studio" -c "SELECT 1"
+psql "postgres://layertone:dev@localhost:5432/studio" -c "SELECT 1"
 curl -s http://localhost:9000/minio/health/live
 curl -s http://localhost:9324
 curl -s http://localhost:8025

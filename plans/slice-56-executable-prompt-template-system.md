@@ -79,10 +79,10 @@ The renderer owns:
 
 ## Verification
 
-- `pnpm --filter @vyora/shared test -- src/prompt-templates/router.test.ts src/generation/preflight.test.ts`
-- `pnpm --filter @vyora/shared typecheck`
-- `pnpm --filter @vyora/shared build`
-- `pnpm --filter @vyora/worker typecheck`
+- `pnpm --filter @layertone/shared test -- src/prompt-templates/router.test.ts src/generation/preflight.test.ts`
+- `pnpm --filter @layertone/shared typecheck`
+- `pnpm --filter @layertone/shared build`
+- `pnpm --filter @layertone/worker typecheck`
 
 Suggested commit:
 

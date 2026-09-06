@@ -2,6 +2,7 @@ node_modules/
 dist/
 dist-types/
 .next/
+.next-e2e/
 .open-next/
 .swc/
 .turbo/
@@ -30,3 +31,6 @@ test-results/
 /openapi.txt
 /docs/clerk.txt
 /docs/strip.txt
+
+# Local Quick Create evaluation workspace bindings
+/evaluations/quick-create/**/bindings.local.json

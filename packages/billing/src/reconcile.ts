@@ -1,4 +1,4 @@
-import { workspaces, type Db } from "@vyora/db";
+import { workspaces, type Db } from "@layertone/db";
 import { eq, sql } from "drizzle-orm";
 
 import { PLANS, planFromStripePriceId } from "./plans";

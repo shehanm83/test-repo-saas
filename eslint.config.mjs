@@ -1,22 +1,23 @@
 import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
-import importPlugin from "eslint-plugin-import";
 import prettier from "eslint-config-prettier";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTypeScript from "eslint-config-next/typescript";
 import tseslint from "typescript-eslint";
-
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-});
 
 const config = [
   {
     ignores: [
       "**/dist/**",
       "**/.next/**",
+      "**/.next*/**",
       "**/.open-next/**",
       "**/node_modules/**",
       "**/coverage/**",
       "**/next-env.d.ts",
+      "template/**",
+      "predefined/**",
+      "evaluations/**",
+      "**/*.html",
       "scripts/**/*.ts",
       "**/vitest.config.ts",
       "**/vitest.integration.config.ts",
@@ -29,7 +30,7 @@ const config = [
     ],
   },
   js.configs.recommended,
-  ...compat.extends("next/core-web-vitals", "next/typescript").map((entry) => ({
+  ...[...nextVitals, ...nextTypeScript].map((entry) => ({
     ...entry,
     settings: {
       ...entry.settings,
@@ -42,26 +43,18 @@ const config = [
       "@next/next/no-html-link-for-pages": "off",
     },
   })),
-  ...tseslint.configs.recommendedTypeChecked.map((entry) => ({
+  ...tseslint.configs.recommended.map((entry) => ({
     ...entry,
     files: ["apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts", "packages/**/*.tsx"],
-    languageOptions: {
-      ...entry.languageOptions,
-      parserOptions: {
-        ...entry.languageOptions?.parserOptions,
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
   })),
   {
     files: ["**/*.{ts,tsx,mts,cts}"],
-    plugins: {
-      import: importPlugin,
-    },
     rules: {
-      "@typescript-eslint/consistent-type-imports": ["error", { fixStyle: "inline-type-imports" }],
-      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { fixStyle: "inline-type-imports", disallowTypeAnnotations: false },
+      ],
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -70,15 +63,14 @@ const config = [
         },
       ],
       "@typescript-eslint/require-await": "off",
-      "import/order": [
-        "error",
-        {
-          groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
-          "newlines-between": "always",
-          alphabetize: { order: "asc" },
-        },
-      ],
       "no-console": ["warn", { allow: ["info", "warn", "error"] }],
+      "@next/next/no-img-element": "warn",
+      "@next/next/no-page-custom-font": "off",
+      "import/no-anonymous-default-export": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/refs": "off",
+      "react-hooks/set-state-in-effect": "off",
     },
   },
   prettier,

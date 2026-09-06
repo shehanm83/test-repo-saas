@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000017",
+  "slug": "mid-autumn-festival",
+  "name": "Mid-Autumn Festival",
+  "kind": "seasonal",
+  "validFrom": "2026-09-01T00:00:00.000Z",
+  "validTo": "2026-10-20T23:59:59.000Z",
+  "accentPalette": [
+    "#7C2D12",
+    "#F2C14E",
+    "#FDE68A",
+    "#1E293B"
+  ],
+  "decorationTags": [
+    "moon-cake",
+    "lantern",
+    "full-moon",
+    "tea",
+    "gold-foil"
+  ],
+  "promptModifiers": "Elegant Mid-Autumn Festival styling with mooncake-inspired shapes, warm lanterns, tea setting, full-moon glow, gold foil and deep amber tones, refined family-gifting atmosphere.",
+  "negativePrompts": "Readable characters, oversized moon, cartoon rabbits, cluttered table, logos.",
+  "previewAsset": "mid-autumn-festival/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

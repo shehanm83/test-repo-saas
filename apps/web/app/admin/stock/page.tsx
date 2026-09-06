@@ -1,10 +1,22 @@
-import { StockApi } from "@vyora/api/stock";
-import { loadConfig } from "@vyora/shared/config";
+import { StockApi } from "@layertone/api/stock";
+import { loadConfig } from "@layertone/shared/config";
 
 import { StockAdmin } from "@/components/admin/stock-admin";
-import { createServerAdapters } from "@/lib/server/adapters";
+import { createGlobalStorageAdapter, createServerAdapters } from "@/lib/server/adapters";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminStockPage() {
-  const items = await new StockApi(loadConfig(), createServerAdapters() as never).adminList();
-  return <StockAdmin items={items as never} />;
+  const config = loadConfig();
+  const items = await new StockApi(config, createServerAdapters() as never).adminList();
+  const storage = createGlobalStorageAdapter(config);
+
+  const itemsWithUrls = await Promise.all(
+    items.map(async (item) => ({
+      ...item,
+      url: await storage.getSignedUrl(item.s3Key, 3600).catch(() => null),
+    })),
+  );
+
+  return <StockAdmin items={itemsWithUrls as never} />;
 }

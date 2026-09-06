@@ -1,4 +1,4 @@
-import { Ledger } from "@vyora/billing";
+import { Ledger } from "@layertone/billing";
 import {
   createDb,
   users,
@@ -9,28 +9,29 @@ import {
   generations,
   generationVariants,
   creditLedgerEntries,
-} from "@vyora/db";
+} from "@layertone/db";
 import {
   Gateway,
   MockImageProvider,
   MockTextProvider,
   MockVisionProvider,
   MockModerationProvider,
-} from "@vyora/gateway";
-import type { StorageAdapter, Config } from "@vyora/shared";
+} from "@layertone/gateway";
+import type { StorageAdapter, Config } from "@layertone/shared";
 import { eq } from "drizzle-orm";
 import { describe, it, expect, vi, beforeAll } from "vitest";
 
 import { GenerationWorker } from "./handler.js";
 
-vi.mock("@vyora/renderer", () => ({
+vi.mock("@layertone/renderer", () => ({
   render: vi.fn().mockResolvedValue({
     pngBytes: Buffer.from("FAKEPNG"),
     renderMs: 5,
   }),
 }));
 
-const DATABASE_URL = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const DATABASE_URL =
+  process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/layertone";
 
 class MemStorageAdapter implements StorageAdapter {
   private store = new Map<string, Uint8Array>();
@@ -76,8 +77,8 @@ const FAKE_CONFIG: Config = {
     region: "us-east-1",
     accessKeyId: "minioadmin",
     secretAccessKey: "minioadmin",
-    bucketApp: "studio-app",
-    bucketGlobal: "studio-global",
+    bucketApp: "layertone-app",
+    bucketGlobal: "layertone-global",
     cloudfrontDomain: undefined,
   },
   queue: {
@@ -94,6 +95,7 @@ const FAKE_CONFIG: Config = {
     webhookSecret: undefined,
     prices: {
       free: undefined,
+      subscription: undefined,
       starter: undefined,
       pro: undefined,
       business: undefined,
@@ -136,7 +138,7 @@ function buildMockGateway(): Gateway {
 const noopTelemetry = {
   captureException: vi.fn(),
   metric: vi.fn(),
-  startSpan: async <T,>(_name: string, fn: () => Promise<T> | T) => fn(),
+  startSpan: async <T>(_name: string, fn: () => Promise<T> | T) => fn(),
 };
 
 describe("GenerationWorker.handle", () => {
@@ -275,6 +277,143 @@ describe("GenerationWorker.handle", () => {
       .where(eq(creditLedgerEntries.idempotencyKey, `commit-${variant!.id}`));
     expect(commits).toHaveLength(1);
     expect(commits[0]?.kind).toBe("commit");
+  });
+
+  it("passes snapshotted product identity and deliberate per-variant metadata to the provider", async () => {
+    const variantSpec = {
+      version: 1 as const,
+      index: 0,
+      label: "Clean studio hero",
+      concept: "A precise studio product hero",
+      composition: "Centered with quiet copy space",
+      camera: "Eye level",
+      lighting: "Soft directional",
+      artDirection: "Minimal premium editorial",
+      seed: 778899,
+      locks: { identity: true, claims: true, exactCopy: true, brand: true, mood: false },
+      moodRecipe: null,
+    };
+    const [gen] = await adminDb
+      .insert(generations)
+      .values({
+        workspaceId,
+        brandId,
+        brief: "A precise serum launch",
+        settings: {
+          output_target: {
+            kind: "image",
+            platform: null,
+            format: null,
+            aspectRatio: "1:1",
+            width: 1080,
+            height: 1080,
+          },
+          flags: {},
+          typed_assets: [
+            {
+              id: "product:asset-1",
+              role: "product_identity",
+              s3Key: "products/snapshotted-serum.png",
+              mimeType: "image/png",
+              importance: "essential",
+              locked: true,
+              weight: 1,
+              providerOrder: 0,
+            },
+          ],
+          commercial: {
+            mode: "quick",
+            creation_type: "single_product",
+            product_refs: [{ role: "hero", commercialFields: { name: "Serum" } }],
+            brand_logo_asset_ids: [],
+            campaign: { title: "Glow now" },
+            template: { family: "product_hero", layout: "centered_product_hero" },
+            composition: {
+              productSize: "balanced",
+              productPosition: "template",
+              backgroundStyle: "studio",
+              realism: "realistic_photo",
+              shadowReflection: "soft_shadow",
+              labelVisibility: "preserve",
+              packagingVisibility: "product_only",
+              keepOriginalShape: true,
+              brandBlend: "medium",
+            },
+            outputs: {
+              variants: 1,
+              quality: "standard",
+              consistency: "off",
+              formats: ["product_card"],
+            },
+          },
+        },
+        priceBookVersion: 1,
+        requestedByUserId: userId,
+        status: "pending",
+      })
+      .returning();
+    const [variant] = await adminDb
+      .insert(generationVariants)
+      .values({
+        generationId: gen!.id,
+        templateId,
+        modelUsed: "gpt-image-2",
+        creditCost: 10,
+        status: "queued",
+        variantSpec,
+        seed: variantSpec.seed,
+        referenceSnapshots: [
+          {
+            id: "product:asset-1",
+            role: "product_identity",
+            s3Key: "products/snapshotted-serum.png",
+            mimeType: "image/png",
+            importance: "essential",
+            locked: true,
+            weight: 1,
+            providerOrder: 0,
+          },
+        ],
+      })
+      .returning();
+    await new Ledger(adminDb).reserve({
+      workspaceId,
+      amount: 10,
+      idempotencyKey: `reserve-${variant!.id}`,
+      generationId: gen!.id,
+    });
+
+    const gateway = buildMockGateway();
+    const generateSpy = vi.spyOn(gateway, "generateImage");
+    const worker = new GenerationWorker(FAKE_CONFIG, {
+      ai: gateway as never,
+      storage: new MemStorageAdapter(),
+      telemetry: noopTelemetry,
+    } as never);
+    await worker.handle({ generationId: gen!.id, variantId: variant!.id, workspaceId });
+
+    expect(generateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        modelCode: "gpt-image-2",
+        seed: variantSpec.seed,
+        references: [
+          expect.objectContaining({
+            role: "product_identity",
+            importance: "essential",
+            locked: true,
+          }),
+        ],
+        prompt: expect.stringContaining("Clean studio hero"),
+      }),
+    );
+    const [stored] = await adminDb
+      .select()
+      .from(generationVariants)
+      .where(eq(generationVariants.id, variant!.id));
+    expect(stored?.promptMetadata).toMatchObject({
+      provider_model: "gpt-image-2",
+      variant_spec: expect.objectContaining({ seed: variantSpec.seed }),
+    });
   });
 
   it("idempotent: already completed variant is skipped", async () => {

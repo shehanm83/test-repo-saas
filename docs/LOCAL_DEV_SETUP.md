@@ -21,15 +21,15 @@ cd /home/shehan/personal/repo/test-repo-saas
 cp .env.example .env.local        # if you don't have one yet
 pnpm install
 docker compose up -d              # postgres + minio + elasticmq + mailpit
-./scripts/minio-bootstrap.sh      # creates studio-app + studio-global buckets
+./scripts/minio-bootstrap.sh      # creates layertone-app + layertone-global buckets
 ./scripts/queue-bootstrap.sh      # creates local ElasticMQ queues
 pnpm db:migrate
 pnpm db:seed
 pnpm db:seed:pricebook
 
 # in two terminals:
-pnpm --filter @vyora/web dev          # http://localhost:3000
-pnpm --filter @vyora/worker dev       # processes SQS messages
+pnpm --filter @layertone/web dev          # http://localhost:3000
+pnpm --filter @layertone/worker dev       # processes SQS messages
 ```
 
 You'll have a working app at `http://localhost:3000` running entirely on local infra. Auth is bypassed (`AUTH_MODE=dev`), AI is mocked (`AI_MODE=mock`), billing is stubbed (`BILLING_MODE=stub`), email goes to Mailpit. Skip to the sections you want to wire up.
@@ -47,7 +47,7 @@ This starts the web app and the worker. The worker consumes ElasticMQ jobs, uses
 | App | http://localhost:3000 |
 | MinIO | http://localhost:9001 (login `minio` / `minio12345`) |
 | Mailpit | http://localhost:8025 |
-| Postgres | `psql postgres://studio:dev@localhost:5432/studio` |
+| Postgres | `psql postgres://layertone:dev@localhost:5432/layertone` |
 
 ---
 
@@ -76,7 +76,7 @@ CLERK_PUBLISHABLE_KEY=pk_test_…
 CLERK_SECRET_KEY=sk_test_…
 CLERK_WEBHOOK_SECRET=whsec_…
 ```
-Restart `pnpm --filter @vyora/web dev` (env changes don't hot-reload).
+Restart `pnpm --filter @layertone/web dev` (env changes don't hot-reload).
 
 ### Verify
 1. Open an incognito window → http://localhost:3000 → click **Start free**
@@ -310,8 +310,8 @@ CloudWatch metrics emit (`variant.duration_ms`, `provider.latency_ms`, etc.) onl
 
 Dev uses MinIO. To switch to real S3:
 
-1. Create two buckets in the AWS console: `studio-app-prod-assets` and `studio-app-prod-global`
-2. (Optional) Set up CloudFront in front of `studio-app-prod-assets`. The signing logic in `packages/storage/src/s3.ts` supports CloudFront signed URLs — set `CLOUDFRONT_DOMAIN`.
+1. Create two buckets in the AWS console: `layertone-app-prod-assets` and `layertone-app-prod-global`
+2. (Optional) Set up CloudFront in front of `layertone-app-prod-assets`. The signing logic in `packages/storage/src/s3.ts` supports CloudFront signed URLs — set `CLOUDFRONT_DOMAIN`.
 3. IAM user with `AmazonS3FullAccess` (or scoped to those buckets)
 
 ```env
@@ -320,8 +320,8 @@ S3_ENDPOINT=                               # leave blank — defaults to AWS
 S3_REGION=us-east-1
 S3_ACCESS_KEY_ID=AKIA…
 S3_SECRET_ACCESS_KEY=…
-S3_BUCKET_APP=studio-app-prod-assets
-S3_BUCKET_GLOBAL=studio-app-prod-global
+S3_BUCKET_APP=layertone-app-prod-assets
+S3_BUCKET_GLOBAL=layertone-app-prod-global
 CLOUDFRONT_DOMAIN=cdn.your-domain.com      # optional
 ```
 
@@ -357,7 +357,7 @@ Dev uses local Docker. For prod, use **Neon** (recommended — has pgvector enab
 3. Copy the connection string
 
 ```env
-DATABASE_URL=postgres://user:pass@ep-xxx.aws.neon.tech/studio?sslmode=require
+DATABASE_URL=postgres://user:pass@ep-xxx.aws.neon.tech/layertone?sslmode=require
 ```
 
 Then run migrations against it: `DATABASE_URL=… pnpm db:migrate`
@@ -387,20 +387,20 @@ If every step works, you have a fully production-equivalent stack running locall
 ```env
 AUTH_MODE=dev
 DEV_USER_ID=00000000-0000-0000-0000-000000000001
-DATABASE_URL=postgres://studio:dev@localhost:5432/studio
+DATABASE_URL=postgres://layertone:dev@localhost:5432/layertone
 STORAGE_MODE=minio
 S3_ENDPOINT=http://localhost:9000
 S3_ACCESS_KEY_ID=minio
 S3_SECRET_ACCESS_KEY=minio12345
-S3_BUCKET_APP=studio-app
-S3_BUCKET_GLOBAL=studio-global
+S3_BUCKET_APP=layertone-app
+S3_BUCKET_GLOBAL=layertone-global
 S3_REGION=us-east-1
 QUEUE_MODE=elasticmq
 SQS_ENDPOINT=http://localhost:9324
 SQS_REGION=us-east-1
-SQS_QUEUE_GENERATIONS=http://localhost:9324/000000000000/studio-generations
-SQS_QUEUE_CAPTIONS=http://localhost:9324/000000000000/studio-captions
-SQS_DLQ_GENERATIONS=http://localhost:9324/000000000000/studio-generations-dlq
+SQS_QUEUE_GENERATIONS=http://localhost:9324/000000000000/layertone-generations
+SQS_QUEUE_CAPTIONS=http://localhost:9324/000000000000/layertone-captions
+SQS_DLQ_GENERATIONS=http://localhost:9324/000000000000/layertone-generations-dlq
 AWS_ACCESS_KEY_ID=minio
 AWS_SECRET_ACCESS_KEY=minio12345
 BILLING_MODE=stub
@@ -471,7 +471,7 @@ SENTRY_ENVIRONMENT=local
 
 ## Troubleshooting
 
-**"My env changes aren't picked up"** — restart `pnpm --filter @vyora/web dev` and `pnpm --filter @vyora/worker dev`. Next.js caches env at boot.
+**"My env changes aren't picked up"** — restart `pnpm --filter @layertone/web dev` and `pnpm --filter @layertone/worker dev`. Next.js caches env at boot.
 
 **"Connection slots reserved"** Postgres error — the dev server leaked pool connections. Run:
 ```sql

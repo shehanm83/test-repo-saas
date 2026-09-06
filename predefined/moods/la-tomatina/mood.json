@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000024",
+  "slug": "la-tomatina",
+  "name": "La Tomatina",
+  "kind": "seasonal",
+  "validFrom": "2026-08-01T00:00:00.000Z",
+  "validTo": "2026-09-10T23:59:59.000Z",
+  "accentPalette": [
+    "#B91C1C",
+    "#EF4444",
+    "#FDE68A",
+    "#166534"
+  ],
+  "decorationTags": [
+    "tomato",
+    "summer-market",
+    "splash",
+    "rustic-wood",
+    "mediterranean"
+  ],
+  "promptModifiers": "La Tomatina-inspired summer market mood with ripe tomatoes, rustic Mediterranean textures, lively red splashes, warm sunlight, and playful food-campaign energy.",
+  "negativePrompts": "Messy crowds, food fight scene, wasteful piles, gore-like splatter, readable text.",
+  "previewAsset": "la-tomatina/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

@@ -1,27 +1,52 @@
 import React from "react";
 
-import { createDb, listLandingHeroCardsPublished } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
-import { S3StorageAdapter } from "@vyora/storage";
+import { createDb, eq, moods } from "@layertone/db";
+import { HomeShowcaseApi } from "@layertone/api/home-showcase";
+import { LandingHeroApi } from "@layertone/api/landing-hero";
+import { DEFAULT_HOME_SHOWCASE_VIEW } from "@layertone/shared/home-showcase";
+import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
-import { Landing } from "@/components/marketing/landing";
-import {
-  DEFAULT_HERO_CARDS,
-  pickRandomHeroCards,
-  type HeroCard,
-} from "@/components/marketing/hero-cards";
+import { LandingV2 } from "@/components/marketing/v2/landing";
+import type { LandingMood } from "@/components/marketing/v2/types";
 import { getServerSession } from "@/lib/auth/server";
+import { createServerAdapters } from "@/lib/server/adapters";
 
 export const dynamic = "force-dynamic";
 
-async function loadHeroCards(): Promise<HeroCard[]> {
+async function loadCampaignSpotlight() {
+  try {
+    const api = new LandingHeroApi(loadConfig(), createServerAdapters() as never);
+    const published = await api.listPublishedSets();
+    return api.pickSetForRequest(published);
+  } catch {
+    return null;
+  }
+}
+
+async function loadHomeShowcase() {
+  try {
+    const api = new HomeShowcaseApi(loadConfig(), createServerAdapters() as never);
+    const showcase = await api.getHomeView();
+    return {
+      ...showcase,
+      images: api.pickImagesForRequest(showcase.images, 5),
+    };
+  } catch {
+    return DEFAULT_HOME_SHOWCASE_VIEW;
+  }
+}
+
+async function loadMoods(): Promise<{ total: number; preview: LandingMood[] }> {
   try {
     const config = loadConfig();
-    const rows = await listLandingHeroCardsPublished(createDb(config.db.url, "app_admin"));
-    if (rows.length === 0) return pickRandomHeroCards(DEFAULT_HERO_CARDS, 4);
+    const rows = await createDb(config.db.url, "app_user")
+      .select()
+      .from(moods)
+      .where(eq(moods.status, "published"));
     const storage = new S3StorageAdapter({
       region: config.storage.region,
-      bucket: config.storage.bucketApp,
+      bucket: config.storage.bucketGlobal,
       forcePathStyle: config.storage.mode === "minio",
       ...(config.storage.endpoint ? { endpoint: config.storage.endpoint } : {}),
       ...(config.storage.accessKeyId ? { accessKeyId: config.storage.accessKeyId } : {}),
@@ -30,30 +55,82 @@ async function loadHeroCards(): Promise<HeroCard[]> {
         : {}),
     });
 
-    const withUrls = await Promise.all(
-      rows.map(async (r) => ({
-        id: r.id,
-        imageUrl: await storage.getSignedUrl(r.s3Key, 3600),
-        headline: r.headline,
-        sub: r.sub,
-        textPosition: r.textPosition,
-        textColor: r.textColor,
-        brandInitials: r.brandInitials,
-        brandColor: r.brandColor,
-        brandTextColor: r.brandTextColor,
-        badgeText: r.badgeText,
-        badgeBg: r.badgeBg,
-        badgeColor: r.badgeColor,
-        rotation: r.rotation,
+    const selected = [...rows].sort((a, b) => {
+      const score = seasonScore(a, new Date()) - seasonScore(b, new Date());
+      return score !== 0 ? score : a.name.localeCompare(b.name);
+    }).slice(0, 4);
+
+    const preview = await Promise.all(
+      selected.map(async (m) => ({
+        id: m.id,
+        name: m.name,
+        kind: m.kind,
+        accentPalette: m.accentPalette ?? [],
+        previewImgUrl: m.previewS3Key
+          ? await storage.getSignedUrl(m.previewS3Key, 3600).catch(() => null)
+          : null,
       })),
     );
-    return pickRandomHeroCards(withUrls, 4);
+    return { total: rows.length, preview };
   } catch {
-    return pickRandomHeroCards(DEFAULT_HERO_CARDS, 4);
+    return { total: 0, preview: [] };
   }
 }
 
+function seasonScore(
+  mood: { kind: string; validFrom: Date | null; validTo: Date | null },
+  now: Date,
+) {
+  if (mood.kind !== "seasonal") return Number.MAX_SAFE_INTEGER / 2;
+  if (!mood.validFrom && !mood.validTo) return Number.MAX_SAFE_INTEGER / 3;
+
+  const nowMs = now.getTime();
+  const year = now.getUTCFullYear();
+  const occurrences = [year, year + 1].map((candidateYear) => {
+    const start = mood.validFrom
+      ? dateWithYear(mood.validFrom, candidateYear)
+      : new Date(nowMs);
+    let end = mood.validTo ? dateWithYear(mood.validTo, candidateYear) : start;
+    if (end < start) end = dateWithYear(mood.validTo!, candidateYear + 1);
+    return { start, end };
+  });
+
+  const future = occurrences.filter(({ end }) => end.getTime() >= nowMs);
+  if (future.length === 0) return Number.MAX_SAFE_INTEGER / 4;
+
+  const active = future.find(({ start, end }) => start.getTime() <= nowMs && end.getTime() >= nowMs);
+  if (active) return -1_000_000_000 + (active.end.getTime() - nowMs);
+  return Math.min(...future.map(({ start }) => start.getTime() - nowMs));
+}
+
+function dateWithYear(date: Date, year: number) {
+  return new Date(
+    Date.UTC(
+      year,
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+      date.getUTCMilliseconds(),
+    ),
+  );
+}
+
 export default async function HomePage() {
-  const [session, heroCards] = await Promise.all([getServerSession(), loadHeroCards()]);
-  return <Landing isAuthed={!!session} heroCards={heroCards} />;
+  const [session, showcase, moods, campaign] = await Promise.all([
+    getServerSession(),
+    loadHomeShowcase(),
+    loadMoods(),
+    loadCampaignSpotlight(),
+  ]);
+  return (
+    <LandingV2
+      isAuthed={!!session}
+      showcase={showcase}
+      moods={moods.preview}
+      moodCount={moods.total}
+      campaign={campaign}
+    />
+  );
 }

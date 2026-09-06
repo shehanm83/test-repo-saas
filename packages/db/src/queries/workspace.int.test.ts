@@ -12,7 +12,7 @@ import {
   revokeMember,
 } from "./workspace";
 
-const databaseUrl = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const databaseUrl = process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/layertone";
 
 describe("workspace queries", () => {
   it("invites, accepts, updates role, and revokes a member", async () => {

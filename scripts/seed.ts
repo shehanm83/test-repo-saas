@@ -1,4 +1,4 @@
-import { createDb } from "@vyora/db/client";
+import { createDb } from "@layertone/db/client";
 import {
   creditLedgerEntries,
   priceBookEntries,
@@ -6,8 +6,8 @@ import {
   users,
   workspaceMembers,
   workspaces,
-} from "@vyora/db/schema";
-import { loadConfig } from "@vyora/shared/config";
+} from "@layertone/db/schema";
+import { loadConfig } from "@layertone/shared/config";
 
 const config = loadConfig();
 const adminDb = createDb(config.db.url, "app_admin");
@@ -32,7 +32,7 @@ async function main() {
       id: "00000000-0000-0000-0000-000000000001",
       ownerUserId: user.id,
       name: "Personal Workspace",
-      planCode: "pro",
+      planCode: "subscription",
       brandQuota: 3,
       seatQuota: 3,
       monthlyCreditGrant: 1000,
@@ -40,7 +40,7 @@ async function main() {
     })
     .onConflictDoUpdate({
       target: workspaces.id,
-      set: { name: "Personal Workspace", planCode: "pro" },
+      set: { name: "Personal Workspace", planCode: "subscription" },
     })
     .returning();
 
@@ -86,7 +86,8 @@ async function main() {
     .values({
       slug: "quick-create-image-only",
       name: "Quick Create image only",
-      description: "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
+      description:
+        "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
       jsxSource: `
 function template({ background, output }) {
   return h("div", {
@@ -101,7 +102,21 @@ function template({ background, output }) {
   });
 }
 `,
-      slots: {},
+      slots: [
+        "headline",
+        "subtitle",
+        "price",
+        "discount",
+        "badgeText",
+        "cta",
+        "offerExpiry",
+        "legalText",
+        "website",
+        "phone",
+        "qrUrl",
+        "logo",
+        "certification",
+      ],
       textSafeZones: [],
       preferredModel: "flux-1.1-pro",
       supportedAspectRatios: ["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"],
@@ -112,7 +127,8 @@ function template({ background, output }) {
       target: templates.slug,
       set: {
         name: "Quick Create image only",
-        description: "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
+        description:
+          "Fallback image-only renderer for Quick Create generations without campaign or product overlays.",
         jsxSource: `
 function template({ background, output }) {
   return h("div", {
@@ -127,7 +143,21 @@ function template({ background, output }) {
   });
 }
 `,
-        slots: {},
+        slots: [
+          "headline",
+          "subtitle",
+          "price",
+          "discount",
+          "badgeText",
+          "cta",
+          "offerExpiry",
+          "legalText",
+          "website",
+          "phone",
+          "qrUrl",
+          "logo",
+          "certification",
+        ],
         textSafeZones: [],
         preferredModel: "flux-1.1-pro",
         supportedAspectRatios: ["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"],

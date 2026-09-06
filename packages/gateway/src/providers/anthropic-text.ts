@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { TextProvider } from "../types.js";
-import type { AITextRequest, AITextResponse } from "@vyora/shared";
+import type { TextProvider } from "../types";
+import type { AITextRequest, AITextResponse } from "@layertone/shared";
 
 export class AnthropicTextProvider implements TextProvider {
   modelCodes = ["claude-haiku-4-5"];
@@ -34,7 +34,7 @@ export class AnthropicTextProvider implements TextProvider {
     if (!apiKey) throw new Error("OPENAI_API_KEY required for embeddings");
     const r = await fetch("https://api.openai.com/v1/embeddings", {
       method: "POST",
-      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({ model: "text-embedding-3-small", input: text }),
     });
     if (!r.ok) throw new Error(`openai-embed-${r.status}`);

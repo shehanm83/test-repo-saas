@@ -3,6 +3,7 @@ name: Quick Create Product Only
 category: image_generation
 version: 1
 compatible_models:
+  - gpt-image-2
   - gpt-image-1
   - flux-1.1-pro
   - recraft-v3
@@ -57,7 +58,9 @@ prompt: |
   {{overlay_summary}}
 
   Present the product clearly and attractively. Keep original product shape and label structure believable.
+  Show the entire product and packaging in frame with all edges visible; zoom out rather than crop.
   Do not invent readable label text, prices, QR codes, URLs, phone numbers, or logos inside the image.
 negative_prompt: |
   distorted product, warped packaging, unreadable label text, fake label claims,
-  random price text, fake logo, fake QR code, watermark, cluttered background
+  random price text, fake logo, fake QR code, watermark, cluttered background,
+  cropped product, cut off product, clipped packaging edges, partial product

@@ -1,5 +1,5 @@
 {
-  "name": "@vyora/billing",
+  "name": "@layertone/billing",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -16,7 +16,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@vyora/db": "workspace:*",
+    "@layertone/db": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "stripe": "^22.1.0"
   },

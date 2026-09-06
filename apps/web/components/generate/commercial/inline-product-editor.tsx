@@ -40,7 +40,13 @@ export function InlineProductEditor(props: {
         ...(priceMinor != null ? { priceMinor, currency: "USD" } : {}),
         ...(discount.trim() ? { discountText: discount.trim() } : {}),
         ...(features.trim()
-          ? { keyFeatures: features.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 8) }
+          ? {
+              keyFeatures: features
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean)
+                .slice(0, 8),
+            }
           : {}),
       },
     };
@@ -88,43 +94,69 @@ export function InlineProductEditor(props: {
           <span className="label">Product name</span>
           <input
             className="input"
+            name="product_name"
+            autoComplete="off"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Nordic glow serum"
+            placeholder="Nordic glow serum…"
           />
         </label>
         <label>
           <span className="label">Short title</span>
           <input
             className="input"
+            name="product_short_title"
+            autoComplete="off"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Hydration that shows"
+            placeholder="Hydration that shows…"
           />
         </label>
       </div>
       <div className="cg-field-row cg-field-row--three">
         <label>
           <span className="label">Price</span>
-          <input className="input" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="29.00" />
+          <input
+            className="input"
+            name="product_price"
+            inputMode="decimal"
+            autoComplete="off"
+            value={price}
+            onChange={(event) => setPrice(event.target.value)}
+            placeholder="29.00…"
+          />
         </label>
         <label>
           <span className="label">Offer badge</span>
-          <input className="input" value={discount} onChange={(event) => setDiscount(event.target.value)} placeholder="20% off" />
+          <input
+            className="input"
+            name="product_offer_badge"
+            autoComplete="off"
+            value={discount}
+            onChange={(event) => setDiscount(event.target.value)}
+            placeholder="20% off…"
+          />
         </label>
         <label>
           <span className="label">Key features</span>
           <input
             className="input"
+            name="product_key_features"
+            autoComplete="off"
             value={features}
             onChange={(event) => setFeatures(event.target.value)}
-            placeholder="Vegan, fragrance free"
+            placeholder="Vegan, fragrance free…"
           />
         </label>
       </div>
-      <button type="button" className="btn btn--secondary" disabled={!canAdd || saving} onClick={() => void addDraft()}>
+      <button
+        type="button"
+        className="btn btn--secondary"
+        disabled={!canAdd || saving}
+        onClick={() => void addDraft()}
+      >
         <I.Plus size={15} />
-        {saving ? "Saving draft..." : "Add product draft"}
+        {saving ? "Saving Draft…" : "Add Product Draft"}
       </button>
     </div>
   );

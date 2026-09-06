@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000007",
+  "slug": "holi",
+  "name": "Holi",
+  "kind": "seasonal",
+  "validFrom": "2027-02-15T00:00:00.000Z",
+  "validTo": "2027-04-15T23:59:59.000Z",
+  "accentPalette": [
+    "#EC4899",
+    "#F97316",
+    "#22C55E",
+    "#38BDF8"
+  ],
+  "decorationTags": [
+    "color-powder",
+    "flower-petals",
+    "bright-light",
+    "playful-splash",
+    "spring"
+  ],
+  "promptModifiers": "Vibrant Holi-inspired campaign styling with joyful clouds of color powder, flower petals, spring brightness, saturated pink-orange-green-blue accents, and energetic but clean composition.",
+  "negativePrompts": "Messy faces, people throwing powder, unreadable dust chaos, text, logos.",
+  "previewAsset": "holi/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

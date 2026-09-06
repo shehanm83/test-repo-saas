@@ -1,16 +1,16 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 
-import { ClerkAuthProvider, DevAuthProvider } from "@vyora/auth";
+import { ClerkAuthProvider, DevAuthProvider } from "@layertone/auth";
 import {
   createDb,
   listWorkspacesForUser,
   users,
   workspaces,
   workspaceMembers,
-} from "@vyora/db";
-import { bootstrapNewUser } from "@vyora/db/queries/identity";
-import { and, eq, isNotNull } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared/config";
+} from "@layertone/db";
+import { bootstrapNewUser } from "@layertone/db/queries/identity";
+import { and, eq, isNotNull } from "@layertone/db/operators";
+import { loadConfig } from "@layertone/shared/config";
 
 export interface ServerSession {
   authUserId: string;
@@ -26,6 +26,15 @@ export interface SessionWorkspace {
   role: string;
   planCode: string;
   status: string;
+}
+
+export const ACTIVE_WORKSPACE_COOKIE = "lt_active_workspace_id";
+
+function configuredAdminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
 }
 
 export async function getServerSession(): Promise<
@@ -74,12 +83,24 @@ export async function getServerSession(): Promise<
     return null;
   }
 
+  if (configuredAdminEmails().includes(user.email.toLowerCase()) && user.role !== "admin") {
+    const [promoted] = await db
+      .update(users)
+      .set({ role: "admin" })
+      .where(eq(users.id, user.id))
+      .returning();
+    if (promoted) user = promoted;
+  }
+
   const memberWorkspaces = await listWorkspacesForUser(db, user.id);
-  const requestedWorkspaceId = requestHeaders.get("x-dev-workspace-id") ?? identity.workspaceId;
+  const cookieWorkspaceId = (await cookies()).get(ACTIVE_WORKSPACE_COOKIE)?.value ?? null;
+  const preferredWorkspaceId =
+    requestHeaders.get("x-dev-workspace-id") ?? cookieWorkspaceId ?? identity.workspaceId;
   const workspaceId =
-    requestedWorkspaceId && memberWorkspaces.some((workspace) => workspace.id === requestedWorkspaceId)
-      ? requestedWorkspaceId
-      : memberWorkspaces[0]?.id ?? null;
+    preferredWorkspaceId &&
+    memberWorkspaces.some((workspace) => workspace.id === preferredWorkspaceId)
+      ? preferredWorkspaceId
+      : (memberWorkspaces[0]?.id ?? null);
 
   return {
     authUserId: identity.userId,
@@ -116,6 +137,26 @@ export async function getSessionWorkspace() {
   return { session, workspace: workspace ?? null };
 }
 
+/**
+ * Resolve the current admin together with their active workspace. API routes
+ * must use this helper instead of relying on the `/admin` layout, because
+ * route handlers are not protected by that layout.
+ */
+export async function getAdminSessionWorkspace() {
+  const session = await getServerSession();
+  if (!session || session.role !== "admin") return null;
+  if (!session.workspaceId) return { session, workspace: null };
+
+  const db = createDb(loadConfig().db.url, "app_admin");
+  const [workspace] = await db
+    .select()
+    .from(workspaces)
+    .where(eq(workspaces.id, session.workspaceId))
+    .limit(1);
+
+  return { session, workspace: workspace ?? null };
+}
+
 export async function listWorkspaceMembers(workspaceId: string) {
   const db = createDb(loadConfig().db.url, "app_admin");
   return db
@@ -128,9 +169,6 @@ export async function listWorkspaceMembers(workspaceId: string) {
     .from(workspaceMembers)
     .innerJoin(users, eq(workspaceMembers.userId, users.id))
     .where(
-      and(
-        eq(workspaceMembers.workspaceId, workspaceId),
-        isNotNull(workspaceMembers.acceptedAt),
-      ),
+      and(eq(workspaceMembers.workspaceId, workspaceId), isNotNull(workspaceMembers.acceptedAt)),
     );
 }

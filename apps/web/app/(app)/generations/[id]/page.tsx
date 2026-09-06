@@ -1,5 +1,5 @@
-import { GenerationApi } from "@vyora/api/generation";
-import { loadConfig } from "@vyora/shared/config";
+import { GenerationApi } from "@layertone/api/generation";
+import { loadConfig } from "@layertone/shared/config";
 
 import { GenerationView } from "@/components/results/generation-view";
 import { getSessionWorkspace } from "@/lib/auth/server";

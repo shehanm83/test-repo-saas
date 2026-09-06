@@ -15,97 +15,127 @@ const productId = "22222222-2222-4222-8222-222222222222";
 const logoAssetId = "66666666-6666-4666-8666-666666666666";
 const secondLogoAssetId = "77777777-7777-4777-8777-777777777777";
 
-function latestPromptPreviewBody(fetchMock: ReturnType<typeof vi.mocked<typeof fetch>>) {
-  const call = fetchMock.mock.calls
-    .filter(([input]) => String(input).endsWith("/api/generations/prompt-preview"))
-    .at(-1);
-  expect(call).toBeTruthy();
-  return JSON.parse((call?.[1] as RequestInit).body as string) as Record<string, unknown>;
-}
-
 const props = {
-  brands: [{
-    id: brandId,
-    name: "Test Brand",
-    palette: ["#101828", "#1F7A5A"],
-    logoAssets: [
-      { id: logoAssetId, url: "https://example.com/logo-1.png", mimeType: "image/png", width: 320, height: 120 },
-      { id: secondLogoAssetId, url: "https://example.com/logo-2.png", mimeType: "image/png", width: 240, height: 240 },
-    ],
-  }],
-  moods: [{ id: "33333333-3333-4333-8333-333333333333", name: "Editorial", kind: "Evergreen", group: "always" as const }],
-  products: [{ id: productId, brandId, name: "Serum", title: "Glow serum", priceMinor: 2900, currency: "USD" }],
+  brands: [
+    {
+      id: brandId,
+      name: "Test Brand",
+      palette: ["#101828", "#1F7A5A"],
+      logoAssets: [
+        {
+          id: logoAssetId,
+          url: "https://example.com/logo-1.png",
+          mimeType: "image/png",
+          width: 320,
+          height: 120,
+        },
+        {
+          id: secondLogoAssetId,
+          url: "https://example.com/logo-2.png",
+          mimeType: "image/png",
+          width: 240,
+          height: 240,
+        },
+      ],
+    },
+  ],
+  moods: [
+    {
+      id: "33333333-3333-4333-8333-333333333333",
+      name: "Editorial",
+      kind: "Evergreen",
+      group: "always" as const,
+    },
+  ],
+  products: [
+    {
+      id: productId,
+      brandId,
+      name: "Serum",
+      title: "Glow serum",
+      priceMinor: 2900,
+      currency: "USD",
+    },
+  ],
   credits: 100,
 };
 
 describe("commercial generation page", () => {
   beforeEach(() => {
     push.mockReset();
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url.includes("/api/generations/preflight")) {
-        return Response.json({
-          blocking: [],
-          warnings: [
-            {
-              code: "commercial.cta_missing",
-              message: "Add a CTA so the ad has a clear commercial action.",
-              field: "campaign.cta",
-              severity: "medium",
+    // Keep every Quick Create case on a clean URL and browser state.
+    window.history.replaceState(null, "", "/generate");
+    window.localStorage.clear();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.includes("/api/generations/preflight")) {
+          return Response.json({
+            blocking: [],
+            warnings: [
+              {
+                code: "commercial.cta_missing",
+                message: "Add a CTA so the ad has a clear commercial action.",
+                field: "campaign.cta",
+                severity: "medium",
+              },
+            ],
+            estimate: {
+              credits: 20,
+              balance: 100,
+              lineItems: [{ label: "2 standard variants", credits: 20 }],
             },
-          ],
-          estimate: { credits: 20, balance: 100, lineItems: [{ label: "2 standard variants", credits: 20 }] },
-        });
-      }
-      if (url.endsWith("/api/generations/prompt-preview")) {
-        return Response.json({
-          mode: "quick",
-          templateId: "quick.product_only",
-          templateVersion: 1,
-          templatePath: "quick.product_only",
-          prompt: "Create a commercial product image for instagram post.\n\nUser direction:\nCreate a clean launch image",
-          negativePrompt: "fake logo, unreadable text",
-          overlaySlots: {},
-          modelInstructions: {
-            compatibleModels: ["gpt-image-1"],
-            safetyRules: ["Do not generate readable promotional text."],
-          },
-          outputTarget: {
-            kind: "social",
-            platform: "instagram",
-            format: "post",
-            aspectRatio: "1:1",
-            width: 1080,
-            height: 1080,
-          },
-          generationTemplate: {
-            id: "99999999-9999-4999-8999-999999999999",
-            slug: "quick-create-image-only",
-            name: "Quick Create",
-            preferredModel: "gpt-image-1",
-            hasTextSafeZones: false,
-          },
-        });
-      }
-      if (url.endsWith("/api/generations")) {
-        return Response.json({ generationId: "44444444-4444-4444-8444-444444444444" });
-      }
-      if (url.endsWith("/api/products")) {
-        return Response.json({ id: "55555555-5555-4555-8555-555555555555" });
-      }
-      return Response.json({});
-    }));
+          });
+        }
+        if (url.endsWith("/api/generations/prompt-preview")) {
+          return Response.json({
+            mode: "quick",
+            templateId: "quick.product_only",
+            templateVersion: 1,
+            templatePath: "quick.product_only",
+            prompt:
+              "Create a commercial product image for instagram post.\n\nUser direction:\nCreate a clean launch image",
+            negativePrompt: "fake logo, unreadable text",
+            overlaySlots: {},
+            modelInstructions: {
+              compatibleModels: ["gpt-image-1"],
+              safetyRules: ["Do not generate readable promotional text."],
+            },
+            outputTarget: {
+              kind: "social",
+              platform: "instagram",
+              format: "post",
+              aspectRatio: "1:1",
+              width: 1080,
+              height: 1080,
+            },
+            generationTemplate: {
+              id: "99999999-9999-4999-8999-999999999999",
+              slug: "quick-create-image-only",
+              name: "Quick Create",
+              preferredModel: "gpt-image-1",
+              hasTextSafeZones: false,
+            },
+          });
+        }
+        if (url.endsWith("/api/generations")) {
+          return Response.json({ generationId: "44444444-4444-4444-8444-444444444444" });
+        }
+        if (url.endsWith("/api/products")) {
+          return Response.json({ id: "55555555-5555-4555-8555-555555555555" });
+        }
+        return Response.json({});
+      }),
+    );
   });
 
-  it("switches between Quick Create and Campaign Builder", () => {
+  it("renders Quick Create as the only generation workflow", () => {
     render(React.createElement(Generate, props));
 
-    expect(screen.getByRole("tab", { name: "Quick Create" })).toHaveAttribute("aria-selected", "true");
-    fireEvent.click(screen.getByRole("tab", { name: "Campaign Builder" }));
-
-    expect(screen.getByRole("tab", { name: "Campaign Builder" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByText("Step 1 of 8")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /social ad pack/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Quick Create" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Campaign Builder" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Step 1 of 8")).not.toBeInTheDocument();
   });
 
   it("allows the minimum quick flow without brand, mood, or product", async () => {
@@ -115,11 +145,10 @@ describe("commercial generation page", () => {
     expect(generate).toBeDisabled();
     expect(screen.getByText("Not selected")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText(/creative brief/i), {
+    fireEvent.change(screen.getByRole("textbox", { name: /creative brief/i }), {
       target: { value: "Create a clean campaign image" },
     });
 
-    await waitFor(() => expect(screen.getByText("100% complete")).toBeInTheDocument());
     await waitFor(() => expect(generate).toBeEnabled());
   });
 
@@ -150,7 +179,7 @@ describe("commercial generation page", () => {
     fireEvent.click(logoButtons[1]!);
 
     fireEvent.click(screen.getByRole("button", { name: /glow serum/i }));
-    fireEvent.change(screen.getByLabelText(/creative brief/i), {
+    fireEvent.change(screen.getByRole("textbox", { name: /creative brief/i }), {
       target: { value: "Create a clean launch image with selected logos" },
     });
 
@@ -158,12 +187,19 @@ describe("commercial generation page", () => {
     await waitFor(() => expect(generate).toBeEnabled());
     fireEvent.click(generate);
 
-    expect(await screen.findByRole("dialog", { name: /prompt sent to image model/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("dialog", { name: /prompt sent to image model/i }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /start generation/i }));
 
     await waitFor(() => expect(push).toHaveBeenCalled());
-    const createCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/generations"));
-    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<string, unknown>;
+    const createCall = fetchMock.mock.calls.find(([input]) =>
+      String(input).endsWith("/api/generations"),
+    );
+    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<
+      string,
+      unknown
+    >;
     expect(body.brandLogoAssetIds).toEqual([logoAssetId, secondLogoAssetId]);
   });
 
@@ -179,11 +215,13 @@ describe("commercial generation page", () => {
 
     fireEvent.change(screen.getByLabelText(/select brand/i), { target: { value: brandId } });
     fireEvent.click(screen.getByRole("button", { name: /glow serum/i }));
-    fireEvent.change(screen.getByLabelText(/creative brief/i), {
+    fireEvent.change(screen.getByRole("textbox", { name: /creative brief/i }), {
       target: { value: "Create a clean launch image" },
     });
 
-    expect(await screen.findByText("Add a CTA so the ad has a clear commercial action.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Add a CTA so the ad has a clear commercial action."),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("20").length).toBeGreaterThan(0);
   });
 
@@ -193,7 +231,7 @@ describe("commercial generation page", () => {
 
     fireEvent.change(screen.getByLabelText(/select brand/i), { target: { value: brandId } });
     fireEvent.click(screen.getByRole("button", { name: /glow serum/i }));
-    fireEvent.change(screen.getByLabelText(/creative brief/i), {
+    fireEvent.change(screen.getByRole("textbox", { name: /creative brief/i }), {
       target: { value: "Create a clean launch image" },
     });
 
@@ -211,10 +249,17 @@ describe("commercial generation page", () => {
     expect(screen.getByText(/create a commercial product image/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /start generation/i }));
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/generations/44444444-4444-4444-8444-444444444444"));
-    const createCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/generations"));
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/generations/44444444-4444-4444-8444-444444444444"),
+    );
+    const createCall = fetchMock.mock.calls.find(([input]) =>
+      String(input).endsWith("/api/generations"),
+    );
     expect(createCall).toBeTruthy();
-    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<string, unknown>;
+    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<
+      string,
+      unknown
+    >;
     expect(body).toMatchObject({
       mode: "quick",
       creationType: "single_product",
@@ -223,9 +268,7 @@ describe("commercial generation page", () => {
       campaign: { cta: "Shop now" },
       outputs: { variants: 2, quality: "standard", formats: ["instagram_square"] },
     });
-    expect(body.productRefs).toEqual([
-      expect.objectContaining({ productId, role: "hero" }),
-    ]);
+    expect(body.productRefs).toEqual([expect.objectContaining({ productId, role: "hero" })]);
   });
 
   it("selecting Story/Reel sets instagram_story format in the payload", async () => {
@@ -233,9 +276,9 @@ describe("commercial generation page", () => {
     render(React.createElement(Generate, props));
 
     fireEvent.change(screen.getByLabelText(/select brand/i), { target: { value: brandId } });
-    fireEvent.click(screen.getByRole("button", { name: /story \/ reel/i }));
+    fireEvent.click(screen.getByRole("button", { name: /story.*9:16/i }));
     fireEvent.click(screen.getByRole("button", { name: /glow serum/i }));
-    fireEvent.change(screen.getByLabelText(/creative brief/i), {
+    fireEvent.change(screen.getByRole("textbox", { name: /creative brief/i }), {
       target: { value: "Vertical reel for spring launch" },
     });
 
@@ -243,12 +286,19 @@ describe("commercial generation page", () => {
     await waitFor(() => expect(generate).toBeEnabled());
     fireEvent.click(generate);
 
-    expect(await screen.findByRole("dialog", { name: /prompt sent to image model/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("dialog", { name: /prompt sent to image model/i }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /start generation/i }));
 
     await waitFor(() => expect(push).toHaveBeenCalled());
-    const createCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/generations"));
-    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<string, unknown>;
+    const createCall = fetchMock.mock.calls.find(([input]) =>
+      String(input).endsWith("/api/generations"),
+    );
+    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<
+      string,
+      unknown
+    >;
     expect(body).toMatchObject({
       outputs: expect.objectContaining({ formats: ["instagram_story"] }),
     });
@@ -262,10 +312,11 @@ describe("commercial generation page", () => {
     expect(screen.queryByRole("button", { name: /youtube/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /x \/ twitter/i })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /tiktok - vertical/i }));
+    fireEvent.click(screen.getByRole("button", { name: /tiktok/i }));
+    fireEvent.click(screen.getByRole("button", { name: /vertical.*9:16/i }));
     fireEvent.change(screen.getByLabelText(/select brand/i), { target: { value: brandId } });
     fireEvent.click(screen.getByRole("button", { name: /glow serum/i }));
-    fireEvent.change(screen.getByLabelText(/creative brief/i), {
+    fireEvent.change(screen.getByRole("textbox", { name: /creative brief/i }), {
       target: { value: "TikTok launch creative" },
     });
 
@@ -273,12 +324,19 @@ describe("commercial generation page", () => {
     await waitFor(() => expect(generate).toBeEnabled());
     fireEvent.click(generate);
 
-    expect(await screen.findByRole("dialog", { name: /prompt sent to image model/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("dialog", { name: /prompt sent to image model/i }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /start generation/i }));
 
     await waitFor(() => expect(push).toHaveBeenCalled());
-    const createCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/generations"));
-    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<string, unknown>;
+    const createCall = fetchMock.mock.calls.find(([input]) =>
+      String(input).endsWith("/api/generations"),
+    );
+    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<
+      string,
+      unknown
+    >;
     expect(body).toMatchObject({
       outputs: expect.objectContaining({ formats: ["tiktok_vertical"] }),
     });
@@ -290,7 +348,7 @@ describe("commercial generation page", () => {
 
     fireEvent.change(screen.getByLabelText(/select brand/i), { target: { value: brandId } });
     fireEvent.click(screen.getByRole("button", { name: /glow serum/i }));
-    fireEvent.change(screen.getByLabelText(/creative brief/i), {
+    fireEvent.change(screen.getByRole("textbox", { name: /creative brief/i }), {
       target: { value: "Launch image" },
     });
 
@@ -308,12 +366,19 @@ describe("commercial generation page", () => {
     await waitFor(() => expect(generate).toBeEnabled());
     fireEvent.click(generate);
 
-    expect(await screen.findByRole("dialog", { name: /prompt sent to image model/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("dialog", { name: /prompt sent to image model/i }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /start generation/i }));
 
     await waitFor(() => expect(push).toHaveBeenCalled());
-    const createCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/api/generations"));
-    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<string, unknown>;
+    const createCall = fetchMock.mock.calls.find(([input]) =>
+      String(input).endsWith("/api/generations"),
+    );
+    const body = JSON.parse((createCall?.[1] as RequestInit).body as string) as Record<
+      string,
+      unknown
+    >;
     const campaign = body.campaign as Record<string, unknown>;
     expect(campaign.title).toBeUndefined();
   });

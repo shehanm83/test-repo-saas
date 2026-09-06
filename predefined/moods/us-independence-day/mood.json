@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000020",
+  "slug": "us-independence-day",
+  "name": "US Independence Day",
+  "kind": "seasonal",
+  "validFrom": "2026-06-15T00:00:00.000Z",
+  "validTo": "2026-07-10T23:59:59.000Z",
+  "accentPalette": [
+    "#1D4ED8",
+    "#B91C1C",
+    "#FFFFFF",
+    "#60A5FA"
+  ],
+  "decorationTags": [
+    "summer-table",
+    "stars-subtle",
+    "red-blue-accents",
+    "picnic",
+    "sparklers"
+  ],
+  "promptModifiers": "US Independence Day summer campaign styling with tasteful red-white-blue accents, picnic table textures, subtle star motifs, sparklers or evening glow, and bright celebratory retail atmosphere.",
+  "negativePrompts": "Flags as dominant subject, politics, military imagery, fireworks overload, readable text.",
+  "previewAsset": "us-independence-day/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

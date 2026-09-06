@@ -1,5 +1,5 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
-import type { ModerationProvider } from "../types.js";
+import type { ModerationProvider } from "../types";
 
 export class BedrockImageModerationProvider implements ModerationProvider {
   private client: BedrockRuntimeClient;

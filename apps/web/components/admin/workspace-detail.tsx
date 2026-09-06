@@ -1,9 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 import { I } from "@/components/icons";
+import {
+  AdminAlert,
+  AdminEmpty,
+  AdminPage,
+  AdminSection,
+  AdminStat,
+  AdminStatGrid,
+  AdminStatus,
+  formatAdminDate,
+  formatAdminNumber,
+} from "@/components/admin/ui";
+import { CopyButton } from "@/components/admin/copy-button";
 
 interface Workspace {
   id: string;
@@ -33,26 +46,55 @@ interface LedgerEntry {
   generationId: string | null;
 }
 
-function StatusPill({ status }: { status: string }) {
-  if (status === "active")
-    return (
-      <span className="pill pill--green">
-        <I.Check size={11} /> Active
+type LedgerSortKey = "createdAt" | "amount" | "balanceAfter" | "kind";
+
+function sortLedger(entries: LedgerEntry[], key: LedgerSortKey, dir: "asc" | "desc") {
+  return [...entries].sort((a, b) => {
+    let av: number | string = 0;
+    let bv: number | string = 0;
+    if (key === "createdAt") { av = a.createdAt; bv = b.createdAt; }
+    else if (key === "amount") { av = a.amount; bv = b.amount; }
+    else if (key === "balanceAfter") { av = a.balanceAfter; bv = b.balanceAfter; }
+    else if (key === "kind") { av = a.kind; bv = b.kind; }
+    if (av < bv) return dir === "asc" ? -1 : 1;
+    if (av > bv) return dir === "asc" ? 1 : -1;
+    return 0;
+  });
+}
+
+function SortTh({
+  label,
+  sortKey,
+  align,
+  activeKey,
+  dir,
+  onSort,
+}: {
+  label: string;
+  sortKey: LedgerSortKey;
+  align?: "right";
+  activeKey: LedgerSortKey;
+  dir: "asc" | "desc";
+  onSort: (k: LedgerSortKey) => void;
+}) {
+  const active = activeKey === sortKey;
+  return (
+    <th
+      className="admin-sort-th"
+      aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : undefined}
+      style={{ textAlign: align ?? "left" }}
+      onClick={() => onSort(sortKey)}
+    >
+      {label}
+      <span className="admin-sort-icon">
+        {active
+          ? dir === "asc"
+            ? <I.ChevronUp size={11} />
+            : <I.ChevronDown size={11} />
+          : <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true"><path d="M3 4L5.5 1.5L8 4M3 7L5.5 9.5L8 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
       </span>
-    );
-  if (status === "suspended")
-    return (
-      <span className="pill pill--red">
-        <I.Lock size={11} /> Suspended
-      </span>
-    );
-  if (status === "read_only")
-    return (
-      <span className="pill pill--amber">
-        <I.AlertCircle size={11} /> Read-only
-      </span>
-    );
-  return <span className="pill">{status}</span>;
+    </th>
+  );
 }
 
 export function WorkspaceDetail(props: {
@@ -62,11 +104,26 @@ export function WorkspaceDetail(props: {
   page: number;
   pageSize: number;
 }) {
+  const router = useRouter();
   const { workspace, members, ledgerEntries, page, pageSize } = props;
   const [loading, setLoading] = useState<string | null>(null);
   const [messages, setMessages] = useState<{ ok: boolean; text: string }[]>([]);
   const [grantAmount, setGrantAmount] = useState("");
   const [grantReason, setGrantReason] = useState("");
+  const [planCode, setPlanCode] = useState(workspace.planCode);
+  const [sortKey, setSortKey] = useState<LedgerSortKey>("createdAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  function handleSort(key: LedgerSortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "createdAt" ? "desc" : "asc");
+    }
+  }
+
+  const sortedLedger = sortLedger(ledgerEntries, sortKey, sortDir);
 
   function pushMsg(ok: boolean, text: string) {
     setMessages((p) => [{ ok, text }, ...p]);
@@ -89,13 +146,10 @@ export function WorkspaceDetail(props: {
       if (!res.ok) {
         pushMsg(false, `Grant failed: ${String(data.error ?? "unknown")}`);
       } else {
-        pushMsg(
-          true,
-          `Granted ${amount} credits. New balance: ${String(data.balanceAfter)}`,
-        );
+        pushMsg(true, `Granted ${amount} credits. New balance: ${String(data.balanceAfter)}`);
         setGrantAmount("");
         setGrantReason("");
-        setTimeout(() => location.reload(), 800);
+        router.refresh();
       }
     } catch (err) {
       pushMsg(false, `Grant error: ${String(err)}`);
@@ -122,7 +176,7 @@ export function WorkspaceDetail(props: {
             action === "ban" ? "banned" : action + "ed"
           }. Status: ${String(data.status)}`,
         );
-        setTimeout(() => location.reload(), 800);
+        router.refresh();
       }
     } catch (err) {
       pushMsg(false, `${action} error: ${String(err)}`);
@@ -131,28 +185,82 @@ export function WorkspaceDetail(props: {
     }
   }
 
-  return (
-    <div className="page page--wide">
-      <div className="breadcrumb">
-        <Link href="/admin/users" style={{ textDecoration: "none" }}>
-          Users &amp; Workspaces
-        </Link>
-        <I.ChevronRight size={12} />
-        <span className="mono">{workspace.id.slice(0, 8)}…</span>
-      </div>
+  async function handlePlanUpdate() {
+    setLoading("plan");
+    try {
+      const res = await fetch(`/api/admin/users/${workspace.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ planCode }),
+      });
+      const data = (await res.json()) as { error?: unknown };
+      if (!res.ok) {
+        pushMsg(false, `Plan update failed: ${String(data.error ?? "unknown")}`);
+      } else {
+        pushMsg(true, `Plan updated to ${planCode}.`);
+        router.refresh();
+      }
+    } catch (err) {
+      pushMsg(false, `Plan update error: ${String(err)}`);
+    } finally {
+      setLoading(null);
+    }
+  }
 
-      <div className="page__head">
-        <div>
-          <h1 className="page__title">{workspace.name}</h1>
-          <p className="page__sub mono" style={{ fontSize: 12 }}>
-            {workspace.id}
-          </p>
-        </div>
-        <StatusPill status={workspace.status} />
-      </div>
+  const currentBalance = ledgerEntries[0]?.balanceAfter ?? 0;
+
+  return (
+    <AdminPage
+      wide
+      eyebrow={
+        <>
+          <Link href="/admin/users" style={{ color: "inherit", textDecoration: "none" }}>
+            Users &amp; Workspaces
+          </Link>
+          <I.ChevronRight size={12} />
+          <span className="mono">{workspace.id.slice(0, 8)}…</span>
+        </>
+      }
+      title={workspace.name}
+      description={
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <span className="mono">{workspace.id}</span>
+          <CopyButton value={workspace.id} label="Copy ID" />
+        </span>
+      }
+      actions={<AdminStatus status={workspace.status} />}
+    >
+      <AdminStatGrid>
+        <AdminStat
+          label="Plan"
+          value={workspace.planCode.toUpperCase()}
+          detail="Current billing mode"
+          icon={<I.Crown size={14} />}
+          tone="accent"
+        />
+        <AdminStat
+          label="Members"
+          value={formatAdminNumber(members.length)}
+          detail={`${workspace.seatQuota} seat quota`}
+          icon={<I.User size={14} />}
+        />
+        <AdminStat
+          label="Monthly Credits"
+          value={formatAdminNumber(workspace.monthlyCreditGrant)}
+          detail="Configured grant"
+          icon={<I.Coin size={14} />}
+        />
+        <AdminStat
+          label="Ledger Balance"
+          value={formatAdminNumber(currentBalance)}
+          detail="Latest visible ledger balance"
+          icon={<I.Receipt size={14} />}
+        />
+      </AdminStatGrid>
 
       {messages.length > 0 ? (
         <div
+          aria-live="polite"
           style={{
             marginBottom: 16,
             display: "flex",
@@ -162,21 +270,14 @@ export function WorkspaceDetail(props: {
           }}
         >
           {messages.map((m, i) => (
-            <span
-              key={i}
-              className={`pill ${m.ok ? "pill--green" : "pill--red"}`}
-            >
-              {m.ok ? <I.Check size={11} /> : <I.AlertCircle size={11} />}
+            <AdminAlert key={i} tone={m.ok ? "success" : "danger"}>
               {m.text}
-            </span>
+            </AdminAlert>
           ))}
         </div>
       ) : null}
 
-      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
-        <div className="t-eyebrow" style={{ marginBottom: 16 }}>
-          Workspace details
-        </div>
+      <AdminSection title="Workspace Details">
         <div
           style={{
             display: "grid",
@@ -191,7 +292,7 @@ export function WorkspaceDetail(props: {
           </KV>
           <KV label="Brand quota" value={workspace.brandQuota} />
           <KV label="Seat quota" value={workspace.seatQuota} />
-          <KV label="Monthly credits" value={workspace.monthlyCreditGrant.toLocaleString()} />
+          <KV label="Monthly credits" value={formatAdminNumber(workspace.monthlyCreditGrant)} />
           {workspace.stripeCustomerId ? (
             <KV label="Stripe customer">
               <span className="mono" style={{ fontSize: 12 }}>
@@ -199,60 +300,71 @@ export function WorkspaceDetail(props: {
               </span>
             </KV>
           ) : null}
-          <KV label="Created" value={new Date(workspace.createdAt).toLocaleString()} />
+          <KV label="Created" value={formatAdminDate(workspace.createdAt)} />
         </div>
-      </div>
+      </AdminSection>
+
+      <AdminSection title="Pricing Plan">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "220px auto 1fr",
+            gap: 12,
+            alignItems: "end",
+          }}
+        >
+          <div>
+            <label className="label" htmlFor="workspace-plan">
+              Plan
+            </label>
+            <select
+              id="workspace-plan"
+              className="select"
+              value={planCode}
+              onChange={(e) => setPlanCode(e.target.value)}
+            >
+              <option value="free">Free</option>
+              <option value="subscription">Subscription</option>
+              <option value="payg">Pay As You Go</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            className="btn btn--primary"
+            disabled={loading !== null || planCode === workspace.planCode}
+            onClick={() => void handlePlanUpdate()}
+          >
+            <I.Save size={14} />
+            {loading === "plan" ? "Saving…" : "Update plan"}
+          </button>
+          <p className="t-small" style={{ margin: 0 }}>
+            Free has 20 starter credits and no moods. Subscription grants expiring monthly credits.
+            PAYG credits do not expire and retention uses day slots.
+          </p>
+        </div>
+      </AdminSection>
 
       {members.length > 0 ? (
-        <div
-          className="card"
-          style={{ padding: 0, overflow: "hidden", marginBottom: 16 }}
-        >
-          <div
-            style={{
-              padding: "16px 24px",
-              borderBottom: "1px solid var(--cal-gray-200)",
-            }}
-            className="t-eyebrow"
-          >
-            Members
-          </div>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <AdminSection title="Members" flush>
+          <table className="admin-table">
             <thead>
-              <tr style={{ background: "var(--cal-gray-50)" }}>
+              <tr>
                 {["Email", "Role", "Accepted"].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      textAlign: "left",
-                      padding: "10px 24px",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: "var(--fg-3)",
-                      textTransform: "uppercase",
-                      letterSpacing: 0.4,
-                    }}
-                  >
-                    {h}
-                  </th>
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {members.map((m) => (
-                <tr
-                  key={m.id}
-                  style={{ borderTop: "1px solid var(--cal-gray-200)" }}
-                >
-                  <td style={{ padding: "10px 24px" }}>{m.email}</td>
-                  <td style={{ padding: "10px 24px" }}>
+                <tr key={m.id}>
+                  <td>{m.email}</td>
+                  <td>
                     <span className="pill">{m.role}</span>
                   </td>
-                  <td style={{ padding: "10px 24px" }}>
+                  <td>
                     {m.acceptedAt ? (
                       <span className="pill pill--green">
-                        <I.Check size={11} />{" "}
-                        {new Date(m.acceptedAt).toLocaleDateString()}
+                        <I.Check size={11} /> {formatAdminDate(m.acceptedAt)}
                       </span>
                     ) : (
                       <span className="pill pill--amber">Pending</span>
@@ -262,13 +374,10 @@ export function WorkspaceDetail(props: {
               ))}
             </tbody>
           </table>
-        </div>
+        </AdminSection>
       ) : null}
 
-      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
-        <div className="t-eyebrow" style={{ marginBottom: 16 }}>
-          Manual credit grant
-        </div>
+      <AdminSection title="Manual Credit Grant">
         <div
           style={{
             display: "grid",
@@ -278,10 +387,15 @@ export function WorkspaceDetail(props: {
           }}
         >
           <div>
-            <label className="label">Amount (credits)</label>
+            <label className="label" htmlFor="grant-amount">
+              Amount (credits)
+            </label>
             <input
+              id="grant-amount"
               className="input"
               type="number"
+              name="grantAmount"
+              inputMode="numeric"
               min="1"
               value={grantAmount}
               onChange={(e) => setGrantAmount(e.target.value)}
@@ -289,10 +403,15 @@ export function WorkspaceDetail(props: {
             />
           </div>
           <div>
-            <label className="label">Reason (optional)</label>
+            <label className="label" htmlFor="grant-reason">
+              Reason (optional)
+            </label>
             <input
+              id="grant-reason"
               className="input"
               type="text"
+              name="grantReason"
+              autoComplete="off"
               value={grantReason}
               onChange={(e) => setGrantReason(e.target.value)}
               placeholder="admin override reason"
@@ -305,15 +424,12 @@ export function WorkspaceDetail(props: {
             onClick={() => void handleGrant()}
           >
             <I.Plus size={14} />
-            {loading === "grant" ? "Granting…" : "Grant credits"}
+            {loading === "grant" ? "Granting…" : "Grant Credits"}
           </button>
         </div>
-      </div>
+      </AdminSection>
 
-      <div className="card" style={{ padding: 24, marginBottom: 16 }}>
-        <div className="t-eyebrow" style={{ marginBottom: 16 }}>
-          Workspace status
-        </div>
+      <AdminSection title="Workspace Status" description="High-impact safety controls.">
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button
             type="button"
@@ -343,72 +459,41 @@ export function WorkspaceDetail(props: {
             {loading === "reactivate" ? "Reactivating…" : "Reactivate"}
           </button>
         </div>
-      </div>
+      </AdminSection>
 
-      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        <div
-          style={{
-            padding: "16px 24px",
-            borderBottom: "1px solid var(--cal-gray-200)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div className="t-eyebrow">Ledger history</div>
-          {page > 0 ? (
-            <span className="t-small">page {page + 1}</span>
-          ) : null}
-        </div>
+      <AdminSection
+        title="Ledger History"
+        actions={<span className="t-small muted">Page {page + 1}</span>}
+        flush
+      >
         {ledgerEntries.length === 0 ? (
-          <div style={{ padding: 32, textAlign: "center", color: "var(--fg-3)" }}>
-            No ledger entries.
+          <div style={{ padding: 18 }}>
+            <AdminEmpty icon={<I.Receipt size={28} />} title="No Ledger Entries" />
           </div>
         ) : (
           <>
-            <table
-              style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
-            >
+            <table className="admin-table">
               <thead>
-                <tr style={{ background: "var(--cal-gray-50)" }}>
-                  {["Kind", "Amount", "Balance after", "Generation", "Date"].map(
-                    (h, i) => (
-                      <th
-                        key={h}
-                        style={{
-                          textAlign: i === 1 || i === 2 ? "right" : "left",
-                          padding: "10px 24px",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: "var(--fg-3)",
-                          textTransform: "uppercase",
-                          letterSpacing: 0.4,
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
+                <tr>
+                  <SortTh label="Kind" sortKey="kind" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+                  <SortTh label="Amount" sortKey="amount" align="right" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+                  <SortTh label="Balance after" sortKey="balanceAfter" align="right" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+                  <th>Generation</th>
+                  <SortTh label="Date" sortKey="createdAt" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
                 </tr>
               </thead>
               <tbody>
-                {ledgerEntries.map((entry) => (
-                  <tr
-                    key={entry.id}
-                    style={{ borderTop: "1px solid var(--cal-gray-200)" }}
-                  >
-                    <td style={{ padding: "10px 24px" }}>
+                {sortedLedger.map((entry) => (
+                  <tr key={entry.id}>
+                    <td>
                       <span className="pill">{entry.kind}</span>
                     </td>
                     <td
                       style={{
-                        padding: "10px 24px",
                         textAlign: "right",
                         fontFamily: "var(--font-mono)",
                         color:
-                          entry.amount >= 0
-                            ? "var(--studio-green)"
-                            : "var(--studio-red)",
+                          entry.amount >= 0 ? "var(--layertone-green)" : "var(--layertone-red)",
                       }}
                     >
                       {entry.amount >= 0 ? "+" : ""}
@@ -416,14 +501,13 @@ export function WorkspaceDetail(props: {
                     </td>
                     <td
                       style={{
-                        padding: "10px 24px",
                         textAlign: "right",
                         fontFamily: "var(--font-mono)",
                       }}
                     >
                       {entry.balanceAfter}
                     </td>
-                    <td style={{ padding: "10px 24px" }}>
+                    <td>
                       {entry.generationId ? (
                         <Link
                           href={`/admin/generations/${entry.generationId}`}
@@ -440,44 +524,34 @@ export function WorkspaceDetail(props: {
                         <span style={{ color: "var(--fg-4)" }}>—</span>
                       )}
                     </td>
-                    <td style={{ padding: "10px 24px", color: "var(--fg-3)" }}>
-                      {new Date(entry.createdAt).toLocaleString()}
-                    </td>
+                    <td style={{ color: "var(--fg-3)" }}>{formatAdminDate(entry.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <div
-              style={{
-                padding: "12px 24px",
-                display: "flex",
-                gap: 8,
-                borderTop: "1px solid var(--cal-gray-200)",
-              }}
-            >
-              {page > 0 ? (
-                <Link
-                  href={`?page=${page - 1}`}
-                  className="btn btn--secondary btn--sm"
-                  style={{ textDecoration: "none" }}
-                >
-                  <I.ChevronLeft size={12} /> Previous
-                </Link>
-              ) : null}
-              {ledgerEntries.length === pageSize ? (
-                <Link
-                  href={`?page=${page + 1}`}
-                  className="btn btn--secondary btn--sm"
-                  style={{ textDecoration: "none", marginLeft: "auto" }}
-                >
-                  Next <I.ChevronRight size={12} />
-                </Link>
-              ) : null}
+            <div className="admin-pagination">
+              <span className="admin-pagination__info">
+                {ledgerEntries.length === pageSize
+                  ? `${page * pageSize + 1}–${(page + 1) * pageSize} shown`
+                  : `${page * pageSize + 1}–${page * pageSize + ledgerEntries.length} shown`}
+              </span>
+              <div className="admin-pagination__nav">
+                {page > 0 ? (
+                  <Link href={`?page=${page - 1}`} className="btn btn--secondary btn--sm">
+                    <I.ChevronLeft size={12} /> Previous
+                  </Link>
+                ) : null}
+                {ledgerEntries.length === pageSize ? (
+                  <Link href={`?page=${page + 1}`} className="btn btn--secondary btn--sm">
+                    Next <I.ChevronRight size={12} />
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </>
         )}
-      </div>
-    </div>
+      </AdminSection>
+    </AdminPage>
   );
 }
 
@@ -503,9 +577,7 @@ function KV({
       >
         {label}
       </div>
-      <div style={{ marginTop: 4, fontSize: 14 }}>
-        {children ?? value ?? "—"}
-      </div>
+      <div style={{ marginTop: 4, fontSize: 14 }}>{children ?? value ?? "—"}</div>
     </div>
   );
 }

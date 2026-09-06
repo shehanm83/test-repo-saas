@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000006",
+  "slug": "ramadan-nights",
+  "name": "Ramadan Nights",
+  "kind": "seasonal",
+  "validFrom": "2027-02-01T00:00:00.000Z",
+  "validTo": "2027-03-31T23:59:59.000Z",
+  "accentPalette": [
+    "#172554",
+    "#C9A227",
+    "#F5E6C8",
+    "#0F766E"
+  ],
+  "decorationTags": [
+    "lanterns",
+    "crescent",
+    "dates",
+    "night-sky",
+    "geometric-pattern"
+  ],
+  "promptModifiers": "Calm premium Ramadan night atmosphere with deep indigo evening light, brass lantern glow, dates, crescent and geometric pattern hints, quiet hospitality, and refined warm shadows.",
+  "negativePrompts": "Readable calligraphy, mosque focus, people praying, exaggerated moon, cluttered table.",
+  "previewAsset": "ramadan-nights/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

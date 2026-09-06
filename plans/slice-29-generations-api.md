@@ -2,7 +2,7 @@
 
 **Phase:** 8 — Generation pipeline
 **Depends on:** 19, 21, 27, 28
-**Spec references:** [Spec § 3.3 (Generate flow)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 3.5 (Failure handling)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 3.3 (Generate flow)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 3.5 (Failure handling)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `GenerationApi.create({ workspaceId, userId, input })` validates input, resolves output target, picks templates from mood bindings (or fallback brand templates), looks up price book, reserves credits atomically, inserts generation + variant rows, claims inspiration upload (if any), enqueues SQS messages
@@ -93,11 +93,11 @@ export async function getGenerationFull(db: Db, workspaceId: string, generationI
 // packages/api/src/generation.ts
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { resolveOutputTarget, assertMoodSupportsAspectRatio } from "@vyora/shared";
-import { createDb, listAvailableMoods, pickTemplates, insertGeneration, insertVariants, getGenerationFull } from "@vyora/db";
-import { Ledger, InsufficientCredits } from "@vyora/billing";
-import type { Adapters, Config } from "@vyora/shared";
-import { keys } from "@vyora/storage";
+import { resolveOutputTarget, assertMoodSupportsAspectRatio } from "@layertone/shared";
+import { createDb, listAvailableMoods, pickTemplates, insertGeneration, insertVariants, getGenerationFull } from "@layertone/db";
+import { Ledger, InsufficientCredits } from "@layertone/billing";
+import type { Adapters, Config } from "@layertone/shared";
+import { keys } from "@layertone/storage";
 
 const VARIANT_COUNT = 4;
 
@@ -277,7 +277,7 @@ git commit -m "feat(api): generation create + status endpoints with reservation,
 ## Verification
 
 ```bash
-pnpm --filter @vyora/api test
+pnpm --filter @layertone/api test
 ```
 
 ## Commit message

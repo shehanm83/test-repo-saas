@@ -1,5 +1,5 @@
 {
-  "app": "tsx bin/studio.ts",
+  "app": "tsx bin/layertone.ts",
   "watch": {
     "include": ["**"],
     "exclude": ["node_modules/**", "cdk.out/**", "dist/**"]

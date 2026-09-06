@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000009",
+  "slug": "halloween",
+  "name": "Halloween",
+  "kind": "seasonal",
+  "validFrom": "2026-09-15T00:00:00.000Z",
+  "validTo": "2026-11-05T23:59:59.000Z",
+  "accentPalette": [
+    "#111827",
+    "#F97316",
+    "#6D28D9",
+    "#FDE68A"
+  ],
+  "decorationTags": [
+    "pumpkin",
+    "moody-shadows",
+    "candlelight",
+    "autumn-leaves",
+    "purple-haze"
+  ],
+  "promptModifiers": "Stylish Halloween campaign atmosphere with pumpkins, autumn leaves, candlelit shadows, black-orange-purple palette, slightly mysterious editorial lighting, playful premium retail mood.",
+  "negativePrompts": "Gore, horror monsters, jump scares, skull focus, readable text, cheap plastic props.",
+  "previewAsset": "halloween/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

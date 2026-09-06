@@ -2,7 +2,7 @@
 
 **Phase:** 12 — Frontend onboarding
 **Depends on:** 36, 14, 15
-**Spec references:** [Spec § 3.2 (Brand setup wizard)](../specs/2026-04-25-studio-v1-spec.md), [UI Prompt 3](../specs/2026-04-25-studio-v1-ui-prompts.md).
+**Spec references:** [Spec § 3.2 (Brand setup wizard)](../specs/2026-04-25-layertone-v1-spec.md), [UI Prompt 3](../specs/2026-04-25-layertone-v1-ui-prompts.md).
 
 **Definition of done:**
 - `/onboarding/brand/[step]` route group with steps 1–6: Identify, Logo, Palette, Fonts, Voice, References
@@ -32,7 +32,7 @@
 - [ ] **Step 1 — Add deps**
 
 ```bash
-pnpm --filter @vyora/web add react-hook-form @hookform/resolvers zod zustand
+pnpm --filter @layertone/web add react-hook-form @hookform/resolvers zod zustand
 ```
 
 - [ ] **Step 2 — Onboarding store**
@@ -57,7 +57,7 @@ export const useOnboardingStore = create<State>()(persist((set) => ({
   logoUploaded: false,
   set: (patch) => set(patch),
   reset: () => set({ name: "", logoUploaded: false, brandId: undefined, sourceUrl: undefined }),
-}), { name: "studio-onboarding" }));
+}), { name: "layertone-onboarding" }));
 ```
 
 - [ ] **Step 3 — Step 1: Identify**
@@ -124,8 +124,8 @@ For each step, write a component test for form validation (required fields, max 
 // apps/web/src/app/api/brands/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
-import { BrandApi } from "@vyora/api";
-import { loadConfig, createAdapters } from "@vyora/shared";
+import { BrandApi } from "@layertone/api";
+import { loadConfig, createAdapters } from "@layertone/shared";
 
 export async function POST(req: Request) {
   const session = await getServerSession();
@@ -158,7 +158,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 - [ ] **Step 7 — Commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(web): brand setup wizard (6 steps) with API integration"
 ```

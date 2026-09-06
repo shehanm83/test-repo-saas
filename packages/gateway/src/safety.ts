@@ -1,6 +1,9 @@
-import type { ModerationProvider } from "./types.js";
+import type { ModerationProvider } from "./types";
 
-export async function preFlightModerate(mp: ModerationProvider | null, text: string): Promise<void> {
+export async function preFlightModerate(
+  mp: ModerationProvider | null,
+  text: string,
+): Promise<void> {
   if (!mp) return;
   const r = await mp.moderateText(text);
   if (r.flagged) {
@@ -10,7 +13,10 @@ export async function preFlightModerate(mp: ModerationProvider | null, text: str
   }
 }
 
-export async function postFlightModerate(mp: ModerationProvider | null, bytes: Uint8Array): Promise<string[]> {
+export async function postFlightModerate(
+  mp: ModerationProvider | null,
+  bytes: Uint8Array,
+): Promise<string[]> {
   if (!mp) return [];
   const r = await mp.moderateImage(bytes);
   if (r.flagged) {

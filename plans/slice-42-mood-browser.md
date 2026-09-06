@@ -2,7 +2,7 @@
 
 **Phase:** 14 — Frontend brand/history/moods/billing
 **Depends on:** 36, 16
-**Spec references:** [UI Prompt 9 — Mood browser](../specs/2026-04-25-studio-v1-ui-prompts.md).
+**Spec references:** [UI Prompt 9 — Mood browser](../specs/2026-04-25-layertone-v1-ui-prompts.md).
 
 **Definition of done:**
 - `/moods` page shows all available + upcoming moods grouped: Right Now / Always / Coming Soon
@@ -124,9 +124,9 @@ export default function MoodsPage() {
 
 ```ts
 import { NextResponse } from "next/server";
-import { createDb, moods } from "@vyora/db";
+import { createDb, moods } from "@layertone/db";
 import { and, eq, gt, lt, isNotNull, isNull, or } from "drizzle-orm";
-import { loadConfig } from "@vyora/shared";
+import { loadConfig } from "@layertone/shared";
 
 export async function GET() {
   const db = createDb(loadConfig().db.url, "app_user");
@@ -145,7 +145,7 @@ export async function GET() {
 - [ ] **Step 5 — Commit**
 
 ```bash
-pnpm --filter @vyora/web test
+pnpm --filter @layertone/web test
 git add -A
 git commit -m "feat(web): mood browser page with filtering and grouping"
 ```

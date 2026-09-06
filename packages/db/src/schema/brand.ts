@@ -1,4 +1,13 @@
-import { integer, jsonb, pgTable, text, timestamp, uuid, vector } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  vector,
+} from "drizzle-orm/pg-core";
 
 import { workspaces } from "./identity";
 
@@ -20,6 +29,14 @@ export const brands = pgTable("brands", {
     body: { family: string; weight?: string };
   }>(),
   voiceNotes: text("voice_notes"),
+  /** One line on what the business actually sells — goes into every prompt. */
+  descriptor: text("descriptor"),
+  /** Structured counterpart to voiceNotes, read by the caption/campaign copy pipeline. */
+  voice: jsonb("voice").$type<{
+    tone?: string[];
+    avoid?: string[];
+    example?: string;
+  }>(),
   sourceUrl: text("source_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -33,6 +50,20 @@ export const brandAssets = pgTable("brand_assets", {
     .notNull()
     .references(() => brands.id, { onDelete: "cascade" }),
   kind: text("kind", { enum: ["logo", "reference", "icon"] }).notNull(),
+  /** Shape of the mark, for logos: full lockup, symbol only, or type only. */
+  variant: text("variant", { enum: ["lockup", "mark", "wordmark", "other"] })
+    .notNull()
+    .default("lockup"),
+  /** Which artwork this asset is legible on. */
+  background: text("background", { enum: ["light", "dark", "any"] })
+    .notNull()
+    .default("any"),
+  label: text("label"),
+  /**
+   * The one logo the renderer composites when the generation does not name one.
+   * A partial unique index keeps it to a single row per brand.
+   */
+  isPrimary: boolean("is_primary").notNull().default(false),
   s3Key: text("s3_key").notNull(),
   mimeType: text("mime_type").notNull(),
   width: integer("width"),

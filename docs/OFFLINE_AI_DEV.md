@@ -21,7 +21,7 @@ No OpenAI API call is made when `AI_MODE=mock`.
 AI_MODE=mock
 QUEUE_MODE=elasticmq
 SQS_ENDPOINT=http://localhost:9324
-SQS_QUEUE_GENERATIONS=http://localhost:9324/000000000000/studio-generations
+SQS_QUEUE_GENERATIONS=http://localhost:9324/000000000000/layertone-generations
 STORAGE_MODE=minio
 S3_ENDPOINT=http://localhost:9000
 ```

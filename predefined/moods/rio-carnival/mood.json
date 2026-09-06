@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000014",
+  "slug": "rio-carnival",
+  "name": "Rio Carnival",
+  "kind": "seasonal",
+  "validFrom": "2027-01-20T00:00:00.000Z",
+  "validTo": "2027-03-15T23:59:59.000Z",
+  "accentPalette": [
+    "#FACC15",
+    "#22C55E",
+    "#2563EB",
+    "#EC4899"
+  ],
+  "decorationTags": [
+    "sequins",
+    "confetti",
+    "tropical-color",
+    "stage-light",
+    "feather-abstract"
+  ],
+  "promptModifiers": "Rio Carnival-inspired campaign energy with tropical saturated color, sequins, confetti, stage-light sparkle, abstract feather-like texture, and joyful premium festival movement.",
+  "negativePrompts": "Revealing costumes, caricatures, crowds, readable text, flags, logos.",
+  "previewAsset": "rio-carnival/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

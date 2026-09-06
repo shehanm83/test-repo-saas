@@ -38,6 +38,7 @@ export interface PromptOverlaySlots {
   discount?: string;
   badgeText?: string;
   cta?: string;
+  offerExpiry?: string;
   legalText?: string;
   website?: string;
   phone?: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@vyora/gateway",
+  "name": "@layertone/gateway",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -19,7 +19,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
     "@aws-sdk/client-bedrock-runtime": "^3.1037.0",
-    "@vyora/shared": "workspace:*",
+    "@layertone/shared": "workspace:*",
     "openai": "^6.34.0",
     "sharp": "^0.34.5"
   },

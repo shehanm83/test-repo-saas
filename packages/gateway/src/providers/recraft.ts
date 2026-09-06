@@ -1,5 +1,5 @@
-import type { ImageProvider, ProviderCapabilities } from "../types.js";
-import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@vyora/shared";
+import type { ImageProvider, ProviderCapabilities } from "../types";
+import type { AIImageRequest, AIImageResponse, StorageAdapter } from "@layertone/shared";
 
 const COST_STD = 8;
 const COST_LARGE = 12;
@@ -9,6 +9,9 @@ export class RecraftImageProvider implements ImageProvider {
     modelCodes: ["recraft-v3"],
     supportsImageToImage: true,
     supportsMultiReference: false,
+    maxReferences: 1,
+    referenceRoles: ["style_reference", "inspiration"],
+    supportsIdentityPreservation: false,
     tier: "design",
   };
 
@@ -16,7 +19,9 @@ export class RecraftImageProvider implements ImageProvider {
 
   async generate(req: AIImageRequest): Promise<AIImageResponse> {
     const start = Date.now();
-    const inspiration = req.references?.find((r) => r.role === "inspiration");
+    const inspiration =
+      req.references?.find((r) => r.role === "style_reference") ??
+      req.references?.find((r) => r.role === "inspiration");
     const styleRefUrl = inspiration
       ? await this.opts.storage.getSignedUrl(inspiration.s3Key)
       : undefined;
@@ -33,7 +38,7 @@ export class RecraftImageProvider implements ImageProvider {
     const res = await fetch("https://external.api.recraft.ai/v1/images/generations", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${this.opts.apiKey}`,
+        Authorization: `Bearer ${this.opts.apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),

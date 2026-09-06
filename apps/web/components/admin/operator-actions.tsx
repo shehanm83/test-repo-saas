@@ -1,6 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+import { I } from "@/components/icons";
+import { AdminAlert, AdminSection } from "@/components/admin/ui";
 
 interface Variant {
   id: string;
@@ -13,14 +17,15 @@ export function OperatorActions(props: {
   workspaceId: string;
   variants: Variant[];
 }) {
-  const { generationId, workspaceId, variants } = props;
+  const router = useRouter();
+  const { generationId, variants } = props;
   const [loading, setLoading] = useState<string | null>(null);
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<{ ok: boolean; text: string }[]>([]);
   const [flagReason, setFlagReason] = useState("");
   const [overrideTemplateId, setOverrideTemplateId] = useState("");
 
-  function addMessage(msg: string) {
-    setMessages((prev) => [msg, ...prev]);
+  function addMessage(ok: boolean, msg: string) {
+    setMessages((prev) => [{ ok, text: msg }, ...prev]);
   }
 
   async function handleAction(action: string, body?: unknown) {
@@ -34,15 +39,15 @@ export function OperatorActions(props: {
         fetchInit.body = JSON.stringify(body);
       }
       const res = await fetch(`/api/admin/generations/${generationId}/${action}`, fetchInit);
-      const data = await res.json() as Record<string, unknown>;
+      const data = (await res.json()) as Record<string, unknown>;
       if (!res.ok) {
-        addMessage(`${action} failed: ${String(data.error ?? "unknown error")}`);
+        addMessage(false, `${action} failed: ${String(data.error ?? "unknown error")}`);
       } else {
-        addMessage(`${action} succeeded: ${JSON.stringify(data)}`);
-        setTimeout(() => location.reload(), 800);
+        addMessage(true, `${action} succeeded: ${JSON.stringify(data)}`);
+        router.refresh();
       }
     } catch (err) {
-      addMessage(`${action} error: ${String(err)}`);
+      addMessage(false, `${action} error: ${String(err)}`);
     } finally {
       setLoading(null);
     }
@@ -53,165 +58,101 @@ export function OperatorActions(props: {
   );
 
   return (
-    <div
-      style={{
-        border: "1px solid #e5e7eb",
-        borderRadius: "0.5rem",
-        padding: "1rem",
-        background: "#fff",
-      }}
-    >
-      <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Operator Actions</h3>
+    <AdminSection title="Operator Actions" description="Direct intervention controls for this generation job.">
+      {messages.length > 0 ? (
+        <div aria-live="polite" style={{ marginBottom: 14, display: "flex", flexDirection: "column", gap: 6 }}>
+          {messages.map((m, i) => (
+            <AdminAlert key={i} tone={m.ok ? "success" : "danger"}>
+              {m.text}
+            </AdminAlert>
+          ))}
+        </div>
+      ) : null}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        {/* Resume failed */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <div>
           <button
             type="button"
+            className="btn btn--primary btn--sm"
             disabled={!hasFailedVariants || loading !== null}
             onClick={() => void handleAction("resume")}
-            style={{
-              padding: "0.5rem 1rem",
-              borderRadius: "0.375rem",
-              border: "1px solid #d1d5db",
-              background: hasFailedVariants ? "#1d4ed8" : "#e5e7eb",
-              color: hasFailedVariants ? "#fff" : "#9ca3af",
-              cursor: hasFailedVariants && loading === null ? "pointer" : "not-allowed",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-              width: "100%",
-            }}
           >
-            {loading === "resume" ? "Resuming…" : "Resume failed variants"}
+            <I.Refresh size={13} />
+            {loading === "resume" ? "Resuming…" : "Resume Failed Variants"}
           </button>
-          {!hasFailedVariants && (
-            <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "0.25rem" }}>
-              No failed variants
-            </p>
-          )}
+          {!hasFailedVariants ? (
+            <p className="hint" style={{ marginTop: 4 }}>No failed variants to resume.</p>
+          ) : null}
         </div>
 
-        {/* Override model */}
         <div>
-          <label style={{ fontSize: "0.75rem", color: "#6b7280", display: "block", marginBottom: "0.25rem" }}>
-            Fallback template ID for override
+          <button
+            type="button"
+            className="btn btn--secondary btn--danger btn--sm"
+            disabled={loading !== null}
+            onClick={() => void handleAction("refund")}
+          >
+            <I.Receipt size={13} />
+            {loading === "refund" ? "Refunding…" : "Refund Generation Credits"}
+          </button>
+        </div>
+
+        <div>
+          <label className="label" htmlFor="override-template">
+            Override model — fallback template ID
           </label>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <div style={{ display: "flex", gap: 8 }}>
             <input
+              id="override-template"
+              className="input mono"
               type="text"
               placeholder="template UUID"
               value={overrideTemplateId}
               onChange={(e) => setOverrideTemplateId(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "0.375rem 0.625rem",
-                border: "1px solid #d1d5db",
-                borderRadius: "0.375rem",
-                fontSize: "0.875rem",
-              }}
+              style={{ fontSize: 13 }}
+              autoComplete="off"
             />
             <button
               type="button"
+              className="btn btn--secondary btn--sm"
+              style={{ flexShrink: 0 }}
               disabled={!overrideTemplateId || loading !== null}
               onClick={() =>
                 void handleAction("override-model", { fallbackTemplateId: overrideTemplateId })
               }
-              style={{
-                padding: "0.375rem 0.75rem",
-                borderRadius: "0.375rem",
-                border: "1px solid #d1d5db",
-                background: overrideTemplateId ? "#7c3aed" : "#e5e7eb",
-                color: overrideTemplateId ? "#fff" : "#9ca3af",
-                cursor: overrideTemplateId && loading === null ? "pointer" : "not-allowed",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                whiteSpace: "nowrap",
-              }}
             >
-              {loading === "override-model" ? "Overriding…" : "Override & rerun"}
+              {loading === "override-model" ? "Overriding…" : "Override & Rerun"}
             </button>
           </div>
         </div>
 
-        {/* Refund */}
-        <button
-          type="button"
-          disabled={loading !== null}
-          onClick={() => void handleAction("refund")}
-          style={{
-            padding: "0.5rem 1rem",
-            borderRadius: "0.375rem",
-            border: "1px solid #d1d5db",
-            background: loading === null ? "#059669" : "#e5e7eb",
-            color: loading === null ? "#fff" : "#9ca3af",
-            cursor: loading === null ? "pointer" : "not-allowed",
-            fontSize: "0.875rem",
-            fontWeight: 500,
-          }}
-        >
-          {loading === "refund" ? "Refunding…" : "Refund generation credits"}
-        </button>
-
-        {/* Flag for AUP */}
         <div>
-          <label style={{ fontSize: "0.75rem", color: "#6b7280", display: "block", marginBottom: "0.25rem" }}>
-            Flag reason (optional)
+          <label className="label" htmlFor="flag-reason">
+            Flag for AUP — reason (optional)
           </label>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <div style={{ display: "flex", gap: 8 }}>
             <input
+              id="flag-reason"
+              className="input"
               type="text"
               placeholder="reason for AUP flag"
               value={flagReason}
               onChange={(e) => setFlagReason(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "0.375rem 0.625rem",
-                border: "1px solid #d1d5db",
-                borderRadius: "0.375rem",
-                fontSize: "0.875rem",
-              }}
+              autoComplete="off"
             />
             <button
               type="button"
+              className="btn btn--secondary btn--danger btn--sm"
+              style={{ flexShrink: 0 }}
               disabled={loading !== null}
               onClick={() => void handleAction("flag", { reason: flagReason || undefined })}
-              style={{
-                padding: "0.375rem 0.75rem",
-                borderRadius: "0.375rem",
-                border: "1px solid #d1d5db",
-                background: loading === null ? "#dc2626" : "#e5e7eb",
-                color: loading === null ? "#fff" : "#9ca3af",
-                cursor: loading === null ? "pointer" : "not-allowed",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                whiteSpace: "nowrap",
-              }}
             >
+              <I.AlertTriangle size={13} />
               {loading === "flag" ? "Flagging…" : "Flag for AUP"}
             </button>
           </div>
         </div>
       </div>
-
-      {/* Messages */}
-      {messages.length > 0 && (
-        <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-          {messages.map((msg, i) => (
-            <p
-              key={i}
-              style={{
-                fontSize: "0.75rem",
-                padding: "0.375rem 0.625rem",
-                background: msg.includes("failed") || msg.includes("error") ? "#fee2e2" : "#d1fae5",
-                borderRadius: "0.25rem",
-                color: msg.includes("failed") || msg.includes("error") ? "#991b1b" : "#065f46",
-              }}
-            >
-              {msg}
-            </p>
-          ))}
-        </div>
-      )}
-    </div>
+    </AdminSection>
   );
 }

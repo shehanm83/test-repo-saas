@@ -6,7 +6,7 @@
 **Definition of done:**
 - Property test (fast-check, 10k random walk): for any sequence of grant/topup/reserve/commit/release/refund/adjustment, sum of amounts == final balance
 - Daily reconciliation job stub: compares Stripe-attributed entries to subscription/topup product expectations and emits a Sentry/log alert on drift (real Stripe wiring in slice 34)
-- Job is invokable as `pnpm --filter @vyora/billing exec tsx scripts/reconcile.ts`
+- Job is invokable as `pnpm --filter @layertone/billing exec tsx scripts/reconcile.ts`
 
 ---
 
@@ -27,7 +27,7 @@
 - [ ] **Step 1 — Add fast-check**
 
 ```bash
-pnpm --filter @vyora/billing add -D fast-check
+pnpm --filter @layertone/billing add -D fast-check
 ```
 
 - [ ] **Step 2 — Property test**
@@ -37,11 +37,11 @@ pnpm --filter @vyora/billing add -D fast-check
 ```ts
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { createDb, users, workspaces } from "@vyora/db";
+import { createDb, users, workspaces } from "@layertone/db";
 import { Ledger } from "./ledger.js";
 import { InsufficientCredits } from "./errors.js";
 
-const url = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const url = process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/studio";
 const db = createDb(url, "app_admin");
 
 const opArb = fc.oneof(
@@ -97,9 +97,9 @@ describe("Ledger property test", () => {
 `packages/billing/src/reconcile.ts`:
 
 ```ts
-import { createDb, creditLedgerEntries } from "@vyora/db";
+import { createDb, creditLedgerEntries } from "@layertone/db";
 import { eq, and, sql } from "drizzle-orm";
-import type { Db } from "@vyora/db";
+import type { Db } from "@layertone/db";
 
 export interface ReconciliationReport {
   workspaceId: string;
@@ -140,7 +140,7 @@ export async function reconcileWorkspace(db: Db, workspaceId: string): Promise<R
 `packages/billing/scripts/reconcile.ts`:
 
 ```ts
-import { createDb, workspaces } from "@vyora/db";
+import { createDb, workspaces } from "@layertone/db";
 import { reconcileWorkspace } from "../src/reconcile.js";
 
 const url = process.env.DATABASE_URL!;
@@ -173,7 +173,7 @@ git commit -m "test(billing): property-test ledger correctness + reconciliation 
 
 ```bash
 pnpm test:int
-DATABASE_URL=$DATABASE_URL pnpm --filter @vyora/billing exec tsx scripts/reconcile.ts
+DATABASE_URL=$DATABASE_URL pnpm --filter @layertone/billing exec tsx scripts/reconcile.ts
 ```
 
 ## Commit message

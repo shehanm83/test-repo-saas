@@ -1,7 +1,7 @@
-import { Ledger, PLANS, TOPUP_PACKS } from "@vyora/billing";
-import { createDb, creditLedgerEntries, subscriptions } from "@vyora/db";
-import { and, desc, eq, gte } from "@vyora/db/operators";
-import { loadConfig } from "@vyora/shared/config";
+import { Ledger, normalizePlanCode, PLANS, StripeWebhookHandler, TOPUP_PACKS } from "@layertone/billing";
+import { createDb, creditLedgerEntries, subscriptions } from "@layertone/db";
+import { and, desc, eq, gte } from "@layertone/db/operators";
+import { loadConfig } from "@layertone/shared/config";
 
 import { BillingPage } from "@/components/billing/billing-page";
 import { getSessionWorkspace } from "@/lib/auth/server";
@@ -13,19 +13,31 @@ const PLAN_DISPLAY: Array<{
   popular?: boolean;
 }> = [
   { code: "free", name: "Free" },
-  { code: "starter", name: "Starter" },
-  { code: "pro", name: "Pro", popular: true },
-  { code: "business", name: "Business" },
-  { code: "agency", name: "Agency" },
+  { code: "subscription", name: "Subscription", popular: true },
+  { code: "payg", name: "Pay As You Go" },
 ];
 
 const BEST_PACK = "p750";
 
-export default async function BillingRoutePage() {
+export default async function BillingRoutePage(props: {
+  searchParams?: Promise<{ topup?: string; checkout_session_id?: string }>;
+}) {
+  const searchParams = props.searchParams ? await props.searchParams : {};
   const { session, workspace } = await getSessionWorkspace();
   const config = loadConfig();
   const db = createDb(config.db.url, "app_admin");
   const ledger = new Ledger(db);
+
+  if (session.workspaceId && searchParams.topup === "success" && searchParams.checkout_session_id) {
+    try {
+      await new StripeWebhookHandler(config).syncCheckoutSession(
+        searchParams.checkout_session_id,
+        session.workspaceId,
+      );
+    } catch (error) {
+      console.error("stripe checkout return sync failed", error);
+    }
+  }
 
   const balance = session.workspaceId ? await ledger.getBalance(session.workspaceId) : 0;
 
@@ -79,8 +91,8 @@ export default async function BillingRoutePage() {
     : [];
 
   const planCode = workspace?.planCode ?? "free";
-  const monthlyCreditGrant =
-    PLANS[planCode as keyof typeof PLANS]?.monthlyCreditGrant ?? 30;
+  const normalizedPlanCode = normalizePlanCode(planCode);
+  const monthlyCreditGrant = PLANS[normalizedPlanCode].monthlyCreditGrant;
 
   const plans = PLAN_DISPLAY.map((p) => ({
     code: p.code,
@@ -105,7 +117,7 @@ export default async function BillingRoutePage() {
     <BillingPage
       balance={balance}
       invoices={invoices}
-      planCode={planCode}
+      planCode={normalizedPlanCode}
       sparkline={sparkline}
       topupPacks={topupPacks}
       plans={plans}

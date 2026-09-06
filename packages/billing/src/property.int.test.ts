@@ -1,11 +1,11 @@
-import { createDb, users, workspaces } from "@vyora/db";
+import { createDb, users, workspaces } from "@layertone/db";
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { InsufficientCredits } from "./errors";
 import { Ledger } from "./ledger";
 
-const databaseUrl = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const databaseUrl = process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/layertone";
 const db = createDb(databaseUrl, "app_admin");
 
 const operationArb = fc.oneof(
@@ -23,19 +23,19 @@ const operationArb = fc.oneof(
 
 describe("Ledger property test", () => {
   it("sum of postings equals final balance", async () => {
-    const [user] = await db
-      .insert(users)
-      .values({ email: `property-${Date.now()}@example.test` })
-      .returning();
-    const [workspace] = await db
-      .insert(workspaces)
-      .values({ ownerUserId: user!.id, name: "Property" })
-      .returning();
-
-    const ledger = new Ledger(db);
-
     await fc.assert(
       fc.asyncProperty(fc.array(operationArb, { minLength: 100, maxLength: 400 }), async (ops) => {
+        // Fast-check reruns the property while shrinking. Each attempt needs an
+        // isolated ledger or previous postings contaminate the expected sum.
+        const [user] = await db
+          .insert(users)
+          .values({ email: `property-${Date.now()}-${Math.random()}@example.test` })
+          .returning();
+        const [workspace] = await db
+          .insert(workspaces)
+          .values({ ownerUserId: user!.id, name: "Property" })
+          .returning();
+        const ledger = new Ledger(db);
         let expected = 0;
         let index = 0;
 
@@ -87,7 +87,10 @@ describe("Ledger property test", () => {
                             });
 
             const delta =
-              op.kind === "grant" || op.kind === "topup" || op.kind === "release"
+              op.kind === "grant" ||
+              op.kind === "topup" ||
+              op.kind === "release" ||
+              op.kind === "refund"
                 ? op.amount
                 : op.kind === "adjustment"
                   ? op.amount

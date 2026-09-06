@@ -1,0 +1,92 @@
+{
+  "name": "Northwind seasonal campaign",
+  "previousNames": ["Default seasonal hero"],
+  "status": "published",
+  "weight": 1,
+  "config": {
+    "headline": {
+      "line1": "Brand-ready content",
+      "line2Prefix": "for",
+      "line2Middle": "every",
+      "line2Suffix": "campaign."
+    },
+    "lede": "Build brand kits, choose a campaign direction, and generate polished marketing images for every channel without starting from a blank canvas.",
+    "primaryCta": {
+      "label": "Open Layertone",
+      "href": "/sign-up"
+    },
+    "secondaryCta": {
+      "label": "See it in action - 90s",
+      "href": "#showcase",
+      "enabled": true
+    },
+    "proofItems": ["Free for one brand", "No card required", "Cancel anytime"],
+    "prompt": {
+      "brief": "\"Christmas sale, cozy living\nroom with a glowing tree, 30%\noff\"",
+      "brandName": "Your Brand",
+      "brandInitials": "NW",
+      "swatches": ["#06122f", "#534660", "#b9a39a", "#d9ceb7"],
+      "moodName": "Christmas"
+    },
+    "trust": {
+      "label": "Trusted by 1,400+ teams",
+      "teams": [
+        { "name": "NORTHWIND", "color": "#00568f" },
+        { "name": "LUMEN", "color": "#06a348" },
+        { "name": "ATLAS", "color": "#1265ff" },
+        { "name": "KESTREL", "color": "#151925" },
+        { "name": "PALOMA", "color": "#7856d8" },
+        { "name": "HEMLOCK", "color": "#00a158" }
+      ]
+    }
+  },
+  "cards": [
+    {
+      "slot": 1,
+      "asset": "cards/01-celebrate-season.jpg",
+      "headline": "Celebrate\nthe season",
+      "sub": "Cozy moments,\nwarm memories",
+      "textPosition": "bottom",
+      "textColor": "white",
+      "brandInitials": "NW",
+      "brandColor": "#FFFFFF",
+      "brandTextColor": "#2A1F18"
+    },
+    {
+      "slot": 2,
+      "asset": "cards/02-sweet-indulgence.jpg",
+      "headline": "A sweet\nindulgence",
+      "sub": "Made for moments\nthat matter",
+      "textPosition": "top",
+      "textColor": "white",
+      "brandInitials": "NW",
+      "brandColor": "#FFFFFF",
+      "brandTextColor": "#2A1F18",
+      "badgeText": "30%\nOFF",
+      "badgeBg": "#7A4023",
+      "badgeColor": "#FBE5C2"
+    },
+    {
+      "slot": 3,
+      "asset": "cards/03-write-ideas.jpg",
+      "headline": "Write ideas.\nCreate impact.",
+      "sub": "Every word\ntells a story",
+      "textPosition": "top",
+      "textColor": "dark",
+      "brandInitials": "NW",
+      "brandColor": "#FFFFFF",
+      "brandTextColor": "#2A1F18"
+    },
+    {
+      "slot": 4,
+      "asset": "cards/04-new-season.jpg",
+      "headline": "New season.\nNew inspiration.",
+      "sub": "Fresh vibes for\nyour feed",
+      "textPosition": "bottom",
+      "textColor": "white",
+      "brandInitials": "NW",
+      "brandColor": "#FFFFFF",
+      "brandTextColor": "#2A1F18"
+    }
+  ]
+}

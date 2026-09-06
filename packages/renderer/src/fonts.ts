@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const cacheDir = (() => {
-  try { return mkdtempSync(join(tmpdir(), "studio-fonts-")); } catch { return "/tmp"; }
+  try { return mkdtempSync(join(tmpdir(), "layertone-fonts-")); } catch { return "/tmp"; }
 })();
 
 interface FontEntry { family: string; weight: string; data: Uint8Array }

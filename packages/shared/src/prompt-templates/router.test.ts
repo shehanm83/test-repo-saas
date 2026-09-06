@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { normalizeCommercialGenerationInput } from "../generation/commercial-contract";
 import { resolveOutputTarget } from "../output-targets";
-import { buildQuickCreatePrompt, routeQuickCreatePrompt } from "./router";
+import {
+  buildQuickCreatePrompt,
+  NO_CROP_NEGATIVE_PROMPT,
+  NO_CROP_PROMPT_INSTRUCTION,
+  routeQuickCreatePrompt,
+} from "./router";
 
 const brandId = "00000000-0000-0000-0000-000000000001";
 const logoAssetId = "00000000-0000-0000-0000-000000000077";
@@ -59,6 +64,8 @@ describe("quick create prompt routing", () => {
     expect(built.prompt).toContain("Create a clean studio image");
     expect(built.prompt).toContain("instagram post");
     expect(built.prompt).toContain("Do not render readable text");
+    expect(built.prompt).toContain(NO_CROP_PROMPT_INSTRUCTION);
+    expect(built.negativePrompt).toContain(NO_CROP_NEGATIVE_PROMPT);
     expect(built.overlaySlots).toEqual({});
   });
 
@@ -90,6 +97,7 @@ describe("quick create prompt routing", () => {
     expect(built.templateId).toBe("quick.campaign_only");
     expect(built.prompt).toContain("Selected brand logos are exact overlay assets");
     expect(built.prompt).toContain("Do not draw, imitate, mutate, or replace the logo");
+    expect(built.prompt).toContain("keep every product, package, label, and main subject fully inside the frame");
     expect(built.overlaySlots).toMatchObject({
       logoAssetIds: [logoAssetId],
       headline: "Spring launch",

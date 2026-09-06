@@ -2,7 +2,7 @@
 
 **Phase:** 10 — Stripe billing
 **Depends on:** 32
-**Spec references:** [Spec § 6.3 (PAYG top-up flow)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 6.3 (PAYG top-up flow)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - Three Stripe Products (one-time payments) for top-up packs: 200 credits ($9), 750 credits ($29), 2,500 credits ($79)
@@ -103,8 +103,8 @@ In `packages/api/src/billing.ts` (new file):
 
 ```ts
 import { z } from "zod";
-import type { Adapters, Config } from "@vyora/shared";
-import { TOPUP_PACKS } from "@vyora/billing";
+import type { Adapters, Config } from "@layertone/shared";
+import { TOPUP_PACKS } from "@layertone/billing";
 
 export class BillingApi {
   constructor(private readonly config: Config, private readonly adapters: Adapters) {}
@@ -133,7 +133,7 @@ git commit -m "feat(billing): PAYG top-up packs with Stripe Checkout + webhook �
 ## Verification
 
 ```bash
-pnpm --filter @vyora/billing test
+pnpm --filter @layertone/billing test
 ```
 
 ## Commit message

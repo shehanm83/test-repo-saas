@@ -5,9 +5,9 @@
 **Owner:** Shehan Fernando
 **Quality bar:** **Production v1 — every component below ships as production-grade code.** "Cost-conscious" picks are **drop-in replacements** for premium AWS-native primitives, not stubs. Each upgrade trigger in § 9 swaps an implementation behind an unchanged interface. Testing breadth is intentionally trimmed (per project decision); feature code is full-fidelity.
 **Companion docs:**
-- `2026-04-25-studio-v1-prd.md`
-- `2026-04-25-studio-v1-spec.md`
-- `2026-04-25-studio-v1-ui-prompts.md`
+- `2026-04-25-layertone-v1-prd.md`
+- `2026-04-25-layertone-v1-spec.md`
+- `2026-04-25-layertone-v1-ui-prompts.md`
 
 ---
 

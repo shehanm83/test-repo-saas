@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { createDb, getProjectWithGenerations } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
-import { S3StorageAdapter } from "@vyora/storage";
+import { createDb, getProjectWithGenerations } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
+import { S3StorageAdapter } from "@layertone/storage";
 
 import { I } from "@/components/icons";
 import { ProjectCaptionActions, ProjectImageActions } from "@/components/projects/project-actions";
+import { ProjectManage } from "@/components/projects/project-manage";
 import { getSessionWorkspace } from "@/lib/auth/server";
 
 type OutputSettings = {
@@ -198,7 +199,7 @@ export default async function ProjectDetailPage(props: {
               >
                 {thumb ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={thumb} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={thumb} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                 ) : (
                   <I.Image size={16} />
                 )}
@@ -208,7 +209,7 @@ export default async function ProjectDetailPage(props: {
         </div>
         <div>
           <div>
-            <div className="t-eyebrow" style={{ color: "var(--studio-violet)", marginBottom: 6 }}>
+            <div className="t-eyebrow" style={{ color: "var(--layertone-violet)", marginBottom: 6 }}>
               <I.Folder size={11} style={{ verticalAlign: "-1px" }} /> Project
             </div>
             <h1 className="t-h2" style={{ margin: 0 }}>
@@ -234,21 +235,24 @@ export default async function ProjectDetailPage(props: {
             </div>
           </div>
         </div>
-        <div className="row">
-          <Link href="/generate" className="btn btn--secondary" style={{ textDecoration: "none" }}>
-            <I.Sparkle size={14} />
-            New generation
-          </Link>
-          {generations[0] ? (
-            <Link
-              href={`/generations/${generations[0].id}`}
-              className="btn btn--accent"
-              style={{ textDecoration: "none" }}
-            >
-              <I.ExternalLink size={14} />
-              Open latest result
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "flex-end" }}>
+          <div className="row">
+            <Link href="/generate" className="btn btn--secondary" style={{ textDecoration: "none" }}>
+              <I.Sparkle size={14} />
+              New generation
             </Link>
-          ) : null}
+            {generations[0] ? (
+              <Link
+                href={`/generations/${generations[0].id}`}
+                className="btn btn--accent"
+                style={{ textDecoration: "none" }}
+              >
+                <I.ExternalLink size={14} />
+                Open latest result
+              </Link>
+            ) : null}
+          </div>
+          <ProjectManage projectId={data.project.id} currentName={data.project.name} />
         </div>
       </div>
 

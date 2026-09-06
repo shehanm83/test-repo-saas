@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000021",
+  "slug": "hanukkah",
+  "name": "Hanukkah",
+  "kind": "seasonal",
+  "validFrom": "2026-11-25T00:00:00.000Z",
+  "validTo": "2026-12-25T23:59:59.000Z",
+  "accentPalette": [
+    "#1D4ED8",
+    "#F8FAFC",
+    "#D4AF37",
+    "#93C5FD"
+  ],
+  "decorationTags": [
+    "blue-white",
+    "candlelight",
+    "gold",
+    "gift-wrap",
+    "geometric-star-subtle"
+  ],
+  "promptModifiers": "Elegant Hanukkah-inspired campaign styling with blue, white, and gold tones, candlelit warmth, refined gift wrapping, subtle geometric star-like motifs, and calm winter celebration mood.",
+  "negativePrompts": "Readable Hebrew text, religious ritual focus, caricatures, crowded table, logos.",
+  "previewAsset": "hanukkah/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

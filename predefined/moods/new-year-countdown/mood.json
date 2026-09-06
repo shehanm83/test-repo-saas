@@ -1,0 +1,33 @@
+{
+  "id": "42000000-0000-4000-8000-000000000011",
+  "slug": "new-year-countdown",
+  "name": "New Year Countdown",
+  "kind": "seasonal",
+  "validFrom": "2026-12-15T00:00:00.000Z",
+  "validTo": "2027-01-10T23:59:59.000Z",
+  "accentPalette": [
+    "#111827",
+    "#F8FAFC",
+    "#D4AF37",
+    "#64748B"
+  ],
+  "decorationTags": [
+    "confetti",
+    "champagne-gold",
+    "midnight",
+    "sparkle",
+    "clock-hint"
+  ],
+  "promptModifiers": "Modern New Year campaign mood with midnight black, champagne gold, silver highlights, tasteful confetti, sparkle bokeh, celebratory countdown energy, and clean premium party styling.",
+  "negativePrompts": "Readable numbers, alcohol brand labels, crowded party, messy confetti, text.",
+  "previewAsset": "new-year-countdown/preview.png",
+  "status": "candidate",
+  "supportedAspectRatios": [
+    "1:1",
+    "4:5",
+    "9:16",
+    "16:9",
+    "1.91:1",
+    "2:3"
+  ]
+}

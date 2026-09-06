@@ -2,7 +2,7 @@
 
 **Phase:** 2 — Auth & workspace
 **Depends on:** 10, 09
-**Spec references:** [Spec § 3.1 (Sign up & first workspace)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 3.1 (Sign up & first workspace)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `apps/web/src/app/api/webhooks/clerk/route.ts` exists (Next.js will be initialized in slice 35; for now place a typed handler in `packages/auth/src/webhook.ts` that the route will mount)
@@ -31,8 +31,8 @@
 - [ ] **Step 1 — Add Svix**
 
 ```bash
-pnpm --filter @vyora/auth add svix
-pnpm --filter @vyora/auth add @vyora/db@workspace:*
+pnpm --filter @layertone/auth add svix
+pnpm --filter @layertone/auth add @layertone/db@workspace:*
 ```
 
 - [ ] **Step 2 — Helper queries `packages/db/src/queries/identity.ts`**
@@ -92,8 +92,8 @@ Update `packages/db/src/index.ts` to also export `./queries/identity.js`.
 
 ```ts
 import { Webhook } from "svix";
-import { bootstrapNewUser, softDeleteWorkspaceForUser, createDb } from "@vyora/db";
-import type { Config } from "@vyora/shared";
+import { bootstrapNewUser, softDeleteWorkspaceForUser, createDb } from "@layertone/db";
+import type { Config } from "@layertone/shared";
 
 export interface ClerkWebhookEvent {
   id: string;
@@ -145,7 +145,7 @@ export class ClerkWebhookHandler {
 ```ts
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: vi.fn(() => ({})),
   bootstrapNewUser: vi.fn(async () => ({ userId: "u", workspaceId: "w" })),
   softDeleteWorkspaceForUser: vi.fn(async () => undefined),
@@ -179,7 +179,7 @@ describe("ClerkWebhookHandler", () => {
 - [ ] **Step 5 — Run tests, expect green**
 
 ```bash
-pnpm --filter @vyora/auth test
+pnpm --filter @layertone/auth test
 ```
 
 - [ ] **Step 6 — Commit**
@@ -194,7 +194,7 @@ git commit -m "feat(auth): Clerk webhook handler bootstraps user + workspace + i
 ## Verification
 
 ```bash
-pnpm --filter @vyora/auth test
+pnpm --filter @layertone/auth test
 pnpm typecheck
 ```
 

@@ -6,7 +6,7 @@
 
 **Architecture:** The `MockImageProvider` in `packages/gateway` is enhanced to read one of four sample PNGs (resized to requested dimensions via `sharp`) after a configurable random delay. The worker's `dev.ts` script, which currently leaves the `ai` adapter unwired, is updated to build a `Gateway` with all mock providers when `AI_MODE=mock`. No frontend changes are needed — the `GenerationView` polling loop, skeleton states, and fade-in animations all work on the existing real flow.
 
-**Tech Stack:** Node.js ESM, TypeScript, `sharp` (already in `@vyora/gateway` deps), `@vyora/gateway` Gateway class, vitest
+**Tech Stack:** Node.js ESM, TypeScript, `sharp` (already in `@layertone/gateway` deps), `@layertone/gateway` Gateway class, vitest
 
 ---
 
@@ -135,7 +135,7 @@ import sharp from "sharp";
 
 import { promptFingerprint } from "./gateway.js";
 import type { ImageProvider, TextProvider, VisionProvider, ModerationProvider } from "./types.js";
-import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@vyora/shared";
+import type { AIImageRequest, AIImageResponse, AITextRequest, AITextResponse } from "@layertone/shared";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SAMPLES_DIR = resolve(__dirname, "../samples");
@@ -267,9 +267,9 @@ import {
   MockTextProvider,
   MockVisionProvider,
   MockModerationProvider,
-} from "@vyora/gateway";
-import { createQueueAdapter } from "@vyora/queue";
-import { loadConfig, createAdapters } from "@vyora/shared";
+} from "@layertone/gateway";
+import { createQueueAdapter } from "@layertone/queue";
+import { loadConfig, createAdapters } from "@layertone/shared";
 
 import { GenerationWorker } from "../src/handler.js";
 import { initWorkerSentry } from "../src/instrumentation.js";

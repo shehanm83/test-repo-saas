@@ -2,7 +2,7 @@
 
 **Phase:** 5 — Credit ledger
 **Depends on:** 09
-**Spec references:** [Spec § 6 (Billing & credit ledger)](../specs/2026-04-25-studio-v1-spec.md), [Spec § 3.4 step 9 (commit / release semantics)](../specs/2026-04-25-studio-v1-spec.md).
+**Spec references:** [Spec § 6 (Billing & credit ledger)](../specs/2026-04-25-layertone-v1-spec.md), [Spec § 3.4 step 9 (commit / release semantics)](../specs/2026-04-25-layertone-v1-spec.md).
 
 **Definition of done:**
 - `packages/billing` package with `Ledger` class
@@ -28,7 +28,7 @@
 
 Mirror prior packages. Deps:
 ```bash
-pnpm --filter @vyora/billing add @vyora/db@workspace:* @vyora/shared@workspace:* drizzle-orm
+pnpm --filter @layertone/billing add @layertone/db@workspace:* @layertone/shared@workspace:* drizzle-orm
 ```
 
 - [ ] **Step 2 — Errors**
@@ -57,7 +57,7 @@ export class IdempotencyConflict extends Error {
 
 ```ts
 import { eq, sql } from "drizzle-orm";
-import { creditLedgerEntries, withWorkspace, type Db } from "@vyora/db";
+import { creditLedgerEntries, withWorkspace, type Db } from "@layertone/db";
 import { InsufficientCredits } from "./errors.js";
 
 type Kind = "grant" | "reservation" | "commit" | "release" | "topup" | "refund" | "adjustment";
@@ -171,7 +171,7 @@ Add a follow-up migration `0005_ledger_check.sql` (`pnpm db:generate --name=ledg
 ALTER TABLE credit_ledger_entries ADD CONSTRAINT ledger_balance_after_nonneg CHECK (balance_after >= 0);
 ```
 
-Run: `pnpm --filter @vyora/db db:migrate`.
+Run: `pnpm --filter @layertone/db db:migrate`.
 
 - [ ] **Step 6 — Integration test (concurrency)**
 
@@ -179,10 +179,10 @@ Run: `pnpm --filter @vyora/db db:migrate`.
 
 ```ts
 import { describe, expect, it } from "vitest";
-import { createDb, users, workspaces } from "@vyora/db";
+import { createDb, users, workspaces } from "@layertone/db";
 import { Ledger } from "./ledger.js";
 
-const url = process.env.DATABASE_URL ?? "postgres://studio:dev@localhost:5432/studio";
+const url = process.env.DATABASE_URL ?? "postgres://layertone:dev@localhost:5432/studio";
 const db = createDb(url, "app_admin");
 
 async function setup() {
@@ -240,8 +240,8 @@ describe("Ledger", () => {
 - [ ] **Step 7 — Run integration**
 
 ```bash
-pnpm --filter @vyora/db db:migrate
-DATABASE_URL=postgres://studio:dev@localhost:5432/studio pnpm test:int
+pnpm --filter @layertone/db db:migrate
+DATABASE_URL=postgres://layertone:dev@localhost:5432/studio pnpm test:int
 ```
 
 - [ ] **Step 8 — Commit**

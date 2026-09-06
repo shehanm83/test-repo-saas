@@ -30,6 +30,7 @@ describe("OpenAIImageProvider", () => {
     const r = await p.generate({
       modelCode: "gpt-image-2",
       prompt: "hello",
+      negativePrompt: "distorted label, unreadable text",
       aspectRatio: "1:1",
       width: 1024,
       height: 1024,
@@ -37,12 +38,19 @@ describe("OpenAIImageProvider", () => {
     });
     expect(r.modelUsedCode).toBe("gpt-image-2");
     expect(__mockGenerate).toHaveBeenCalledWith(
-      expect.objectContaining({ model: "gpt-image-2", output_format: "png", size: "1024x1024" }),
+      expect.objectContaining({
+        model: "gpt-image-2",
+        output_format: "png",
+        size: "1024x1024",
+        prompt: expect.stringContaining(
+          "Avoid all of the following: distorted label, unreadable text",
+        ),
+      }),
     );
     expect(r.imageBytes.byteLength).toBeGreaterThan(0);
   });
 
-  it("uses a supported gpt-image-1 landscape size for 1.91:1 targets", async () => {
+  it("aliases gpt-image-1 requests to gpt-image-2", async () => {
     const { __mockGenerate } = (await import("openai")) as unknown as {
       __mockGenerate: ReturnType<typeof vi.fn>;
     };
@@ -61,8 +69,9 @@ describe("OpenAIImageProvider", () => {
       safetyLevel: "default",
     });
 
+    // gpt-image-1 is aliased to gpt-image-2 at the API call level
     expect(__mockGenerate).toHaveBeenCalledWith(
-      expect.objectContaining({ model: "gpt-image-1", size: "1536x1024" }),
+      expect.objectContaining({ model: "gpt-image-2", size: "1536x1024" }),
     );
   });
 

@@ -2,7 +2,7 @@
 
 **Phase:** 4 — Catalogs
 **Depends on:** 08
-**Spec references:** [Spec § 1.2 (templates)](../specs/2026-04-25-studio-v1-spec.md), [Architecture § 5 (Template renderer)](../specs/2026-04-25-studio-v1-architecture.md), [UI prompt for Template Studio (slice 45)].
+**Spec references:** [Spec § 1.2 (templates)](../specs/2026-04-25-layertone-v1-spec.md), [Architecture § 5 (Template renderer)](../specs/2026-04-25-layertone-v1-architecture.md), [UI prompt for Template Studio (slice 45)].
 
 **Definition of done:**
 - `TemplateApi` admin CRUD on `templates`
@@ -95,9 +95,9 @@ export async function listPublishedTemplatesForRouting(db: Db, aspectRatio: stri
 
 ```ts
 import { z } from "zod";
-import { ASPECT_RATIOS, MODEL_CODES, SlotSchema, TextSafeZonesSchema } from "@vyora/shared";
-import { createDb, adminListTemplates, adminCreateTemplate, adminUpdateTemplate, listPublishedTemplatesForRouting } from "@vyora/db";
-import type { Config } from "@vyora/shared";
+import { ASPECT_RATIOS, MODEL_CODES, SlotSchema, TextSafeZonesSchema } from "@layertone/shared";
+import { createDb, adminListTemplates, adminCreateTemplate, adminUpdateTemplate, listPublishedTemplatesForRouting } from "@layertone/db";
+import type { Config } from "@layertone/shared";
 
 const TemplateInput = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
@@ -144,7 +144,7 @@ export class TemplateApi {
 ```ts
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@vyora/db", () => ({
+vi.mock("@layertone/db", () => ({
   createDb: () => ({}),
   adminListTemplates: vi.fn(async () => []),
   adminCreateTemplate: vi.fn(async (_d, v) => ({ id: "t1", ...v })),
@@ -190,7 +190,7 @@ git commit -m "feat(api): template admin CRUD with slot/text-safe-zone schema va
 ## Verification
 
 ```bash
-pnpm --filter @vyora/api test
+pnpm --filter @layertone/api test
 ```
 
 ## Commit message

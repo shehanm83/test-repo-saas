@@ -1,7 +1,7 @@
-import { and, asc, eq, gte, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { Db } from "../client";
-import { moods, moodTemplateBindings, templates } from "../schema";
+import { moods, moodAssets, moodTemplateBindings, templates } from "../schema";
 
 export const ASPECT_RATIO_VALUES = ["1:1", "4:5", "9:16", "16:9", "1.91:1", "2:3"] as const;
 export type AspectRatio = (typeof ASPECT_RATIO_VALUES)[number];
@@ -10,12 +10,7 @@ export async function listAvailableMoods(
   db: Db,
   args: { aspectRatio?: AspectRatio; now?: Date } = {},
 ) {
-  const now = args.now ?? new Date();
-  const conditions = [
-    eq(moods.status, "published"),
-    or(isNull(moods.validFrom), lte(moods.validFrom, now)),
-    or(isNull(moods.validTo), gte(moods.validTo, now)),
-  ];
+  const conditions = [eq(moods.status, "published")];
 
   if (args.aspectRatio) {
     conditions.push(sql`${args.aspectRatio} = ANY(${moods.supportedAspectRatios})`);
@@ -30,6 +25,14 @@ export async function listAvailableMoods(
 
 export async function adminListMoods(db: Db) {
   return db.select().from(moods).orderBy(asc(moods.name));
+}
+
+export async function listApprovedMoodAssets(db: Db, moodId: string) {
+  return db
+    .select()
+    .from(moodAssets)
+    .where(and(eq(moodAssets.moodId, moodId), eq(moodAssets.approvedForModelUse, true)))
+    .orderBy(asc(moodAssets.createdAt));
 }
 
 export async function adminCreateMood(db: Db, value: typeof moods.$inferInsert) {
@@ -48,6 +51,10 @@ export async function adminUpdateMood(
     .where(eq(moods.id, id))
     .returning();
   return mood ?? null;
+}
+
+export async function adminDeleteMood(db: Db, id: string) {
+  await db.delete(moods).where(eq(moods.id, id));
 }
 
 export async function adminBindings(db: Db, moodId: string) {

@@ -20,7 +20,9 @@ vi.mock("@aws-sdk/client-bedrock-runtime", () => {
 
 describe("BedrockImageProvider", () => {
   it("calls Bedrock SD 3.5 and decodes base64 response", async () => {
-    const { __mockSend } = await import("@aws-sdk/client-bedrock-runtime") as unknown as { __mockSend: ReturnType<typeof vi.fn> };
+    const { __mockSend } = (await import("@aws-sdk/client-bedrock-runtime")) as unknown as {
+      __mockSend: ReturnType<typeof vi.fn>;
+    };
     const fakeB64 = Buffer.from([0x89, 0x50, 0x4e, 0x47]).toString("base64");
     __mockSend.mockResolvedValueOnce({
       body: new TextEncoder().encode(JSON.stringify({ images: [fakeB64] })),
@@ -41,7 +43,9 @@ describe("BedrockImageProvider", () => {
   });
 
   it("calls Nova Canvas with correct model id", async () => {
-    const { __mockSend } = await import("@aws-sdk/client-bedrock-runtime") as unknown as { __mockSend: ReturnType<typeof vi.fn> };
+    const { __mockSend } = (await import("@aws-sdk/client-bedrock-runtime")) as unknown as {
+      __mockSend: ReturnType<typeof vi.fn>;
+    };
     const fakeB64 = Buffer.from([0x00, 0x01]).toString("base64");
     __mockSend.mockResolvedValueOnce({
       body: new TextEncoder().encode(JSON.stringify({ images: [fakeB64] })),

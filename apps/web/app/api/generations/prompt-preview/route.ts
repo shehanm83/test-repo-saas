@@ -8,13 +8,13 @@ import {
   moods,
   pickTemplates,
   templates as templatesTable,
-} from "@vyora/db";
+} from "@layertone/db";
 import {
   normalizeCommercialGenerationInput,
   resolveOutputTarget,
-} from "@vyora/shared";
-import { loadConfig } from "@vyora/shared/config";
-import { buildQuickCreatePrompt } from "@vyora/shared/prompt-templates";
+} from "@layertone/shared";
+import { loadConfig } from "@layertone/shared/config";
+import { buildQuickCreatePrompt } from "@layertone/shared/prompt-templates";
 
 import { getSessionWorkspace } from "@/lib/auth/server";
 

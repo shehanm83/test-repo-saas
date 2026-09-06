@@ -6,23 +6,23 @@ import { PreflightPanel } from "./preflight-panel";
 import type { GenerateState, PreflightResult } from "./types";
 
 const FORMAT_LABELS: Record<string, string> = {
-  instagram_square: "Instagram square 1080 × 1080",
-  instagram_portrait: "Instagram portrait 1080 × 1350",
-  instagram_landscape: "Instagram landscape 1080 × 566",
-  instagram_story: "Instagram story 1080 × 1920",
-  instagram_reel: "Instagram reel 1080 × 1920",
-  instagram_feed_video_portrait: "Instagram feed video 1080 × 1350",
-  instagram_feed_video_square: "Instagram feed video 1080 × 1080",
-  facebook_feed: "Facebook feed 1200 × 630",
-  facebook_square: "Facebook square 1080 × 1080",
-  facebook_portrait: "Facebook portrait 1080 × 1350",
-  facebook_landscape: "Facebook landscape 1080 × 566",
-  facebook_link_preview: "Facebook link preview 1200 × 630",
-  facebook_profile_photo: "Facebook profile photo 320 × 320",
-  facebook_cover_photo: "Facebook cover photo 820 × 360",
-  facebook_story: "Facebook story 1080 × 1920",
-  linkedin_feed: "LinkedIn standard 1200 × 627",
-  tiktok_vertical: "TikTok vertical 1080 × 1920",
+  instagram_square: "Instagram square",
+  instagram_portrait: "Instagram portrait",
+  instagram_landscape: "Instagram landscape",
+  instagram_story: "Instagram story",
+  instagram_reel: "Instagram reel",
+  instagram_feed_video_portrait: "Instagram feed video",
+  instagram_feed_video_square: "Instagram feed video",
+  facebook_feed: "Facebook feed",
+  facebook_square: "Facebook square",
+  facebook_portrait: "Facebook portrait",
+  facebook_landscape: "Facebook landscape",
+  facebook_link_preview: "Facebook link preview",
+  facebook_profile_photo: "Facebook profile photo",
+  facebook_cover_photo: "Facebook cover photo",
+  facebook_story: "Facebook story",
+  linkedin_feed: "LinkedIn standard",
+  tiktok_vertical: "TikTok vertical",
   website_banner: "Website banner",
   product_card: "Product card",
   ad_creative: "Ad creative",
@@ -38,24 +38,6 @@ const CREATION_LABELS: Record<string, string> = {
   social_ad_pack: "Social ad pack",
 };
 
-function completion(state: GenerateState) {
-  const checks = state.mode === "quick"
-    ? [
-        state.outputs.formats.length > 0,
-        state.brief.trim().length > 0,
-        Boolean(state.outputs.quality),
-        state.outputs.variants > 0,
-      ]
-    : [
-        state.brandId.length > 0,
-        state.selectedProducts.length > 0,
-        state.brief.trim().length > 0,
-        state.template.family.length > 0 && state.template.layout.length > 0,
-        state.outputs.formats.length > 0,
-      ];
-  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
-}
-
 function hasCampaignDetails(state: GenerateState) {
   return Object.values(state.campaign).some((value) =>
     typeof value === "string" ? value.trim().length > 0 : Boolean(value),
@@ -69,7 +51,6 @@ function campaignLabel(state: GenerateState) {
 
 export function ReviewRail(props: {
   state: GenerateState;
-  credits: number;
   preflight: PreflightResult | null;
   preflightLoading: boolean;
   preflightError: string | null;
@@ -79,23 +60,11 @@ export function ReviewRail(props: {
   canSubmit: boolean;
   onSubmit: () => void;
 }) {
-  const percent = completion(props.state);
   const estimate = props.preflight?.estimate;
   const selected = props.state.selectedProducts.slice(0, 4);
 
   return (
     <aside className="cg-rail" aria-label="Generation review">
-      <div className="cg-rail-card">
-        <div className="cg-rail-head">
-          <div>
-            <span className="cg-kicker">Readiness</span>
-            <strong>{percent}% complete</strong>
-          </div>
-          <span className="pill pill--ring">{props.credits} credits</span>
-        </div>
-        <div className="cg-progress"><span style={{ width: `${percent}%` }} /></div>
-      </div>
-
       <div className="cg-rail-card">
         <span className="cg-kicker">Products</span>
         {selected.length ? (
@@ -123,7 +92,8 @@ export function ReviewRail(props: {
         <span className="cg-kicker">Campaign</span>
         <strong>{campaignLabel(props.state)}</strong>
         <p className="cg-muted">
-          {props.state.template.family.replaceAll("_", " ")} / {props.state.template.layout.replaceAll("_", " ")}
+          {props.state.template.family.replaceAll("_", " ")} /{" "}
+          {props.state.template.layout.replaceAll("_", " ")}
         </p>
       </div>
 
@@ -131,14 +101,20 @@ export function ReviewRail(props: {
         <span className="cg-kicker">Formats</span>
         <div className="cg-chip-wrap">
           {props.state.outputs.formats.map((format) => (
-            <span className="pill pill--ring" key={format}>{FORMAT_LABELS[format]}</span>
+            <span className="pill pill--ring" key={format}>
+              {FORMAT_LABELS[format]}
+            </span>
           ))}
         </div>
       </div>
 
       <div className="cg-rail-card">
         <span className="cg-kicker">Preflight</span>
-        <PreflightPanel preflight={props.preflight} loading={props.preflightLoading} error={props.preflightError} />
+        <PreflightPanel
+          preflight={props.preflight}
+          loading={props.preflightLoading}
+          error={props.preflightError}
+        />
       </div>
 
       <div className="cg-rail-card">
@@ -163,17 +139,26 @@ export function ReviewRail(props: {
         </div>
       </div>
 
-      {props.submitError ? <div className="cg-submit-error">{props.submitError}</div> : null}
+      {props.submitError ? (
+        <div className="cg-submit-error" aria-live="polite">
+          {props.submitError}
+        </div>
+      ) : null}
 
-      <button type="button" className="btn btn--accent btn--lg btn--full" disabled={!props.canSubmit} onClick={props.onSubmit}>
+      <button
+        type="button"
+        className="btn btn--accent btn--lg btn--full"
+        disabled={!props.canSubmit}
+        onClick={props.onSubmit}
+      >
         <I.Sparkle size={16} />
         {props.pending
-          ? "Generating..."
+          ? "Generating…"
           : props.promptPreviewLoading
-            ? "Building prompt..."
+            ? "Building Prompt…"
             : props.state.mode === "quick"
-              ? "Generate images"
-              : "Generate package"}
+              ? "Generate Images"
+              : "Generate Package"}
       </button>
     </aside>
   );

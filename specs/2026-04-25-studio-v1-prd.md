@@ -5,9 +5,9 @@
 **Owner:** Shehan Fernando
 **Quality bar:** **Production v1 — every shipped feature is built as production-grade code.** No half-implementations, no temporary shortcuts, no placeholders disguised as features. The product scope (in § 6) is deliberately bounded — but every item that is in scope is built to ship to paying customers on day one. Testing scope is intentionally trimmed (manual visual review of templates; no automated visual regression / load tests / migration safety automation — see spec § 9). The trim is on test breadth only; feature code itself is full-fidelity.
 **Related docs:**
-- `2026-04-25-studio-v1-spec.md` — functional/technical spec
-- `2026-04-25-studio-v1-architecture.md` — architecture & deployment
-- `2026-04-25-studio-v1-ui-prompts.md` — prompts for AI design tools
+- `2026-04-25-layertone-v1-spec.md` — functional/technical spec
+- `2026-04-25-layertone-v1-architecture.md` — architecture & deployment
+- `2026-04-25-layertone-v1-ui-prompts.md` — prompts for AI design tools
 
 ---
 

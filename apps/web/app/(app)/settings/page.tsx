@@ -1,8 +1,9 @@
-import { Ledger, PLANS } from "@vyora/billing";
-import { createDb } from "@vyora/db";
-import { loadConfig } from "@vyora/shared/config";
+import { Ledger, normalizePlanCode, PLANS } from "@layertone/billing";
+import { createDb } from "@layertone/db";
+import { loadConfig } from "@layertone/shared/config";
 
 import { I } from "@/components/icons";
+import { MemberActions } from "@/components/settings/member-actions";
 import { listWorkspaceMembers, getSessionWorkspace } from "@/lib/auth/server";
 
 function Stat({
@@ -40,7 +41,7 @@ export default async function SettingsPage() {
   const config = loadConfig();
   const db = createDb(config.db.url, "app_admin");
   const balance = workspace ? await new Ledger(db).getBalance(workspace.id) : 0;
-  const planCode = (workspace?.planCode ?? "free") as keyof typeof PLANS;
+  const planCode = normalizePlanCode(workspace?.planCode);
   const plan = PLANS[planCode];
 
   return (
@@ -49,7 +50,7 @@ export default async function SettingsPage() {
         <div>
           <div
             className="t-eyebrow"
-            style={{ color: "var(--studio-violet)", marginBottom: 6 }}
+            style={{ color: "var(--layertone-violet)", marginBottom: 6 }}
           >
             <I.Settings size={11} style={{ verticalAlign: "-1px" }} /> Workspace settings
           </div>
@@ -96,7 +97,7 @@ export default async function SettingsPage() {
                   height: 56,
                   borderRadius: 14,
                   background:
-                    "linear-gradient(135deg, var(--studio-violet) 0%, #B5B4F2 100%)",
+                    "linear-gradient(135deg, var(--layertone-violet) 0%, #B5B4F2 100%)",
                   color: "white",
                   display: "grid",
                   placeItems: "center",
@@ -130,7 +131,7 @@ export default async function SettingsPage() {
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span className="pill pill--accent">
               <I.Crown size={11} />
-              {planCode.toUpperCase()}
+              {plan.name}
             </span>
             <span
               className={`pill ${
@@ -154,10 +155,10 @@ export default async function SettingsPage() {
           }}
         >
           <div style={{ padding: "20px 28px", borderRight: "1px solid var(--cal-gray-200)" }}>
-            <Stat label="Credits" value={balance.toLocaleString()} accent="var(--studio-violet)" />
+            <Stat label="Credits" value={balance.toLocaleString()} accent="var(--layertone-violet)" />
           </div>
           <div style={{ padding: "20px 28px", borderRight: "1px solid var(--cal-gray-200)" }}>
-            <Stat label="Brands" value={`${plan.brandQuota}`} accent="#C97A3F" />
+            <Stat label="Brand limit" value={`${plan.brandQuota}`} accent="#C97A3F" />
           </div>
           <div style={{ padding: "20px 28px", borderRight: "1px solid var(--cal-gray-200)" }}>
             <Stat
@@ -188,7 +189,7 @@ export default async function SettingsPage() {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ background: "var(--cal-gray-50)" }}>
-              {["Email", "Role", "Accepted"].map((h) => (
+              {["Email", "Role", "Accepted", "Actions"].map((h) => (
                 <th
                   key={h}
                   style={{
@@ -207,30 +208,11 @@ export default async function SettingsPage() {
             </tr>
           </thead>
           <tbody>
-            {members.map((member) => (
-              <tr
-                key={member.id}
-                style={{ borderTop: "1px solid var(--cal-gray-200)" }}
-              >
-                <td style={{ padding: "12px 24px" }}>{member.email}</td>
-                <td style={{ padding: "12px 24px" }}>
-                  <span className="pill">{member.role}</span>
-                </td>
-                <td style={{ padding: "12px 24px" }}>
-                  {member.acceptedAt ? (
-                    <span className="pill pill--green">
-                      <I.Check size={11} /> Yes
-                    </span>
-                  ) : (
-                    <span className="pill pill--amber">Pending</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+            <MemberActions members={members} currentUserId={session.userId} />
             {members.length === 0 ? (
               <tr>
                 <td
-                  colSpan={3}
+                  colSpan={4}
                   style={{ padding: 32, color: "var(--fg-3)", textAlign: "center" }}
                 >
                   No members yet.

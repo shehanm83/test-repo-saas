@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState, useTransition } from "react";
 
 import { I } from "@/components/icons";
+import { CreateWorkspaceModal } from "./create-workspace-modal";
 
 const DOT_COLORS = ["#1D3B2A", "#5E5CE6", "#C97A3F", "#7A0E0E", "#1F7A5A", "#B5651D"];
 function dotColor(id: string): string {
@@ -20,6 +21,8 @@ export function WorkspaceSwitcher(props: {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [switchError, setSwitchError] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,12 +35,17 @@ export function WorkspaceSwitcher(props: {
 
   async function pick(nextWorkspaceId: string) {
     setOpen(false);
+    setSwitchError("");
     if (nextWorkspaceId === props.workspaceId) return;
-    await fetch("/api/workspaces/switch", {
+    const res = await fetch("/api/workspaces/switch", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ workspaceId: nextWorkspaceId }),
     });
+    if (!res.ok) {
+      setSwitchError("Could not switch workspace. Refresh and try again.");
+      return;
+    }
     startTransition(() => router.refresh());
   }
 
@@ -94,19 +102,38 @@ export function WorkspaceSwitcher(props: {
               />
               <span>{w.name}</span>
               {w.id === props.workspaceId ? (
-                <I.Check
-                  size={14}
-                  style={{ marginLeft: "auto", color: "var(--fg-1)" }}
-                />
+                <I.Check size={14} style={{ marginLeft: "auto", color: "var(--fg-1)" }} />
               ) : null}
             </button>
           ))}
           <div className="menu-divider" />
-          <button type="button" className="menu-item" style={{ width: "100%", textAlign: "left" }}>
+          <button
+            type="button"
+            className="menu-item"
+            style={{ width: "100%", textAlign: "left" }}
+            onClick={() => {
+              setOpen(false);
+              setModalOpen(true);
+            }}
+          >
             <I.Plus size={14} /> Create new workspace
           </button>
         </div>
       ) : null}
+      {switchError ? (
+        <div
+          role="status"
+          style={{
+            color: "var(--danger, #b42318)",
+            fontSize: 12,
+            marginTop: 6,
+            maxWidth: 240,
+          }}
+        >
+          {switchError}
+        </div>
+      ) : null}
+      <CreateWorkspaceModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }

@@ -94,9 +94,9 @@ Implement checks:
 ## Verification
 
 ```bash
-pnpm --filter @vyora/shared test
-pnpm --filter @vyora/api test -- generation
-pnpm --filter @vyora/worker test
+pnpm --filter @layertone/shared test
+pnpm --filter @layertone/api test -- generation
+pnpm --filter @layertone/worker test
 ```
 
 ## Commit Message
